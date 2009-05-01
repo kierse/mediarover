@@ -26,3 +26,4 @@ instead of os.listdir
 	- each source should return one of supported categories when queried
 - when looking for episode on disk, search all subdirectories for possible 
 files
+- update config write process to merge existing configs with template values
