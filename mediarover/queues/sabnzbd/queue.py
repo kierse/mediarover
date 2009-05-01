@@ -1,0 +1,150 @@
+# Copyright 2009 Kieran Elliott <kierse@mediarover.tv>
+#
+# Media Rover is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# Media Rover is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import logging
+import re
+import time
+import urllib
+import xml.dom.minidom
+
+from mediarover.error import *
+from mediarover.queue import Queue
+from mediarover.queues.sabnzbd.job import SabnzbdJob
+
+class SabnzbdQueue(Queue):
+	""" Sabnzbd queue class """
+
+	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	def jobs(self):
+		""" return list of Job items """
+		
+		logger = logging.getLogger("mediarover.queues.sabnzbd.queue")
+
+		# if jobs list hasn't been constructed yet, parse document tree
+		# and build list of current jobs
+		try:
+			self.__jobs
+		except AttributeError:
+			try:
+				self.__document
+			except AttributeError:
+				self.__get_document()
+
+			self.__jobs = []
+			for rawJob in self.__document.getElementsByTagName("job"):
+				self.__jobs.append(SabnzbdJob(rawJob))
+
+		# return job list to caller
+		return self.__jobs
+	
+	def add_to_queue(self, item):
+		"""
+			add given item object to queue
+
+			two possible ways to get nzb:
+			  a) if newzbin item, grab report ID and pass to SABnzbd
+			  b) otherwise, grab url where nzb can be found and pass to SABnzbd
+		"""
+		logger = logging.getLogger("mediarover.queues.sabnzbd.queue")
+
+		args = {'cat': item.category}
+		try:
+			args['name'] = item.id()
+		except AttributeError:
+			args['mode'] = 'addurl'
+			args['name'] = item.url()
+		else:
+			args['mode'] = 'addid'
+			
+		if 'username' and 'password' in self._params:
+			if self._params['username'] is not None and self._params['password'] is not None:
+				args['ma_username'] = self._params['username']
+				args['ma_password'] = self._params['password']
+
+		# generate web service url and make call
+		url = "%s/api?%s" % (self.root, urllib.urlencode(args))
+		logger.debug("add to queue request: %s", url)
+		handle = urllib.urlopen(url)
+
+		# check response for status of request
+		response = handle.readline()
+		if response == "ok\n":
+			#self.__clear()
+			#time.sleep(5)
+			logger.info("item '%s' successfully queued for download", item.title())
+		elif response == "error\n":
+			raise QueueInsertionError("unable to queue item '%s' for download", item.title())
+		else:
+			raise QueueInsertionError("unexpected response received from queue, unable to schedule item '%s' for download", item.title())
+
+	def in_queue(self, download):
+		""" return boolean indicating whether or not the given source item is in queue """
+
+		logger = logging.getLogger("mediarover.queues.sabnzbd.queue")
+
+		for job in self.jobs():
+			try:
+				if download == job.download():
+					logger.debug("download '%s' FOUND in queue", download)
+					return True
+			except InvalidItemTitle:
+				continue
+
+		logger.debug("download '%s' NOT FOUND in queue", download)
+		return False
+
+	# private methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	def __get_document(self):
+		logger = logging.getLogger('queue')
+
+		url = "%s/api?mode=qstatus&output=xml" % self.root
+		logger.debug("retrieving queue from '%s'", url)
+
+		regex = re.compile("fetch")
+		data = None
+
+		# ATTENTION: it usually takes a few seconds for SABnzbd to download an nzb
+		# when queued for download.  However, the nzb shows up immediately in 
+		# the downloaded queue.  This screws up all queue related checks because the 
+		# nzb name isn't yet known (by SABnzbd).  Therefore we loop and give SABnzb 
+		# time to download the nzb and fully populate the queue.
+		for i in range(12):
+			response = urllib.urlopen(url)
+			data = response.read()
+			if regex.search(data):
+				logger.debug("queue still processing new scheduled downloads, waiting...")
+				time.sleep(5)
+			else:
+				break
+		else:
+			logger.warning("giving up waiting for queue to finish processing newly scheduled downloads - duplicate downloads possible!")
+
+		self.__document = xml.dom.minidom.parseString(data)
+
+	def __clear(self):
+
+		# queue data is now stale, delete it so that next time
+		# the jobs are processed, the queue will be retrieved
+		try: del self.__jobs
+		except AttributeError: pass
+
+		try:
+			self.__document.unlink()
+			del self.__document
+		except AttributeError:
+			pass
+

@@ -1,0 +1,3 @@
+Known bugs / deficiencies
+=========================
+- does not correctly identify a multiepisode that is a subset of another multiepisode

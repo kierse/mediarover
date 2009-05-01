@@ -1,0 +1,28 @@
+mediarover TODO
+===============
+- update/rewrite all unittests to reflect recent changes
+   - write test for mediarover.util.filesystem to verify that it is correctly
+	caching episodes when they are retrieved
+- add filtering ability, ie. don't want to download nzb's that are labelled
+as password protected => "Lost (2004) - 5x05 - blah (password protected)"
+- handle tv directory with no season folders, ie all episodes are in one 
+folder.
+- allow user to specify whether or not they want pre-season recap episodes 
+(ie. 3x00)
+- look at handling mini or fractional episodes 
+(ie. Big Brother (IT) - 9x45a - Daily Show).
+	- update regex to look for optional letter following episode number
+	- store it in episode object and spit it out whenever converting episode
+	to string
+- update custom errors to allow setting an error number.  That way I can 
+handle different numbered error specifically
+	- update util.filesystem to number different errors
+- convert all paths to be platform independent, ie. use os.path.join and
+os.sep or os.path.normcase
+- when looking for download file in sab episode sort script, use os.walk 
+instead of os.listdir
+- look at moving daily flag to series object as it is a property of the show
+- standardize category types that are supported by application
+	- each source should return one of supported categories when queried
+- when looking for episode on disk, search all subdirectories for possible 
+files
