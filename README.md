@@ -1,6 +1,6 @@
 # Media Rover #
 
-#### An automation media download scheduler and catalogue maintainer ####
+#### An automated media download scheduler and catalogue maintainer ####
 
 Media Rover is a command line tool responsible for managing a directory of television shows.  It monitors various usenet indexing sites for new and/or missing episodes and schedules them for download with a binary newsgroup reader.  Once downloaded, Media Rover renames and catalogues the file on disk according to series name, season and episode number.
 
@@ -18,7 +18,7 @@ It also has several unique design features:
 
 ### Installation ###
 
-**Note:** because it's written in Python, you shouldn't need to do anything other than ensure that Python is correctly installed on your system.  Of course your milage may vary...
+**Note:** because it's written in Python, you shouldn't need to do anything other than ensure that Python is correctly installed on your system.  Of course your millage may vary...
 
 *Requirements:*
 
