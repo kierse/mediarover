@@ -27,3 +27,4 @@ instead of os.listdir
 - when looking for episode on disk, search all subdirectories for possible 
 files
 - update config write process to merge existing configs with template values
+- update SABnzbd plugin to support new session key
