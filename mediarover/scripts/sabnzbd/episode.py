@@ -169,7 +169,9 @@ def _process_download(config, options, args):
 
 	# get list of shows in root tv directory
 	shows = {}
-	for name in os.listdir(tv_root):
+	dir_list = os.listdir(tv_root)
+	dir_list.sort()
+	for name in dir_list:
 
 		# skip hidden directories
 		if name.startswith("."):
@@ -253,6 +255,9 @@ def _process_download(config, options, args):
 
 	# update new episode object with extension scrapped from downloaded file
 	episode.extension = extension
+
+	# make sure episode series object knows whether to ignore metadata or not
+	episode.series.ignore_metadata = config['tv']['ignore_series_metadata']
 
 	# determine if episode belongs to a currently watched series
 	season_path = None

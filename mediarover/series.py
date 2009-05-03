@@ -89,11 +89,11 @@ class Series(object):
 		return "%s" % self.name
 
 	def __hash__(self):
-		return Series.sanitize_series_name(self.name).__hash__()
+		return Series.sanitize_series_name(self).__hash__()
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def sanitize_series_name(cls, series, ignore_metadata=None):
+	def sanitize_series_name(cls, series, ignore_metadata=True):
 		""" 
 			return a sanitized version of given series name
 			lowercase and remove all non alpha numeric characters 
@@ -118,7 +118,7 @@ class Series(object):
 
 	def _name_prop(self):
 		name = self.__raw_name
-		if self.__ignore_metadata:
+		if self._ignore_metadata:
 			name = Series.metadata_regex.sub("", name)
 
 		return name
@@ -134,11 +134,18 @@ class Series(object):
 
 		return self._ignores
 
+	def _ignore_metadata_prop(self, ignore = None):
+		if ignore is not None:
+			self._ignore_metadata = ignore
+
+		return self._ignore_metadata
+
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	path = property(fget=_path_prop, fset=_path_prop, doc="series filesystem path")
 	name = property(fget=_name_prop, doc="series name")
 	ignores = property(fget=_ignores_prop, fset=_ignores_prop, doc="season ignore list")
+	ignore_metadata = property(fget=_ignore_metadata_prop, fset=_ignore_metadata_prop, doc="ignore series metadata")
 
 	def __init__(self, name, path = None, ignores = [], ignore_metadata = True):
 		
@@ -146,7 +153,7 @@ class Series(object):
 
 		# instance variables
 		self.__raw_name = name
-		self.__ignore_metadata = ignore_metadata
+		self.ignore_metadata = ignore_metadata
 		self.ignores = ignores
 
 		if path is not None: self.path = path

@@ -125,7 +125,9 @@ def _process(config, options, args):
 	# grab list of shows
 	shows = {}
 	ignore_metadata = config['tv'].as_bool('ignore_series_metadata')
-	for name in os.listdir(tv_root):
+	dir_list = os.listdir(tv_root)
+	dir_list.sort()
+	for name in dir_list:
 
 		# skip hidden directories
 		if name.startswith("."):
@@ -301,6 +303,9 @@ def _process(config, options, args):
 			except InvalidItemTitle:
 				logger.info("skipping '%s', unknown format", item.title())
 				continue
+
+			# make sure episode series object is correctly handling metadata
+			episode.series.ignore_metadata = config['tv']['ignore_series_metadata']
 
 			# check if episode series is in watch list.  If it is, grab complete
 			# series object and update episode.  Otherwise, skip to next item
