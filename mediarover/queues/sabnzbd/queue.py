@@ -74,7 +74,7 @@ class SabnzbdQueue(Queue):
 				args['ma_username'] = self._params['username']
 				args['ma_password'] = self._params['password']
 
-		if 'key' in self._params:
+		if 'api_key' in self._params:
 			args['apikey'] = self._params['api_key']
 
 		# generate web service url and make call
