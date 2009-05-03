@@ -74,6 +74,9 @@ class SabnzbdQueue(Queue):
 				args['ma_username'] = self._params['username']
 				args['ma_password'] = self._params['password']
 
+		if 'key' in self._params:
+			args['apikey'] = self._params['api_key']
+
 		# generate web service url and make call
 		url = "%s/api?%s" % (self.root, urllib.urlencode(args))
 		logger.debug("add to queue request: %s", url)
@@ -111,7 +114,30 @@ class SabnzbdQueue(Queue):
 	def __get_document(self):
 		logger = logging.getLogger('queue')
 
-		url = "%s/api?mode=qstatus&output=xml" % self.root
+		args = {
+			'mode': 'qstatus',
+			'output': 'xml',
+		}
+
+		# check if user is running version of sabnzbd that requires
+		# an apikey for all api calls
+		url = "%s/api?mode=version" % self.root
+		logger.debug("checking verison of SABnzbd+")
+
+		response = urllib.urlopen(url)
+		data = response.read()
+
+		if re.search("not implemented", data):
+			pass
+
+		# all version after 0.4.9 require an apikey for all api calls
+		else:
+			if 'api_key' in self._params:
+				args['apikey'] = self._params['api_key']
+			else:
+				raise MissingParameterError("SABnzbd+ version >= 0.4.9.  Must specify api_key in config file.")
+
+		url = "%s/api?%s" % (self.root, urllib.urlencode(args))
 		logger.debug("retrieving queue from '%s'", url)
 
 		regex = re.compile("fetch")

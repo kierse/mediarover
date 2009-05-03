@@ -180,6 +180,9 @@ CONFIG_SPEC = """[DEFAULT]
 #    # required values
 #    root = http://localhost/sabnzbd
 #
+#    # required for SABnzbd+ 0.4.9 and greater!
+#    api_key = 
+#
 #    # optional values
 #    #username = 
 #    #password = 
@@ -189,6 +192,7 @@ CONFIG_SPEC = """[DEFAULT]
 		root = url()
 		username = string(default=None)
 		password = string(default=None)
+		api_key = string(default=None)
 
 """
 

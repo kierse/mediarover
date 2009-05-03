@@ -28,3 +28,4 @@ instead of os.listdir
 files
 - update config write process to merge existing configs with template values
 - update SABnzbd plugin to support new session key
+- make sure logging_dir config value is an absolute directory
