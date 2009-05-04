@@ -189,10 +189,12 @@ def __find_season_episodes(series, season, path, ignored_extensions):
 			if MultiEpisode.handle(file['name']):
 				episode = MultiEpisode.new_from_string(string=file['name'], series=series, season=season, filename=True) 
 				logger.debug("create filesystem multiepisode: %s", episode.__repr__())
-			else:
+			elif Episode.handle(file['name']):
 				episode = Episode.new_from_string(string=file['name'], series=series, season=season, daily=daily, filename=True)
 				logger.debug("create filesystem episode: %s", episode.__repr__())
-		except InvalidData, MissingParameterError:
+			else:
+				pass
+		except (InvalidData, MissingParameterError):
 			pass
 		else:
 			episodes.append(episode)

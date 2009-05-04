@@ -310,7 +310,7 @@ def _process(config, options, args):
 			# check if episode series is in watch list.  If it is, grab complete
 			# series object and update episode.  Otherwise, skip to next item
 			try:
-				series = shows[Series.sanitize_series_name(episode.series.name)]
+				series = shows[Series.sanitize_series_name(episode.series)]
 				episode.series = series
 			except KeyError:
 				logger.info("skipping '%s', not watching series", item.title())

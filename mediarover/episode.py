@@ -22,7 +22,6 @@ from time import strftime
 from mediarover.error import *
 from download import Download
 from series import Series
-#from series import Series, sanitize_series_name
 
 class Episode(Download):
 	""" represents an episode of tv """
@@ -300,9 +299,9 @@ class Episode(Download):
 	def __hash__(self):
 		hash = None
 		if self.daily:
-			hash = "%s %04d-%02d-%02d" % (Series.sanitize_series_name(self.series.name), self.year, self.month, self.day)
+			hash = "%s %04d-%02d-%02d" % (Series.sanitize_series_name(self.series), self.year, self.month, self.day)
 		else:
-			hash = "%s %dx%02d" % (Series.sanitize_series_name(self.series.name), self.season, self.episode)
+			hash = "%s %dx%02d" % (Series.sanitize_series_name(self.series), self.season, self.episode)
 
 		return hash.__hash__()
 
@@ -523,7 +522,7 @@ class MultiEpisode(Download):
 		last = self.episodes[len(self.episodes)-1]
 		series = first.series
 		
-		hash = "%s %dx%02d-%dx%02d" % (Series.sanitize_series_name(series.name), first.season, first.episode, last.season, last.episode)
+		hash = "%s %dx%02d-%dx%02d" % (Series.sanitize_series_name(series), first.season, first.episode, last.season, last.episode)
 		return hash.__hash__()
 
 	def __repr__(self):
@@ -538,7 +537,7 @@ class MultiEpisode(Download):
 		last = self.episodes[len(self.episodes)-1]
 		series = first.series
 
-		return "%s %dx%02d-%dx%02d" % (Series.sanitize_series_name(series.name), first.season, first.episode, last.season, last.episode)
+		return "%s %dx%02d-%dx%02d" % (Series.sanitize_series_name(series), first.season, first.episode, last.season, last.episode)
 
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
