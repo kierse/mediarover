@@ -88,8 +88,8 @@ def main():
 	# sanitize tv series filter subsection names for 
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
-		config['tv']['filter'][Series.sanitize_series_name(name, ignore_metadata=config['tv'].as_bool('ignore_series_metadata'))] = filters
 		del config['tv']['filter'][name]
+		config['tv']['filter'][Series.sanitize_series_name(name, ignore_metadata=config['tv'].as_bool('ignore_series_metadata'))] = filters
 
 	""" main """
 
