@@ -178,7 +178,7 @@ CONFIG_SPEC = """[DEFAULT]
 #  [[sabnzbd]]
 #
 #    # required values
-#    root = http://localhost/sabnzbd
+#    root = http://localhost[:PORT]/sabnzbd
 #
 #    # required for SABnzbd+ 0.4.9 and greater!
 #    api_key = 
