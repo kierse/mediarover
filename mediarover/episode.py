@@ -93,9 +93,9 @@ class Episode(Download):
 		# format smart_title pattern (if set)
 		if smart_title_template is not None and params['title'] != "":
 			smart_title_template = smart_title_template.replace("$(", "%(")
-			params['smart_title'] = smart_title_template % params
+			params['smart_title'] = params['SMART_TITLE'] =smart_title_template % params
 		else:
-			params['smart_title'] = ""
+			params['smart_title'] = params['SMART_TITLE'] =""
 
 		# if additional was provided, append to end of new filename
 		if additional is not None and additional != "":
@@ -114,17 +114,21 @@ class Episode(Download):
 
 		# fetch series parameters
 		if series:
-			params = self.series.format_parameters()
+			params.update(self.series.format_parameters())
 
 		# prepare season parameters
 		if season:
-			params['season'] = self.season
+			params['season'] = params['SEASON'] = self.season
 
 		# prepare episode parameters
 		if episode:
 			params['episode'] = self.episode
 			params['season_episode_1'] = "s%02de%02d" % (self.season, self.episode)
 			params['season_episode_2'] = "%dx%02d" % (self.season, self.episode)
+
+			params['EPISODE'] = params['episode']
+			params['SEASON_EPISODE_1'] = params['season_episode_1'].upper()
+			params['SEASON_EPISODE_2'] = params['season_episode_2'].upper()
 
 		# prepare title parameters
 		if title:
@@ -133,17 +137,21 @@ class Episode(Download):
 				params['title'] = value 
 				params['title.'] = re.sub("\s", ".", value)
 				params['title_'] = re.sub("\s", "_", value)
+
+				params['TITLE'] = params['title'].upper()
+				params['TITLE.'] = params['title.'].upper()
+				params['TITLE_'] = params['title_'].upper()
 			else:
-				params['title'] = ""
-				params['title.'] = ""
-				params['title_'] = ""
+				params['title'] = params['TITLE'] = ""
+				params['title.'] = params['TITLE.'] = ""
+				params['title_'] = params['TITLE_'] = ""
 
 		if daily:
 			broadcast = date(self.year, self.month, self.day)
-			params['daily'] = broadcast.strftime("%Y%m%d")
-			params['daily.'] = broadcast.strftime("%Y.%m.%d")
-			params['daily-'] = broadcast.strftime("%Y-%m-%d")
-			params['daily_'] = broadcast.strftime("%Y_%m_%d")
+			params['daily'] = params['DAILY'] = broadcast.strftime("%Y%m%d")
+			params['daily.'] = params['DAILY.'] = broadcast.strftime("%Y.%m.%d")
+			params['daily-'] = params['DAILY-'] = broadcast.strftime("%Y-%m-%d")
+			params['daily_'] = params['DAILY_'] = broadcast.strftime("%Y_%m_%d")
 
 		return params
 
@@ -461,9 +469,11 @@ class MultiEpisode(Download):
 
 		# modify episode template to reflect multiepisode nature of file...
 		first = self.episodes[0].format_parameters(episode=True)
-		second = self.episodes[-1].format_parameters(episode=True)
-		params['season_episode_1'] = "%s-%s" % (first['season_episode_1'],second['season_episode_1'])
-		params['season_episode_2'] = "%s-%s" % (first['season_episode_2'],second['season_episode_2'])
+		last = self.episodes[-1].format_parameters(episode=True)
+		params['season_episode_1'] = "%s-%s" % (first['season_episode_1'],last['season_episode_1'])
+		params['season_episode_2'] = "%s-%s" % (first['season_episode_2'],last['season_episode_2'])
+		params['SEASON_EPISODE_1'] = "%s-%s" % (first['SEASON_EPISODE_1'],last['SEASON_EPISODE_1'])
+		params['SEASON_EPISODE_2'] = "%s-%s" % (first['SEASON_EPISODE_2'],last['SEASON_EPISODE_2'])
 
 		padding = ""
 		match = re.search("^\$\(episode\)(\d+)d", series_template)
@@ -471,14 +481,15 @@ class MultiEpisode(Download):
 			padding = match.group(1)
 
 		episode = "%%%sd-%%%sd" % (padding, padding)
-		params['episode'] = episode % (first['episode'],second['episode'])
+		params['episode'] = episode % (first['episode'],last['episode'])
+		params['EPISODE'] = episode % (first['EPISODE'],last['EPISODE'])
 
 		# format smart_title pattern (if set)
 		if smart_title_template is not None and params['title'] != "":
 			smart_title_template = smart_title_template.replace("$(", "%(")
-			params['smart_title'] = smart_title_template % params
+			params['smart_title'] = params['SMART_TITLE'] = smart_title_template % params
 		else:
-			params['smart_title'] = ""
+			params['smart_title'] = params['SMART_TITLE'] = ""
 
 		# cleanup template a bit so that it can be
 		# processed...
@@ -708,19 +719,23 @@ class MultiEpisode(Download):
 		params = {}
 
 		if series:
-			params = self.episodes[0].series.format_parameters()
+			params.update(self.episodes[0].series.format_parameters())
 
 		if season:
-			params['season'] = self.episodes[0].season
+			params['season'] = params['SEASON'] = self.episodes[0].season
 
 		if title:
 			params['title'] = self.title
 			params['title.'] = re.sub("\s", ".", self.title)
 			params['title_'] = re.sub("\s", "_", self.title)
+
+			params['TITLE'] = params['title'].upper()
+			params['TITLE.'] = params['title.'].upper()
+			params['TITLE_'] = params['title_'].upper()
 		else:
-			params['title'] = ""
-			params['title.'] = ""
-			params['title_'] = ""
+			params['title'] = params['TITLE'] = ""
+			params['title.'] = params['TITLE.'] = ""
+			params['title_'] = params['TITLE_'] = ""
 
 		return params
 

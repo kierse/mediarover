@@ -43,11 +43,16 @@ class Series(object):
 	def format_parameters(self):
 		""" return dict containing supported formate parameters.  For use by forma_*() methods """
 
-		return {
+		params = {
 			'series': self.name,
 			'series.': re.sub("\s", ".", self.name),
-			'series_': re.sub("\s", "-", self.name),
+			'series_': re.sub("\s", "_", self.name),
 		}
+
+		for key in params.keys():
+			params[key.upper()] = params[key].upper()
+
+		return params
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
