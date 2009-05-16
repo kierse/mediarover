@@ -51,8 +51,8 @@ CONFIG_SPEC = """[DEFAULT]
 	ignore_series_metadata = boolean(default=True)
 
 	# ignored file extensions (used when sorting downloads)
-	# NOTE: defaults to: nfo,txt,sfv,srt,nzb,idx,log,par,par2
-	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2"))
+	# NOTE: defaults to: nfo,txt,sfv,srt,nzb,idx,log,par,par2,exe,bat,com
+	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com"))
 
 	[[multiepisode]]
 
