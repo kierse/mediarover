@@ -16,6 +16,7 @@
 import os
 import os.path
 import re
+from string import Template
 
 from mediarover.error import ConfigurationError
 from mediarover.utils.configobj import ConfigObj, flatten_errors
@@ -27,11 +28,11 @@ CONFIG_SPEC = """[DEFAULT]
 
 [logging]
 
-	# application log directory
-	# NOTE: defaults to $CONFIG_DIR/logs
-	#   UNIX/Linux => $HOME/.mediarover/logs
-	#   Windows    => $HOME\Application Data\mediarover\logs
-	log_dir = path(default="")
+	# sorting error log
+	# when sorting a download and a fatal error is encountered,
+	# produce an error log containing all logged data.
+	# NOTE: defaults to True
+	generate_sorting_error_log = boolean(default=True)
 
 [tv]
 
@@ -204,9 +205,9 @@ SYSTEM_SPEC = """
 
 """
 
-# LOGGING CONFIG- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# LOGGING CONFIGS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-LOGGING_CONFIG = """# keys - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+MEDIAROVER_LOGGING = """# keys - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 [loggers]
 keys = root,mediarover
@@ -235,7 +236,51 @@ qualname = mediarover
 class = handlers.RotatingFileHandler
 level = NOTSET 
 formatter = default
-args = ('%(file)s', None, 1024000, 5)
+args = ('${file}', None, 1024000, 5)
+
+[handler_screen]
+class = StreamHandler
+level = NOTSET 
+formatter = default
+args = (sys.stdout, )
+
+# formatter
+[formatter_default]
+class = logging.Formatter
+format = %(asctime)s %(levelname)s - %(message)s - %(filename)s:%(lineno)s
+datefmt = %Y-%m-%d %H:%M
+"""
+
+SABNZBD_EPISODE_SORT_LOGGING = """# keys - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[loggers]
+keys = root,mediarover
+
+[handlers]
+keys = logfile,screen
+
+[formatters]
+keys = default
+
+# definitions- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# loggers
+[logger_root]
+level = DEBUG
+handlers = logfile,screen
+
+[logger_mediarover]
+level = DEBUG
+handlers = logfile,screen
+propagate = 0
+qualname = mediarover
+
+# handlers
+[handler_logfile]
+class = handlers.RotatingFileHandler
+level = NOTSET 
+formatter = default
+args = ('${file}', None, 1024000, 5)
 
 [handler_screen]
 class = StreamHandler
@@ -257,10 +302,6 @@ def generate_config(path):
 
 	spec = (CONFIG_SPEC + SYSTEM_SPEC).splitlines()
 	config = ConfigObj("%s/mediarover.conf" % path, configspec=spec)
-
-	# set some runtime defaults
-	if config['logging']['log_dir'] == "":
-		config['logging']['log_dir'] = "%s/logs" % path
 
 	# validate config options
 	results = config.validate(_get_validator(), preserve_errors=True)
@@ -288,45 +329,37 @@ def write_config_files(path):
 		os.makedirs("%s/logs" % path, 0755)
 		print "Created %s" % path
 
-	for file, data in zip(["mediarover.conf", "logging.conf"], [None, LOGGING_CONFIG]):
-		proceed = True
-		pair = (path, file)
+	# write main config file
+	if _replace_existing_config_file("%s/mediarover.conf" % path):
+		vdt = _get_validator()
 
-		# oops, config already exists on disk. query user for overwrite permission
-		if os.path.exists("%s/%s" % pair):
-			while True:
-				query = raw_input("%s/%s already exists! Overwrite? [y/n] " % pair)
-				if query.lower() == 'y': 
-					break
-				elif query.lower() == 'n': 
-					proceed = False
-					break
-			
-		if proceed:
-			if data is None:
-				vdt = _get_validator()
+		# create ConfigObj (without SYSTEM_SPEC)
+		spec = CONFIG_SPEC.splitlines()
+		config = ConfigObj(configspec=spec)
+		config.validate(vdt, copy=True)
 
-				# create ConfigObj (without SYSTEM_SPEC)
-				spec = CONFIG_SPEC.splitlines()
-				config = ConfigObj(configspec=spec)
-				config.validate(vdt, copy=True)
+		# write config file to disk
+		config.filename = "%s/mediarover.conf" % path
+		config.write()
+		print "Created %s" % config.filename
+		
+	# write logging config files
+	for config, log, data in zip(["logging.conf", "sabnzbd_episode_sort_logging.conf"], 
+		['mediarover.log', 'sabnzbd_episode_sort.log'], 
+		[MEDIAROVER_LOGGING, SABNZBD_EPISODE_SORT_LOGGING]):
 
-				# set any runtime defaults
-				config['logging']['log_dir'] = "%s/logs" % path
+		if _replace_existing_config_file("%s/%s" % (path, config)):
 
-				# write config file to disk
-				config.filename = "%s/%s" % pair
-				config.write()
-				print "Created %s/%s" % pair
-			else:
-				f = open("%s/%s" % pair, "w")
-				try:
-					f.write(data)
-					print "Created %s/%s" % pair
-				finally:
-					f.close()
-		else:
-			print "Skipping %s..." % file
+			# update default template and set default location of log file
+			template = Template(data)
+			data = template.safe_substitute(file="%s/logs/%s" % (path,log))
+
+			f = open("%s/%s" % (path, config), "w")
+			try:
+				f.write(data)
+				print "Created %s" % f.name
+			finally:
+				f.close()
 
 def check_filesystem_path(path):
 	""" make sure given path is a valid, filesystem path """
@@ -394,6 +427,22 @@ def _get_validator():
 	vdt.functions['int_list'] = check_int_list
 
 	return vdt
+
+def _replace_existing_config_file(path):
+
+	answer = True
+
+	# oops, config already exists on disk. query user for overwrite permission
+	if os.path.exists(path):
+		while True:
+			query = raw_input("%s already exists! Overwrite? [y/n] " % path)
+			if query.lower() == 'y': 
+				break
+			elif query.lower() == 'n': 
+				answer = False
+				break
+			
+	return answer
 
 # - - - - - -  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

@@ -62,7 +62,6 @@ def main():
 
 	# if user has requested that app or log config files be generated
 	if options.write_configs:
-		#__write_config_files(config_dir, options.write_configs)
 		write_config_files(config_dir)
 		exit(0)
 
@@ -70,17 +69,12 @@ def main():
 	locate_config_files(config_dir)
 
 	# create config object using user config values
-	try:
-		config = generate_config(config_dir)
-	except ConfigurationError:
-		exit(1)
+	config = generate_config(config_dir)
 
 	""" logging setup """
 
 	# initialize and retrieve logger for later use
-	# set logging path using default_log_dir from config file
-	file = config['logging']['log_dir'] + "/mediarover.log"
-	logging.config.fileConfig(open("%s/logging.conf" % config_dir), {"file": file})
+	logging.config.fileConfig(open("%s/logging.conf" % config_dir))
 	logger = logging.getLogger("mediarover")
 
 	""" post configuration setup """
@@ -93,7 +87,8 @@ def main():
 
 	""" main """
 
-	logger.debug("log file set to: %s", file)
+	logger.info("--- STARTING ---")
+	#logger.debug("log file set to: %s", file)
 	logger.debug("using config directory: %s", config_dir)
 
 	try:

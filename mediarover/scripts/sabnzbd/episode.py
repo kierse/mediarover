@@ -51,6 +51,12 @@ def sort():
 
 	(options, args) = parser.parse_args()
 
+	# make sure script was passed 6 arguments
+	if not len(args) == 6:
+		print "Warning: must provide 6 arguments when invoking %s" % os.path.basename(sys.argv[0])
+		parser.print_help()
+		exit(1)
+
 	""" config setup """
 
 	config_dir = None
@@ -65,17 +71,13 @@ def sort():
 	locate_config_files(config_dir)
 
 	# create config object using user config values
-	try:
-		config = generate_config(config_dir)
-	except ConfigurationError:
-		exit(1)
+	config = generate_config(config_dir)
 
 	""" logging setup """
 
 	# initialize and retrieve logger for later use
 	# set logging path using default_log_dir from config file
-	file = config['logging']['log_dir'] + "/sabnzbd_post_process_folder_sort.log"
-	logging.config.fileConfig(open("%s/logging.conf" % config_dir), {"file": file})
+	logging.config.fileConfig(open("%s/sabnzbd_episode_sort_logging.conf" % config_dir))
 	logger = logging.getLogger("mediarover.scripts.sabnzbd.episode")
 
 	""" post configuration setup """
@@ -83,35 +85,41 @@ def sort():
 	# capture all logging output in local file.  If sorting script exits unexpectedly,
 	# or encounters an error and gracefully exits, the log file will be placed in
 	# the download directory for debugging
-	tmp_file = os.tmpfile()
-	logger.addHandler(logging.StreamHandler(tmp_file))
+	tmp_file = None
+	if config['logging']['generate_sorting_error_log']:
+		tmp_file = os.tmpfile()
+		handler = logging.StreamHandler(tmp_file)
+		formatter = logging.Formatter('%(asctime)s %(levelname)s - %(message)s - %(filename)s:%(lineno)s')
+		handler.setFormatter(formatter)
+		logger.addHandler(handler)
 
 	""" main """
 
+	logger.info("--- STARTING ---")
 	logger.debug("using config directory: %s", config_dir)
-	logger.debug("log file set to: %s", file)
+	#logger.debug("log file set to: %s", file)
 
+	fatal = False
 	try:
 		_process_download(config, options, args)
 	except Exception, e:
-		logger = logging.getLogger("mediarover.scripts.sabnzbd.episode")
+		fatal = True
 		logger.exception(e)
 
-		if len(args) > 0:
+		if config['logging']['generate_sorting_error_log']:
 
 			# reset current position to start of file for reading...
 			tmp_file.seek(0)
 
 			# flush log data in temporary file handler to disk 
-			# and exit (with error code)
 			error_file = open("%s/error.log" % args[0], "w")
-			error_file.write(tmp_file.read())
-			error_file.flush()
+			shutil.copyfileobj(tmp_file, error_file)
 			error_file.close()
 
+	if fatal:
 		exit(1)
-
-	exit(0)
+	else:
+		exit(0)
 
 # public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -122,10 +130,6 @@ def _process_download(config, options, args):
 	# check if user has requested a dry-run
 	if options.dry_run:
 		logger.info("--dry-run flag detected!  Download will not be sorted during execution!")
-
-	# grab arguments passed from sabnzbd
-	if not len(args) == 6:
-		raise UnexpectedArgumentCount("expected 6, found %d", len(args))
 
 	logger.debug(sys.argv[0] + " '%s' '%s' '%s' '%s' '%s' '%s'" % tuple(args))
 
