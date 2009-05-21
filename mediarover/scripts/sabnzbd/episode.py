@@ -152,10 +152,11 @@ def _process_download(config, options, args):
 	# check to ensure we have the necessary data to proceed
 	if path is None or path == "":
 		raise InvalidArgument("path to completed job is missing or null")
+	elif os.path.basename(path).startswith("_FAILED_"):
+		raise FailedDownload("unable to sort failed download")
+
 	if job is None or job == "":
 		raise InvalidArgument("job name is missing or null")
-#	if category is None or category == "":
-#		raise InvalidArgument("job category is missing or null")
 
 	# make sure tv root directory exists and that we have read and 
 	# write access to it

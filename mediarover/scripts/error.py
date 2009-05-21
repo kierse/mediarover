@@ -17,3 +17,4 @@ from mediarover.error import Error
 
 class UnexpectedArgumentCount(Error): pass
 class InvalidArgument(Error): pass
+class FailedDownload(Error): pass
