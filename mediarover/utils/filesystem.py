@@ -96,10 +96,8 @@ def series_season_multiepisodes(series, season, ignored_extensions = []):
 	return multis
 
 def clean_path(path, extensions):
-	""" 
-		open given path and delete any files with file extension in given list.  If given path is a
-		directory, delete if its extension is found in given list
-	"""
+	""" open given path and delete any files with file extension in given list. """
+
 	logger = logging.getLogger("mediarover.utils.filesystem")
 	logger.info("cleaning path '%s' of the extensions %s", path, extensions)
 

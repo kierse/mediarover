@@ -103,11 +103,11 @@ def sort():
 	if options.dry_run:
 		logger.info("--dry-run flag detected!  Download will not be sorted during execution!")
 
-	fatal = False
+	fatal = 0
 	try:
 		_process_download(config, options, args)
 	except Exception, e:
-		fatal = True
+		fatal = 1
 		logger.exception(e)
 
 		if config['logging']['generate_sorting_log']:
@@ -120,12 +120,9 @@ def sort():
 			shutil.copyfileobj(tmp_file, sort_log)
 			sort_log.close()
 
-	if fatal:
-		exit(1)
-	else:
-		exit(0)
+	exit(fatal)
 
-# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# private methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def _process_download(config, options, args):
 
@@ -149,18 +146,25 @@ def _process_download(config, options, args):
 	category = args[4]
 	group = args[5]
 
+	tv_root = config['tv']['tv_root']
+
 	# check to ensure we have the necessary data to proceed
 	if path is None or path == "":
 		raise InvalidArgument("path to completed job is missing or null")
 	elif os.path.basename(path).startswith("_FAILED_"):
-		raise FailedDownload("unable to sort failed download")
+		try:
+			args[0] = _move_to_trash(tv_root, path)
+		except OSError, (num, message):
+			if num == 13:
+				logger.error("unable to move download directory to '%s', permission denied", args[0])
+		finally:
+			raise FailedDownload("unable to sort failed download")
 
 	if job is None or job == "":
 		raise InvalidArgument("job name is missing or null")
 
 	# make sure tv root directory exists and that we have read and 
 	# write access to it
-	tv_root = config['tv']['tv_root']
 	if not os.path.exists(tv_root):
 		raise FilesystemError("TV root directory (%s) does not exist!", (tv_root))
 	if not os.access(tv_root, os.R_OK | os.W_OK):
@@ -383,15 +387,21 @@ def _process_download(config, options, args):
 			except (OSError, FilesystemError):
 				logger.error("unable to remove download directory '%s'", path)
 
-				trash_path = "%s/.trash/%s" % (tv_root, os.path.basename(path))
-				if not os.path.exists(trash_path):
-					os.makedirs(trash_path)
 				try:
-					shutil.move(path, trash_path)
-					args[0] = trash_path
-					logger.info("moving download directory '%s' to '%s'", path, trash_path)
+					args[0] = _move_to_trash(tv_root, path)
+					logger.info("moving download directory '%s' to '%s'", path, args[0])
 				except OSError, (num, message):
 					if num == 13:
-						logger.error("unable to move download directory to '%s', permission denied", trash_path)
+						logger.error("unable to move download directory to '%s', permission denied", args[0])
 					raise
+
+def _move_to_trash(root, path):
+
+	trash_path = "%s/.trash/%s" % (root, os.path.basename(path))
+	if not os.path.exists(trash_path):
+		os.makedirs(trash_path)
+
+	shutil.move(path, trash_path)
+
+	return trash_path
 
