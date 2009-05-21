@@ -86,7 +86,7 @@ def sort():
 	# or encounters an error and gracefully exits, the log file will be placed in
 	# the download directory for debugging
 	tmp_file = None
-	if config['logging']['generate_sorting_error_log']:
+	if config['logging']['generate_sorting_log']:
 		tmp_file = os.tmpfile()
 		handler = logging.StreamHandler(tmp_file)
 		formatter = logging.Formatter('%(asctime)s %(levelname)s - %(message)s - %(filename)s:%(lineno)s')
@@ -106,15 +106,15 @@ def sort():
 		fatal = True
 		logger.exception(e)
 
-		if config['logging']['generate_sorting_error_log']:
+		if config['logging']['generate_sorting_log']:
 
 			# reset current position to start of file for reading...
 			tmp_file.seek(0)
 
 			# flush log data in temporary file handler to disk 
-			error_file = open("%s/error.log" % args[0], "w")
-			shutil.copyfileobj(tmp_file, error_file)
-			error_file.close()
+			sort_log = open("%s/sort.log" % args[0], "w")
+			shutil.copyfileobj(tmp_file, sort_log)
+			sort_log.close()
 
 	if fatal:
 		exit(1)

@@ -32,7 +32,7 @@ CONFIG_SPEC = """[DEFAULT]
 	# when sorting a download and a fatal error is encountered,
 	# produce an error log containing all logged data.
 	# NOTE: defaults to True
-	generate_sorting_error_log = boolean(default=True)
+	generate_sorting_log = boolean(default=True)
 
 [tv]
 
