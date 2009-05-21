@@ -385,9 +385,9 @@ def _process_download(config, options, args):
 				trash_path = "%s/.trash/%s" % (tv_root, os.path.basename(path))
 				if not os.path.exists(trash_path):
 					os.makedirs(trash_path)
-
 				try:
 					shutil.move(path, trash_path)
+					args[0] = trash_path
 					logger.info("moving download directory '%s' to '%s'", path, trash_path)
 				except OSError, (num, message):
 					if num == 13:
