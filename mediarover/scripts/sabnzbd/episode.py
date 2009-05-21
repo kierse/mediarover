@@ -99,6 +99,10 @@ def sort():
 	logger.debug("using config directory: %s", config_dir)
 	#logger.debug("log file set to: %s", file)
 
+	# check if user has requested a dry-run
+	if options.dry_run:
+		logger.info("--dry-run flag detected!  Download will not be sorted during execution!")
+
 	fatal = False
 	try:
 		_process_download(config, options, args)
@@ -126,10 +130,6 @@ def sort():
 def _process_download(config, options, args):
 
 	logger = logging.getLogger("mediarover.scripts.sabnzbd.episode")
-
-	# check if user has requested a dry-run
-	if options.dry_run:
-		logger.info("--dry-run flag detected!  Download will not be sorted during execution!")
 
 	logger.debug(sys.argv[0] + " '%s' '%s' '%s' '%s' '%s' '%s'" % tuple(args))
 
