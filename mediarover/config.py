@@ -17,6 +17,7 @@ import os
 import os.path
 import re
 from string import Template
+from time import strftime
 
 from mediarover.error import ConfigurationError
 from mediarover.utils.configobj import ConfigObj, flatten_errors
@@ -24,7 +25,7 @@ from mediarover.utils.validate import Validator, VdtParamError, VdtValueError
 
 # CONFIG SPECS- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-CONFIG_SPEC = """[DEFAULT]
+CONFIG_TEMPLATE = """[DEFAULT]
 
 [logging]
 
@@ -32,16 +33,17 @@ CONFIG_SPEC = """[DEFAULT]
 	# when sorting a download and a fatal error is encountered,
 	# produce an error log containing all logged data.
 	# NOTE: defaults to True
-	generate_sorting_log = boolean(default=True)
+	#generate_sorting_log = True
 
 [tv]
 
 	# tv root directory
 	# directory containing all tv shows to watch for
-	tv_root = path(default="")
+	tv_root = 
 
 	# default download category
-	default_category = string(default=tv)
+	# NOTE: defaults to 'tv'
+	#default_category = tv
 
 	# ignore series metadata
 	# ie. ignore year, country of origin, etc commonly found between ()
@@ -49,21 +51,21 @@ CONFIG_SPEC = """[DEFAULT]
 	#	Battlestar Galactica (2004) or Battlestar Galactica (1978)
 	#	The Office (US)
 	# NOTE: defaults to True
-	ignore_series_metadata = boolean(default=True)
+	#ignore_series_metadata = True
 
 	# ignored file extensions (used when sorting downloads)
 	# NOTE: defaults to: nfo,txt,sfv,srt,nzb,idx,log,par,par2,exe,bat,com
-	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com"))
+	#ignored_extensions = nfo,txt,sfv,srt,nzb,idx,log,par,par2,exe,bat,com
 
 	[[multiepisode]]
 
 		# allow multiepisode downloads
 		# NOTE: defaults to True
-		allow = boolean(default=True)
+		#allow = True
 
 		# prefer multiepisode files over individual files
 		# NOTE: defaults to False
-		prefer = boolean(default=False)
+		#prefer = False
 
 	# series specific filter options
 	# usage: in order to specify filters for a given series, define
@@ -83,10 +85,6 @@ CONFIG_SPEC = """[DEFAULT]
 	#
 	[[filter]]
 		
-		[[[__many__]]]
-			ignore = int_list(default=list())
-			skip = boolean(default=False)
-
 	[[template]]
 
 		# series naming pattern
@@ -96,7 +94,8 @@ CONFIG_SPEC = """[DEFAULT]
 		#  $(series.)s => "Series.Name"
 		#  $(series_)s => "Series_Name"
 		#
-		series = string(default=$(series)s)
+		# NOTE: defaults to '$(series)s'
+		#series = $(series)s
 
 		# series season naming pattern
 		# used when creating season directories
@@ -105,7 +104,8 @@ CONFIG_SPEC = """[DEFAULT]
 		#  $(season)02d        => 01
 		#  Season %(season)02d => Season 01
 		#
-		season = string(default=s$(season)02d)
+		# NOTE: defaults to 's$(season)02d'
+		#season = s$(season)02d
 
 		# episode title pattern
 		# used when renaming downloaded episodes
@@ -114,7 +114,8 @@ CONFIG_SPEC = """[DEFAULT]
 		#  $(title.)s => 'Hello.World!'
 		#  $(title_)s => 'Hello_World!'
 		# 
-		title = string(default=$(title)s)
+		# NOTE: defaults to '$(title)s'
+		#title = $(title)s
 
 		# smart episode title options: (used in conjunction with above title pattern option)
 		# NOTE: this variable can be used to generate an intelligent episode title.  If an 
@@ -123,7 +124,8 @@ CONFIG_SPEC = """[DEFAULT]
 		#
 		#  $(smart_title)s = ' - $(title)s' => ' - Hello World!'
 		#
-		smart_title = string(default=' - $(title)s')
+		# NOTE: defaults to ' - $(title)s'
+		#smart_title = ' - $(title)s'
 
 		# series episode naming pattern
 		# this pattern is the template used when renaming SERIES episodes. You may use any
@@ -138,7 +140,8 @@ CONFIG_SPEC = """[DEFAULT]
 		#       patterns in order to be valid.  Without this restriction, accurately identifying
 		#       episodes on disk would be next to impossible
 		#
-		series_episode = string(default='$(series)s - $(season_episode_1)s$(smart_title)s')
+		# NOTE: defaults to '$(series)s - $(season_episode_1)s$(smart_title)s'
+		#series_episode = '$(series)s - $(season_episode_1)s$(smart_title)s'
 
 		# daily episode naming pattern
 		# this pattern is the template used when renaming DAILY episodes.  You may use any
@@ -153,7 +156,8 @@ CONFIG_SPEC = """[DEFAULT]
 		#       patterns in order to be valid.  Without this restriction, accurately identifying
 		#       daily episodes on disk would be next to impossible
 		#
-		daily_episode = string(default='$(series)s - $(daily-)s$(smart_title)s')
+		# NOTE: defaults to '$(series)s - $(daily-)s$(smart_title)s'
+		#daily_episode = '$(series)s - $(daily-)s$(smart_title)s'
 
 # consumable nzb sources
 # ATTENTION: you must declare at least one source
@@ -162,39 +166,74 @@ CONFIG_SPEC = """[DEFAULT]
 #
 #		# source 1
 #		[[[label_1]]]
+# 
+# 			# required
 #			url = http://newzbin.com/....
+#
+#			# optional
 #			category = tv
 [source]
-
-	[[__many__]]
-	
-		# source 1
-		[[[__many__]]]
-			url = url()
-			category = string(default=None)
 
 # binary newsreader consumable queue
 # ATTENTION: you must declare at least one queue
 #
 #  [[sabnzbd]]
 #
-#    # required values
+#    # required
 #    root = http://localhost[:PORT]/sabnzbd
+#    api_key = <key> # SABnzbd+ 0.4.9 and greater!
 #
-#    # required for SABnzbd+ 0.4.9 and greater!
-#    api_key = 
-#
-#    # optional values
-#    #username = 
-#    #password = 
+#    # optional 
+#    username = <username>
+#    password = <password>
 [queue]
 	
+	[[sabnzbd]]
+		root = http://localhost:8080/sabnzbd
+		api_key = <key>
+		#username = 
+		#password = 
+"""
+
+CONFIG_SPEC = """[DEFAULT]
+[logging]
+	generate_sorting_log = boolean(default=True)
+
+[tv]
+	tv_root = path(default="")
+	default_category = string(default=tv)
+	ignore_series_metadata = boolean(default=True)
+	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com"))
+
+	[[multiepisode]]
+		allow = boolean(default=True)
+		prefer = boolean(default=False)
+
+	[[filter]]
+		[[[__many__]]]
+			ignore = int_list(default=list())
+			skip = boolean(default=False)
+
+	[[template]]
+		series = string(default=$(series)s)
+		season = string(default=s$(season)02d)
+		title = string(default=$(title)s)
+		smart_title = string(default=' - $(title)s')
+		series_episode = string(default='$(series)s - $(season_episode_1)s$(smart_title)s')
+		daily_episode = string(default='$(series)s - $(daily-)s$(smart_title)s')
+
+[source]
+	[[__many__]]
+		[[[__many__]]]
+			url = url()
+			category = string(default=None)
+
+[queue]
 	[[__many__]]
 		root = url()
 		username = string(default=None)
 		password = string(default=None)
 		api_key = string(default=None)
-
 """
 
 SYSTEM_SPEC = """
@@ -330,36 +369,33 @@ def write_config_files(path):
 		print "Created %s" % path
 
 	# write main config file
-	if _replace_existing_config_file("%s/mediarover.conf" % path):
-		vdt = _get_validator()
+	if _have_write_permission("%s/mediarover.conf" % path):
+#		vdt = _get_validator()
+#
+#		# create ConfigObj (without SYSTEM_SPEC)
+#		spec = CONFIG_SPEC.splitlines()
+#		config = ConfigObj(configspec=spec)
+#		config.validate(vdt, copy=True)
+#
+#		# write config file to disk
+#		config.filename = "%s/mediarover.conf" % path
+#		config.write()
+#		print "Created %s" % config.filename
 
-		# create ConfigObj (without SYSTEM_SPEC)
-		spec = CONFIG_SPEC.splitlines()
-		config = ConfigObj(configspec=spec)
-		config.validate(vdt, copy=True)
+		_write_new_config_file("%s/mediarover.conf" % path, CONFIG_TEMPLATE)
 
-		# write config file to disk
-		config.filename = "%s/mediarover.conf" % path
-		config.write()
-		print "Created %s" % config.filename
-		
 	# write logging config files
 	for config, log, data in zip(["logging.conf", "sabnzbd_episode_sort_logging.conf"], 
 		['mediarover.log', 'sabnzbd_episode_sort.log'], 
 		[MEDIAROVER_LOGGING, SABNZBD_EPISODE_SORT_LOGGING]):
 
-		if _replace_existing_config_file("%s/%s" % (path, config)):
+		if _have_write_permission("%s/%s" % (path, config)):
 
 			# update default template and set default location of log file
 			template = Template(data)
 			data = template.safe_substitute(file="%s/logs/%s" % (path,log))
 
-			f = open("%s/%s" % (path, config), "w")
-			try:
-				f.write(data)
-				print "Created %s" % f.name
-			finally:
-				f.close()
+			_write_new_config_file("%s/%s" % (path, config), data)
 
 def check_filesystem_path(path):
 	""" make sure given path is a valid, filesystem path """
@@ -428,14 +464,14 @@ def _get_validator():
 
 	return vdt
 
-def _replace_existing_config_file(path):
+def _have_write_permission(path):
 
 	answer = True
 
-	# oops, config already exists on disk. query user for overwrite permission
+	# oops, config already exists on disk. query user for permission to replace
 	if os.path.exists(path):
 		while True:
-			query = raw_input("%s already exists! Overwrite? [y/n] " % path)
+			query = raw_input("%s already exists! Replace? [y/n] " % path)
 			if query.lower() == 'y': 
 				break
 			elif query.lower() == 'n': 
@@ -443,6 +479,33 @@ def _replace_existing_config_file(path):
 				break
 			
 	return answer
+
+def _write_new_config_file(path, data):
+
+	proceed = True
+	if os.path.exists(path):
+		
+		# attempt to preserve old config file
+		new = "%s.%s" % (path, strftime("%Y%m%d%H%M"))
+		try:
+			os.rename(path, new)
+			print "Moved %s to %s" % (path, new)
+		except OSError:
+			while True:
+				query = raw_input("unable to preserve %s! Overwrite? [y/n] " % path)
+				if query.lower() == "y":
+					break
+				elif query.lower() == "n":
+					proceed = False
+					break
+
+	if proceed:
+		f = open(path, "w")
+		try:
+			f.write(data)
+			print "Created %s" % f.name
+		finally:
+			f.close()
 
 # - - - - - -  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

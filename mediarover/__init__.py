@@ -419,36 +419,3 @@ def locate_config_files(path):
 		print "ERROR: configuration directory (%s) does not exist.  Do you need to run `%s --write-configs`?" % (path, sys.argv[0])
 		exit(1)
 
-#def __write_config_files(path, configs):
-#
-#	if configs:
-#		
-#		# if given path doesn't exist, create it
-#		if not (path is None or os.path.exists("%s/logs" % path)):
-#			os.makedirs(path, 0755)
-#			print "Created %s" % path
-#
-#		for file, data in zip(["mediarover.conf", "logging.conf"], [APP_CONFIG, LOGGING_CONFIG]):
-#			proceed = True
-#			pair = (path, file)
-#
-#			# oops, config already exists on disk. query user for overwrite permission
-#			if os.path.exists("%s/%s" % pair):
-#				while True:
-#					query = raw_input("%s/%s already exists! Overwrite? [y/n] " % pair)
-#					if query.lower() == 'y': 
-#						break
-#					elif query.lower() == 'n': 
-#						proceed = False
-#						break
-#				
-#			if proceed:
-#				f = open("%s/%s" % pair, "w")
-#				try:
-#					f.write(data)
-#					print "Created %s/%s" % pair
-#				finally:
-#					f.close()
-#			else:
-#				print "Skipping %s..." % file
-#
