@@ -19,6 +19,7 @@ import os
 import os.path
 import re
 import sys
+from urllib2 import URLError
 from optparse import OptionParser
 
 from mediarover.config import generate_config, write_config_files
@@ -202,6 +203,8 @@ def _process(config, options, args):
 					params['label'] = label
 					if params['category'] is None:
 						params['category'] = config['tv']['default_category']
+					if params['timeout'] is None:
+						params['timeout'] = config['source']['default_timeout']
 					feeds.append(params)
 				else:
 					logger.warning("invalid feed '%s' - missing url!")
@@ -222,7 +225,7 @@ def _process(config, options, args):
 				else:
 					for feed in feeds:
 						logger.debug("creating source for feed '%s'", feed['label'])
-						sources.append(getattr(module, "%sSource" % available.capitalize())(feed['url'], feed['label'], feed['category']))
+						sources.append(getattr(module, "%sSource" % available.capitalize())(feed['url'], feed['label'], feed['category'], feed['timeout']))
 
 			else:
 				logger.debug("skipping source '%s', no feeds", available)
@@ -289,8 +292,15 @@ def _process(config, options, args):
 	"""
 	scheduled = []
 	for source in sources:
+
 		logger.info("processing '%s' items", source.name)
-		for item in source.items():
+		try:
+			items = source.items()
+		except URLError, (msg):
+			logger.error("skipping source '%s', %s", source.name, msg)
+			continue
+
+		for item in items:
 
 			logger.debug("begin processing item '%s'", item.title())
 			try:

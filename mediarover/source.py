@@ -23,7 +23,11 @@ class Source:
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def items(self):
-		""" return list of Item objects from source """
+		""" 
+			return list of Item objects from source 
+
+			Note: this method throws urllib2.URLError on timeout
+		"""
 		raise NotImplementedError
 	
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -54,16 +58,23 @@ class Source:
 
 		return self._category
 
+	def _timeout_prop(self, timeout = None):
+		if timeout is not None:
+			self._timeout = timeout
+
+		return self._timeout
+
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	name = property(fget=_name_prop, fset=_name_prop, doc="source name")
 	url = property(fget=_url_prop, fset=_url_prop, doc="source url")
 	category = property(fget=_category_prop, fset=_category_prop, doc="source category")
 
-	def __init__(self, url, name, category):
+	def __init__(self, url, name, category, timeout):
 		""" validate given url and verify that it is a valid url (syntactically) """
 
 		self.url = url
 		self.name = name
 		self.category = category
+		self.timeout = timeout
 

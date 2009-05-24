@@ -14,7 +14,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import urllib
+import socket
+import urllib2
 import xml.dom.minidom
 
 from item import NewzbinItem
@@ -48,6 +49,10 @@ class NewzbinSource(Source):
 	# private methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def __get_document(self):
-		url = urllib.urlopen(self.url)
+		current_timeout = socket.getdefaulttimeout()
+		socket.setdefaulttimeout(self.timeout)
+
+		url = urllib2.urlopen(self.url)
 		self.__document = xml.dom.minidom.parse(url)
 
+		socket.setdefaulttimeout(current_timeout)

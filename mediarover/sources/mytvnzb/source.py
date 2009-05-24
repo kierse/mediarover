@@ -13,7 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
+import socket
+import urllib2
 import xml.dom.minidom
 
 from mediarover.source import Source
@@ -47,6 +48,10 @@ class MytvnzbSource(Source):
 	# private methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def __get_document(self):
-		url = urllib.urlopen(self.url)
+		current_timeout = socket.getdefaulttimeout()
+		socket.setdefaulttimeout(self.timeout)
+
+		url = urllib2.urlopen(self.url)
 		self.__document = xml.dom.minidom.parse(url)
 
+		socket.setdefaulttimeout(current_timeout)

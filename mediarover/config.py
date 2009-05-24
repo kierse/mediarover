@@ -172,7 +172,12 @@ CONFIG_TEMPLATE = """[DEFAULT]
 #
 #			# optional
 #			category = tv
+#			timeout = 60 # in seconds
 [source]
+
+	# default timeout
+	# NOTE defaults to 60 seconds
+	#default_timeout = 60
 
 # binary newsreader consumable queue
 # ATTENTION: you must declare at least one queue
@@ -223,10 +228,12 @@ CONFIG_SPEC = """[DEFAULT]
 		daily_episode = string(default='$(series)s - $(daily-)s$(smart_title)s')
 
 [source]
+	default_timeout = integer(default=60)
 	[[__many__]]
 		[[[__many__]]]
 			url = url()
 			category = string(default=None)
+			timeout = integer(default=None)
 
 [queue]
 	[[__many__]]
