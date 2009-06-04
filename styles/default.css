@@ -1,0 +1,48 @@
+div.container
+{
+	width: 925px;
+	margin: 15px auto;
+	position: relative;
+	background-color: blue;
+}
+
+ul.menu
+{
+	width: 200px;
+	list-style-type: none;
+	top: 0;
+	right: 0;
+	position: absolute;
+	padding: 0;
+	margin-top: 70px;
+	text-indent: 15px;
+	background-color: red;
+}
+
+ul.menu li
+{
+	padding: 5px 0;
+}
+
+ul.menu li a
+{
+	text-decoration: none;
+}
+
+div.content
+{
+	width: 700px;
+	margin-left: auto;
+	margin-right: 225px;
+	background-color: green;
+}
+
+div.content h1
+{
+	width: 700px;
+	margin-left: auto;
+	margin-right: 225px;
+	color: white;
+	background-color: black;
+}
+
