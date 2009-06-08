@@ -30,7 +30,7 @@ ul.menu
 	right: 0;
 	position: absolute;
 	padding: 0;
-	margin-top: 47px;
+	margin-top: 50px;
 	text-indent: 15px;
 }
 
@@ -61,12 +61,22 @@ div.content h1
 	font-family: serif;
 }
 
+div.content h3, h4
+{
+	margin-bottom: 15px;
+}
+
+div.content p
+{
+	padding: 5px 0;
+}
+
 div.content hr
 {
 	background-color: #e0dddd;
 	color: #e0dddd;
 	height: 1px;
-	margin-top: 15px;
+	margin: 15px 0px;
 }
 
 div.content p
