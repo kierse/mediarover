@@ -1,4 +1,5 @@
 # Lines that start with '#' are comments.
+_site
 *.swp
 *.pyc
 *.pyo

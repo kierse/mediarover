@@ -65,7 +65,7 @@ class TvnzbItem(Item):
 		if MultiEpisode.handle(title):
 			try:
 				self.__download = MultiEpisode.new_from_string(title)
-			except InvalidMultiEpisodeData, MissingParameterError:
+			except (InvalidMultiEpisodeData, MissingParameterError):
 				raise InvalidItemTitle("unable to parse item title and create MultiEpisode object")
 		elif Episode.handle(title):
 			try:
