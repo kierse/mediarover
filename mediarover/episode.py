@@ -442,11 +442,11 @@ class MultiEpisode(Download):
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	# multiepisode 1 regex, ie. s03e20s03e21, s03e20-s03e21, s03e20e21, s03e20-e21
-	episode_regex_1 = re.compile("[a-zA-Z]{1}(\d{1,2})[a-zA-Z]{1}(\d{1,2})-?(?:[a-zA-Z]{1}(\d{1,2}))?[a-zA-Z]{1}(\d{1,2})")
+	# multiepisode 1 regex, ie. s03e20s03e21, s03e20e21
+	episode_regex_1 = re.compile("[a-zA-Z](\d{1,2})[a-zA-Z](\d{1,2})(?:[a-zA-Z]?(\d{1,2}))?[a-zA-Z](\d{1,2})")
 
-	# multiepisode 2 regex, ie. 3x20-3x21, 3x20-21
-	episode_regex_2 = re.compile("(\d{1,2})[a-zA-Z]{1}(\d{1,2})-(?:(\d{1,2})[a-zA-Z]{1})?(\d{1,2})")
+	# multiepisode 2 regex, ie. s03e20-s03e21, s03e20-e21, s03e20-21, 3x20-3x21, 3x20-21
+	episode_regex_2 = re.compile("[a-zA-Z]?(\d{1,2})[a-zA-Z](\d{1,2})-(?:[a-zA-Z]?(\d{1,2}))?[a-zA-Z]?(\d{1,2})")
 
 	# multiepisode 3 regex, 01-02
 	episode_regex_3 = re.compile("^(\d{1,2})-(\d{1,2})")
@@ -684,7 +684,7 @@ class MultiEpisode(Download):
 		if match:
 			params['startSeason'] = season or match.group(1)
 			params['startEpisode'] = match.group(2)
-			params['endSeason'] = season or match.group(3) or params['startSeason']
+			params['endSeason'] = season or match.group(3)
 			params['endEpisode'] = match.group(4)
 
 		else:

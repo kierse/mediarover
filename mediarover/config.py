@@ -173,6 +173,14 @@ CONFIG_TEMPLATE = """[DEFAULT]
 #			# optional
 #			category = tv
 #			timeout = 60 # in seconds
+#
+# Available source plugins:
+#
+#  newzbin - http://newzbin.com
+#  tvnzb   - http://www.tvnzb.com/
+#  mytvznb - http://mytvnzb.foechoer.be/
+#  nzbs    - http://www.nzbs.org
+#
 [source]
 
 	# default timeout
@@ -246,7 +254,7 @@ CONFIG_SPEC = """[DEFAULT]
 SYSTEM_SPEC = """
 
 [__SYSTEM__]
-	__available_sources = list(default=list('newzbin','tvnzb','mytvnzb'))
+	__available_sources = list(default=list('newzbin','tvnzb','mytvnzb','nzbs'))
 	__available_queues = list(default=list('sabnzbd'))
 
 """
