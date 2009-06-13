@@ -54,8 +54,8 @@ ul.menu li.twitter
 {
 	text-indent: 40px;
 	font-style: italic;
-	background-image: url('/images/twitter.jpg');
-	background-position: 15px 3px;
+	background-image: url('../images/twitter.jpg');
+	background-position: 15px 6px;
 	background-repeat: no-repeat;
 }
 
