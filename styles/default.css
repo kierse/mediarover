@@ -45,6 +45,15 @@ ul.menu a:hover
 	background-color: #f8f8f8;
 }
 
+ul.menu li.twitter
+{
+	text-indent: 40px;
+	font-style: italic;
+	background-image: url('/images/twitter.jpg');
+	background-position: 15px 3px;
+	background-repeat: no-repeat;
+}
+
 div.content
 {
 	width: 700px;
