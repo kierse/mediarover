@@ -58,8 +58,8 @@ The sorting script is invoked automatically by SABnzbd when it has finished proc
 
 ### Installation
 
-[<img class="download" src="http://github.com/images/modules/download/zip.png" width="90" />][4]
-[<img class="download" src="http://github.com/images/modules/download/tar.png" width="90" />][5]
+[<img src="http://github.com/images/modules/download/zip.png" width="90" />][4]
+[<img src="http://github.com/images/modules/download/tar.png" width="90" />][5]
 
 #### general installation
 
@@ -80,18 +80,7 @@ new download.  Before SABnzbd will do this, it must be told of its sorting scrip
 		> cd /path/to/sabnzbd/user/scripts/directory
 		> ln -s /path/to/mediarover/sort_script .
 
-3. create a new shell script that invokes the Media Rover sorting script.  
-	For example:
-
-		#!/bin/sh  
-
-		# filesystem path where Media Rover is installed
-		ROOT=/PATH/TO/MEDIAROVER
-
-		# filesystem path to configuration directory
-		CONFIG=/PATH/TO/MEDIAROVER/CONFIG/DIR
-
-		python $ROOT/scripts/sabnzbd_episode_sort.py -c $CONFIG "$1" "$2" "$3" "$4" "$5" "$6"
+3. create a new shell script that invokes the Media Rover sorting script.  Consult the [wiki][8] for examples.
 
 - - - - -
 
@@ -131,4 +120,5 @@ kierse &#91;at&#93; mediarover.tv
 [5]: http://github.com/kierse/mediarover/tarball/master
 [6]: http://wiki.github.com/kierse/mediarover/future
 [7]: http://wiki.github.com/kierse/mediarover/configuration
+[8]: http://wiki.github.com/kierse/mediarover/miscellaneous-sorting
 
