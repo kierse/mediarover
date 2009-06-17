@@ -102,7 +102,7 @@ CONFIG_TEMPLATE = """[DEFAULT]
 		#
 		#  $(season)d          => 1
 		#  $(season)02d        => 01
-		#  Season %(season)02d => Season 01
+		#  Season $(season)02d => Season 01
 		#
 		# NOTE: defaults to 's$(season)02d'
 		#season = s$(season)02d
