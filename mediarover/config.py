@@ -41,6 +41,11 @@ CONFIG_TEMPLATE = """[DEFAULT]
 	# directory containing all tv shows to watch for
 	tv_root = 
 
+	# umask value used when creating any files or folders.  This option is 
+	# used by the sorting script when creating series or season directories
+	# NOTE: defaults to 022
+	#umask = 022
+
 	# default download category
 	# NOTE: defaults to 'tv'
 	#default_category = tv
@@ -209,11 +214,13 @@ CONFIG_TEMPLATE = """[DEFAULT]
 """
 
 CONFIG_SPEC = """[DEFAULT]
+
 [logging]
 	generate_sorting_log = boolean(default=True)
 
 [tv]
 	tv_root = path(default="")
+	umask = integer(default=022)
 	default_category = string(default=tv)
 	ignore_series_metadata = boolean(default=True)
 	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com"))

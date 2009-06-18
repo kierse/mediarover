@@ -176,6 +176,9 @@ def _process_download(config, options, args):
 	if 'ignore_series_metadata' in config['tv']:
 		ignore_metadata = config['tv'].as_bool('ignore_series_metadata')
 
+	# set umask for files and directories created during this session
+	os.umask(config['tv']['umask'])
+
 	# get list of shows in root tv directory
 	shows = {}
 	dir_list = os.listdir(tv_root)
