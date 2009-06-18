@@ -156,6 +156,9 @@ class Series(object):
 		
 		logger = logging.getLogger('mediarover.series')
 
+		# clean up given series name
+		name = name.rstrip(" .-")
+
 		# instance variables
 		self.__raw_name = name
 		self.ignore_metadata = ignore_metadata
