@@ -243,7 +243,7 @@ class FilesystemEpisode(Episode):
 	extension = property(fget=_extension_prop, fset=_extension_prop, doc="file extension")
 	filename = property(fget=_filename_prop, doc="filename")
 
-	def __init__(self, series, season, daily, episode, year, month, day, title, 
+	def __init__(self, series, season, daily, episode = None, year = None, month = None, day = None, title = "", 
 		filename = None, extension = None):
 
 		super(FilesystemEpisode, self).__init__(series, season, daily, episode, year, month, day, title)
