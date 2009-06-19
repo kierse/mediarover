@@ -263,6 +263,12 @@ class Episode(Download):
 	def __init__(self, series, season, daily, episode = None, 
 		year = None, month = None, day = None, title = ""):
 
+		# initialize a few fields
+		self._year = None
+		self._month = None
+		self._day = None
+		self._episode = None
+
 		if series is None:
 			raise MissingParameterError("missing episode series name")
 
@@ -272,28 +278,24 @@ class Episode(Download):
 		if daily is None:
 			raise MissingParameterError("missing episode type: daily or series")
 
-		self.series = series
-		self.season = season
-		self.daily = daily
-
 		# daily show checks
 		if daily:
 			if None in (year, month, day):
 				raise MissingParameterError("missing daily episode values")
-
-			self.year = year
-			self.month = month
-			self.day = day
 
 		# series checks
 		else:
 			if episode is None:
 				raise MissingParameterError("missing series episode values")
 
-			self.episode = episode
-
-		if title is not None:
-			self.title = title
+		self.series = series
+		self.season = season
+		self.daily = daily
+		self.title = title
+		self.year = year
+		self.month = month
+		self.day = day
+		self.episode = episode
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -405,9 +407,7 @@ class MultiEpisode(Download):
 	def __init__(self, episodes = [], title = ""):
 		
 		self.episodes = episodes
-
-		if title is not None:
-			self.title = title
+		self.title = title
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -25,8 +25,9 @@ from time import strftime
 from mediarover import locate_config_files
 from mediarover.config import generate_config, write_config_files
 from mediarover.error import *
-from mediarover.series import Series
 from mediarover.scripts.error import *
+from mediarover.series import Series
+from mediarover.sources.filesystem.episode import FilesystemEpisode, FilesystemMultiEpisode
 from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.filesystem import series_episode_exists, series_episode_path, series_season_path, series_season_multiepisodes, clean_path
 
@@ -266,10 +267,11 @@ def _process_download(config, options, args):
 
 	# build a filesystem episode object
 	try:
-		episode.episodes:
-		episode = FilesystemMultiEpisode.new_from_episode(episode, filename, extension)
+		episode.episodes
 	except AttributeError:
 		episode = FilesystemEpisode.new_from_episode(episode, filename, extension)
+	else:
+		episode = FilesystemMultiEpisode.new_from_episode(episode, filename, extension)
 
 	# make sure episode series object knows whether to ignore metadata or not
 	episode.series.ignore_metadata = config['tv']['ignore_series_metadata']

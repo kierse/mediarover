@@ -171,6 +171,7 @@ class FilesystemEpisode(Episode):
 			filename = file,
 			extension = extension
 		)
+	new_from_episode = classmethod(new_from_episode)
 
 	def new_from_string(cls, file, series = None, season = None, daily = None, 
 		episode = None, year = None, month = None, day = None, title = ""):
@@ -377,12 +378,17 @@ class FilesystemMultiEpisode(MultiEpisode):
 			else:
 				extension = extension.lstrip(".")
 
+		episodes = []
+		for ep in episode.episodes:
+			episodes.append(FilesystemEpisode.new_from_episode(ep, "", ""))
+
 		return FilesystemMultiEpisode(
-			episodes = episode.episodes,
+			episodes = episodes,
 			title = episode.title,
 			filename = file,
 			extension = extension
 		)
+	new_from_episode = classmethod(new_from_episode)
 
 	def new_from_string(cls, file, series = None, season = None):
 		""" parse given string and create new FilesystemMultiEpisode object from extracted values """
@@ -406,7 +412,7 @@ class FilesystemMultiEpisode(MultiEpisode):
 
 		episodes = []
 		for i in range(int(p['startEpisode']), int(p['endEpisode'])+1):
-			episodes.append(Episode(series=p['series'], season=p['startSeason'], daily=False, episode=i))
+			episodes.append(FilesystemEpisode(series=p['series'], season=p['startSeason'], daily=False, episode=i, filename="", extension=""))
 
 		return FilesystemMultiEpisode(episodes, title = p['title'], filename = file, extension = extension)
 	new_from_string = classmethod(new_from_string)
