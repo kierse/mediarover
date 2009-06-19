@@ -283,11 +283,11 @@ keys = default
 
 # loggers
 [logger_root]
-level = DEBUG
+level = NOTSET
 handlers = logfile,screen
 
 [logger_mediarover]
-level = DEBUG
+level = NOTSET
 handlers = logfile,screen
 propagate = 0
 qualname = mediarover
@@ -295,13 +295,13 @@ qualname = mediarover
 # handlers
 [handler_logfile]
 class = handlers.RotatingFileHandler
-level = NOTSET 
+level = INFO
 formatter = default
 args = ('${file}', None, 1024000, 5)
 
 [handler_screen]
 class = StreamHandler
-level = NOTSET 
+level = INFO
 formatter = default
 args = (sys.stdout, )
 
