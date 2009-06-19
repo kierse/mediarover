@@ -18,7 +18,7 @@ import os.path
 import os
 import re
 
-from mediarover.episode import Episode, MultiEpisode
+from mediarover.sources.filesystem.episode import FilesystemEpisode, FilesystemMultiEpisode
 from mediarover.error import *
 
 # variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -184,11 +184,11 @@ def __find_season_episodes(series, season, path, ignored_extensions):
 	for file in files.itervalues():
 		episode = None
 		try:
-			if MultiEpisode.handle(file['name']):
-				episode = MultiEpisode.new_from_string(string=file['name'], series=series, season=season, filename=True) 
+			if FilesystemMultiEpisode.handle(file['name']):
+				episode = FilesystemMultiEpisode.new_from_string(file['name'], series=series, season=season) 
 				logger.debug("create filesystem multiepisode: %s", episode.__repr__())
-			elif Episode.handle(file['name']):
-				episode = Episode.new_from_string(string=file['name'], series=series, season=season, daily=daily, filename=True)
+			elif FilesystemEpisode.handle(file['name']):
+				episode = FilesystemEpisode.new_from_string(file['name'], series=series, season=season, daily=daily)
 				logger.debug("create filesystem episode: %s", episode.__repr__())
 			else:
 				pass

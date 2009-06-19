@@ -68,7 +68,7 @@ class SabnzbdJob(Job):
 				except MissingParameterError:
 					raise InvalidItemTitle("unable to parse job title and create episode object")
 			else:
-				raise InvalidItemTitle("unsupported job title format")
+				raise InvalidItemTitle("unsupported job title format: '%s'", self.title())
 
 		# otherwise, attempt to create a regular Episode object
 		else:

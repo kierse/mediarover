@@ -237,7 +237,6 @@ def _process_download(config, options, args):
 		logger.info("found download file at '%s'", orig_path)
 
 	# build episode object using command line values
-	episode = None
 	if report_id is not None and report_id != "":
 		from mediarover.sources.newzbin.episode import NewzbinEpisode, NewzbinMultiEpisode
 		
@@ -265,8 +264,12 @@ def _process_download(config, options, args):
 			logger.error("Unable to parse job name (%s) and extract necessary values", job)
 			raise
 
-	# update new episode object with extension scrapped from downloaded file
-	episode.extension = extension
+	# build a filesystem episode object
+	try:
+		episode.episodes:
+		episode = FilesystemMultiEpisode.new_from_episode(episode, filename, extension)
+	except AttributeError:
+		episode = FilesystemEpisode.new_from_episode(episode, filename, extension)
 
 	# make sure episode series object knows whether to ignore metadata or not
 	episode.series.ignore_metadata = config['tv']['ignore_series_metadata']

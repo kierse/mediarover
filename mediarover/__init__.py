@@ -383,7 +383,13 @@ def _process(config, options, args):
 						break
 				else:
 					for job in queue.jobs():
-						download = job.download()
+						
+						# grab download object from current job.  Skip to next job on error
+						try:
+							download = job.download()
+						except InvalidItemTitle:
+							continue
+
 						try:
 							if episode in download.episodes:
 								found = 2

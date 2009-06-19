@@ -27,15 +27,8 @@ class NewzbinEpisode(Episode):
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def new_from_string(cls, string, filename = False):
+	def new_from_string(cls, string):
 		""" parse given string and create new Episode object from extracted values """
-
-		# strip extension off the end of given filename
-		extension = None
-		if filename:
-			(string, dot, extension) = string.rpartition(".")
-			if string == "":
-				raise InvalidData("unable to determine extension of given filename: %s", extension)
 
 		logger = logging.getLogger("mediarover.sources.newzbin.episode")
 		logger.debug("parsing '%s'", string)
@@ -50,7 +43,7 @@ class NewzbinEpisode(Episode):
 		p = NewzbinEpisode.parse_string(other, series=series, title=title)
 
 		return NewzbinEpisode(series = p['series'], season = p['season'], daily = p['daily'], episode = p['episode'], 
-			year = p['year'], month = p['month'], day = p['day'], title = p['title'], extension = extension)
+			year = p['year'], month = p['month'], day = p['day'], title = p['title'])
 	new_from_string = classmethod(new_from_string)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
