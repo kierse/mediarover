@@ -13,9 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import os.path
 import re
-import logging
+from datetime import date
 
 from mediarover.episode import Episode, MultiEpisode
 from mediarover.error import *

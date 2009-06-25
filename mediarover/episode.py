@@ -16,8 +16,6 @@
 import logging
 import os.path
 import re
-from datetime import date
-from time import strftime
 
 from mediarover.error import *
 from download import Download
