@@ -98,6 +98,20 @@ def main():
 		logger.exception(e)
 		raise
 
+def locate_config_files(path):
+	
+	if os.path.exists(path):
+		for file in ("mediarover.conf", "logging.conf"):
+			if not os.path.exists("%s/%s" % (path, file)):
+				print "ERROR: missing config file '%s/%s'.  Run `%s --config=%s --write-configs`" % (path, file, sys.argv[0], path)
+				exit(1)
+			if not os.access("%s/%s" % (path, file), os.R_OK):
+				print "ERROR: unable to read config file '%s/%s' - check file permissions!" % (path, file)
+				exit(1)
+	else:
+		print "ERROR: configuration directory (%s) does not exist.  Do you need to run `%s --write-configs`?" % (path, sys.argv[0])
+		exit(1)
+
 # private methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def _process(config, options, args):
@@ -420,18 +434,4 @@ def _process(config, options, args):
 				queue.add_to_queue(item)
 			except (IOError, QueueInsertionError):
 				logger.warning("unable to download '%s'", item.title())
-
-def locate_config_files(path):
-	
-	if os.path.exists(path):
-		for file in ("mediarover.conf", "logging.conf"):
-			if not os.path.exists("%s/%s" % (path, file)):
-				print "ERROR: missing config file '%s/%s'.  Run `%s --config=%s --write-configs`" % (path, file, sys.argv[0], path)
-				exit(1)
-			if not os.access("%s/%s" % (path, file), os.R_OK):
-				print "ERROR: unable to read config file '%s/%s' - check file permissions!" % (path, file)
-				exit(1)
-	else:
-		print "ERROR: configuration directory (%s) does not exist.  Do you need to run `%s --write-configs`?" % (path, sys.argv[0])
-		exit(1)
 
