@@ -74,20 +74,47 @@ CONFIG_TEMPLATE = """[DEFAULT]
 
 	# series specific filter options
 	# usage: in order to specify filters for a given series, define
-	# a new subsection with the series name.  Define all filters
-	# within it, ie:
-	#  [[[The Office]]]
-	#     filter1 = value
-	#     filter2 = value
+	# a new subsection with the series name.  Define all filter rules
+	# within it.
+	#
+	# Section layout:
+	#
+	#  [[ filter ]]
+	#
+	#     [[[ series_name_1 ]]]
+	#        skip = <boolean>
+	#        ignore = <list>
+	#
+	#     [[[ series_name_2 ]]]
+	#        skip = <boolean>
+	#        ignore = <list>
+	#
 	#     ...
+	#     ..
+	#
+	#     [[[ series_name_N ]]]
+	#        skip = <boolean>
+	#        ignore = <list>
+	#
+	# Options:
+	#  filter:      skip
+	#  values:      True or False
+	#  default:     False
+	#  description: ignore TV series entirely (won't download any new episodes).
+	#
+	#  filter:      ignore
+	#  values:      comma separated list (ie. 1,2,3,4)
+	#  default:     none (empty list)
+	#  description: comma separated list of seasons to ignore when downloading new episode
+	#
+	# ATTENTION: subsection names should exactly match series folder on disk in order to
+	#            guarantee consistent application of filters
+	#
+	# NOTE: filters can optionally be stored on the filesystem in the series directory.  See
+	#       http://wiki.github.com/kierse/mediarover/config-filter for more details
+	#
+	# See http://wiki.github.com/kierse/mediarover/config-filter for examples
 	# 
-	# filter options:
-	#  skip   => ignore TV series entirely (won't download any new episodes)
-	#  ignore => comma separated list of seasons to ignore when downloading new episodes
-	#
-	# NOTE: subsection names should exactly match series folder on disk in order to
-	#       guarantee consistent application of filters
-	#
 	[[filter]]
 		
 	[[template]]
@@ -164,20 +191,35 @@ CONFIG_TEMPLATE = """[DEFAULT]
 		# NOTE: defaults to '$(series)s - $(daily-)s$(smart_title)s'
 		#daily_episode = '$(series)s - $(daily-)s$(smart_title)s'
 
-# consumable nzb sources
-# ATTENTION: you must declare at least one source
+# consumable nzb RSS source feeds
+# usage: define one or more new subsections under the appropriate plugin.  Each subsection consists
+# of a user defined text label, a url pointing to a RSS feed, and zero or more optional arguments.
 #
-#  [[newzbin]]
+# Section layout:
 #
-#		# source 1
-#		[[[label_1]]]
-# 
-# 			# required
-#			url = http://newzbin.com/....
+#  [ source ]
 #
-#			# optional
-#			category = tv
-#			timeout = 60 # in seconds
+#     [[ plugin_1 ]]
+#
+#        # source 1
+#        [[[ user_label_1 ]]]
+#        
+#        	# required
+#        	url = http://path/to/rss/feed/...
+#        
+#        	# optional
+#        	category = tv
+#        	timeout = 60 # in seconds
+#        
+#        # source 2
+#        [[[ user_label_2 ]]]
+#        	url = http://path/to/rss/feed/...
+#        	category = tv
+#        	timeout = 60 # in seconds
+#
+#     [[ plugin_2 ]]
+#        ...
+#        ..
 #
 # Available source plugins:
 #
@@ -186,11 +228,26 @@ CONFIG_TEMPLATE = """[DEFAULT]
 #  mytvznb - http://mytvnzb.foechoer.be/
 #  nzbs    - http://www.nzbs.org
 #
+# See http://wiki.github.com/kierse/mediarover/config-source for examples
+#
+# ATTENTION: you must declare at least one source
 [source]
 
 	# default timeout
 	# NOTE defaults to 60 seconds
 	#default_timeout = 60
+
+	# newzbin.com RSS feeds go here
+	[[ newzbin ]]
+
+	# tvnzb.com RSS feeds go here
+	[[ tvnzb ]]
+
+	# mytvnzb RSS feeds go here
+	[[ mytvnzb ]]
+
+	# nzbs.org RSS feeds go here
+	[[ nzbs ]]
 
 # binary newsreader consumable queue
 # ATTENTION: you must declare at least one queue
