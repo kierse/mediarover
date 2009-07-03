@@ -25,9 +25,7 @@ from mediarover.utils.validate import Validator, VdtParamError, VdtValueError
 
 # CONFIG SPECS- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-CONFIG_TEMPLATE = """[DEFAULT]
-
-[logging]
+CONFIG_TEMPLATE = """[logging]
 
 	# sorting error log
 	# when sorting a download and a fatal error is encountered,
@@ -270,9 +268,8 @@ CONFIG_TEMPLATE = """[DEFAULT]
 		#password = 
 """
 
-CONFIG_SPEC = """[DEFAULT]
-
-[logging]
+CONFIG_SPEC = """[logging]
+	# this is a test
 	generate_sorting_log = boolean(default=True)
 
 [tv]
@@ -449,18 +446,6 @@ def write_config_files(path):
 
 	# write main config file
 	if _have_write_permission("%s/mediarover.conf" % path):
-#		vdt = _get_validator()
-#
-#		# create ConfigObj (without SYSTEM_SPEC)
-#		spec = CONFIG_SPEC.splitlines()
-#		config = ConfigObj(configspec=spec)
-#		config.validate(vdt, copy=True)
-#
-#		# write config file to disk
-#		config.filename = "%s/mediarover.conf" % path
-#		config.write()
-#		print "Created %s" % config.filename
-
 		_write_new_config_file("%s/mediarover.conf" % path, CONFIG_TEMPLATE)
 
 	# write logging config files
@@ -479,11 +464,6 @@ def write_config_files(path):
 def check_filesystem_path(path):
 	""" make sure given path is a valid, filesystem path """
 
-#	# check that we weren't given null or 
-#	# a blank string...
-#	if path is None or path == "":
-#		raise VdtParamError("path", path)
-
 	if path != "":
 		if not os.path.isdir(path):
 			raise VdtValueException("path '%s' does not exist!", path)
@@ -492,11 +472,6 @@ def check_filesystem_path(path):
 
 def check_url(url):
 	""" make sure given url is valid (syntactically) """
-
-#	# check that we weren't given null or
-#	# a blank string...
-#	if url is None or url == "":
-#		raise VdtParamError("url", url)
 
 	if url != "":
 		if not re.match("^\w+://", url):
