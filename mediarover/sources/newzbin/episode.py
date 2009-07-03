@@ -27,6 +27,7 @@ class NewzbinEpisode(Episode):
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	@classmethod
 	def new_from_string(cls, string):
 		""" parse given string and create new Episode object from extracted values """
 
@@ -44,7 +45,6 @@ class NewzbinEpisode(Episode):
 
 		return NewzbinEpisode(series = p['series'], season = p['season'], daily = p['daily'], episode = p['episode'], 
 			year = p['year'], month = p['month'], day = p['day'], title = p['title'])
-	new_from_string = classmethod(new_from_string)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -53,6 +53,7 @@ class NewzbinMultiEpisode(MultiEpisode):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	@classmethod
 	def new_from_string(cls, string):
 		""" parse given string and create new MultiEpisode object from extracted values """
 
@@ -66,5 +67,4 @@ class NewzbinMultiEpisode(MultiEpisode):
 		multi.title = title
 
 		return multi
-	new_from_string = classmethod(new_from_string)
 

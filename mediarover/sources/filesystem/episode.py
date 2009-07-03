@@ -138,6 +138,7 @@ class FilesystemEpisode(Episode):
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	@classmethod
 	def handle(cls, string):
 		
 		if FilesystemEpisode.regex_1.search(string):
@@ -147,8 +148,8 @@ class FilesystemEpisode(Episode):
 			return True
 
 		return Episode.handle(string)
-	handle = classmethod(handle)
 
+	@classmethod
 	def new_from_episode(cls, episode, file, extension = None):
 		""" create a new FilesystemEpisode object from an Episode object """
 
@@ -172,8 +173,8 @@ class FilesystemEpisode(Episode):
 			filename = file,
 			extension = extension
 		)
-	new_from_episode = classmethod(new_from_episode)
 
+	@classmethod
 	def new_from_string(cls, file, series = None, season = None, daily = None, 
 		episode = None, year = None, month = None, day = None, title = ""):
 		""" parse given string and create new FilesystemEpisode object from extracted values """
@@ -190,8 +191,8 @@ class FilesystemEpisode(Episode):
 
 		return FilesystemEpisode(series = p['series'], season = p['season'], daily = p['daily'], episode = p['episode'], 
 			year = p['year'], month = p['month'], day = p['day'], title = p['title'], filename = file, extension = extension)
-	new_from_string = classmethod(new_from_string)
 
+	@classmethod
 	def parse_string(cls, string, series = None, season = None, daily = None, 
 		episode = None, year = None, month = None, day = None, title = None):
 		""" parse given string and attempt to extract episode values """
@@ -229,7 +230,6 @@ class FilesystemEpisode(Episode):
 		params['series'] = series
 
 		return params
-	parse_string = classmethod(parse_string)
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -359,15 +359,16 @@ class FilesystemMultiEpisode(MultiEpisode):
 		return "FilesystemMultiEpisode([%s],title='%s',filename='%s',extension='%s')" % (",".join(episodes), self.title,self.filename,self.extension)
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+	
+	@classmethod
 	def handle(cls, string):
 		
 		if FilesystemMultiEpisode.regex_1.search(string):
 			return True
 
 		return MultiEpisode.handle(string)
-	handle = classmethod(handle)
 
+	@classmethod
 	def new_from_episode(cls, episode, file, extension):
 		""" create a new FilesystemMultiEpisode object from an MultiEpisode object """
 
@@ -389,8 +390,8 @@ class FilesystemMultiEpisode(MultiEpisode):
 			filename = file,
 			extension = extension
 		)
-	new_from_episode = classmethod(new_from_episode)
 
+	@classmethod
 	def new_from_string(cls, file, series = None, season = None):
 		""" parse given string and create new FilesystemMultiEpisode object from extracted values """
 
@@ -416,8 +417,8 @@ class FilesystemMultiEpisode(MultiEpisode):
 			episodes.append(FilesystemEpisode(series=p['series'], season=p['startSeason'], daily=False, episode=i, filename="", extension=""))
 
 		return FilesystemMultiEpisode(episodes, title = p['title'], filename = file, extension = extension)
-	new_from_string = classmethod(new_from_string)
 
+	@classmethod
 	def parse_string(cls, string, series = None, season = None, title = None):
 		""" parse given string and attempt to extract multiepisode values """
 
@@ -434,7 +435,6 @@ class FilesystemMultiEpisode(MultiEpisode):
 		params['title'] = title
 
 		return params
-	parse_string = classmethod(parse_string)
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

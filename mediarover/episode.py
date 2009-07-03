@@ -55,6 +55,7 @@ class Episode(Download):
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	@classmethod
 	def handle(cls, string):
 
 		if Episode.date_regex.search(string):
@@ -67,8 +68,8 @@ class Episode(Download):
 			return True
 
 		return False
-	handle = classmethod(handle)
 
+	@classmethod
 	def new_from_string(cls, string, series = None, season = None, daily = None, 
 		episode = None, year = None, month = None, day = None, title = ""):
 		""" parse given string and create new Episode object from extracted values """
@@ -78,8 +79,8 @@ class Episode(Download):
 
 		return Episode(series = p['series'], season = p['season'], daily = p['daily'], episode = p['episode'], 
 			year = p['year'], month = p['month'], day = p['day'], title = p['title'])
-	new_from_string = classmethod(new_from_string)
 
+	@classmethod
 	def parse_string(cls, string, series = None, season = None, daily = None, 
 		episode = None, year = None, month = None, day = None, title = None):
 		"""
@@ -138,7 +139,6 @@ class Episode(Download):
 		params['title'] = title
 
 		return params
-	parse_string = classmethod(parse_string)
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -409,6 +409,7 @@ class MultiEpisode(Download):
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	@classmethod
 	def handle(cls, string):
 
 		if MultiEpisode.episode_regex_1.search(string):
@@ -418,8 +419,8 @@ class MultiEpisode(Download):
 			return True
 
 		return False
-	handle = classmethod(handle)
 
+	@classmethod
 	def new_from_string(cls, string, series = None, season = None):
 		""" parse given string and create new MultiEpisode object from extracted values """
 
@@ -438,8 +439,8 @@ class MultiEpisode(Download):
 			episodes.append(Episode(series=p['series'], season=p['startSeason'], daily=False, episode=i))
 
 		return MultiEpisode(episodes, title = p['title'])
-	new_from_string = classmethod(new_from_string)
 
+	@classmethod
 	def parse_string(cls, string, series = None, season = None, title = None):
 		""" parse given string and attempt to extract multiepisode values """
 		params = {
@@ -472,5 +473,4 @@ class MultiEpisode(Download):
 			params['title'] = title
 
 		return params
-	parse_string = classmethod(parse_string)
 
