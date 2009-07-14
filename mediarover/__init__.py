@@ -122,80 +122,83 @@ def _process(config, options, args):
 	if options.dry_run:
 		logger.info("--dry-run flag detected!  No new downloads will be queued during execution!")
 
-	# first things first, check if tv root directory exists and that we
-	# have read access to it
 	tv_root = config['tv']['tv_root']
-	if not os.access(tv_root, os.F_OK):
-		raise FilesystemError("TV root directory (%s) does not exist!", tv_root)
-	if not os.access(tv_root, os.R_OK):
-		raise FilesystemError("Missing read access to tv root directory (%s)", tv_root)
 
-	logger.info("begin processing tv directory: %s", tv_root)
-	
-	# grab list of shows
 	shows = {}
-	ignore_metadata = config['tv'].as_bool('ignore_series_metadata')
-	dir_list = os.listdir(tv_root)
-	dir_list.sort()
-	for name in dir_list:
+	for root in tv_root:
 
-		# skip hidden directories
-		if name.startswith("."):
-			continue
+		# first things first, check that tv rootectory exists and that we
+		# have read access to it
+		if not os.access(root, os.F_OK):
+			raise FilesystemError("TV root rootectory (%s) does not exist!", root)
+		if not os.access(root, os.R_OK):
+			raise FilesystemError("Missing read access to tv root rootectory (%s)", root)
 
-		dir = "%s/%s" % (tv_root, name)
-		if os.path.isdir(dir):
-			
-			series = Series(name, path=dir, ignore_metadata=ignore_metadata)
-			sanitized_name = Series.sanitize_series_name(series)
+		logger.info("begin processing tv directory: %s", root)
+	
+		# grab list of shows
+		ignore_metadata = config['tv'].as_bool('ignore_series_metadata')
+		dir_list = os.listdir(root)
+		dir_list.sort()
+		for name in dir_list:
 
-			if sanitized_name in shows:
-				logger.warning("duplicate series directory found! Multiple directories for the same series can/will result in duplicate downloads!  You've been warned...")
+			# skip hidden directories
+			if name.startswith("."):
+				continue
 
-			ignores = []
+			dir = "%s/%s" % (root, name)
+			if os.path.isdir(dir):
+				
+				series = Series(name, path=dir, ignore_metadata=ignore_metadata)
+				sanitized_name = Series.sanitize_series_name(series)
 
-			# check config filters
-			if sanitized_name in config['tv']['filter']:
-			
-				# check filters to see if user wants this series skipped...
-				filters = config['tv']['filter'][sanitized_name]
-				if 'skip' in filters and filters['skip'] == 'True':
-					logger.info("found skip filter, ignoring series: %s", dir)
-					continue
+				if sanitized_name in shows:
+					logger.warning("duplicate series directory found! Multiple directories for the same series can/will result in duplicate downloads!  You've been warned...")
 
-				# grab any defined season ignores
-				if 'ignore' in filters:
-					ignores = filters['ignore']
+				ignores = []
 
-			# check disk for .ignore file
-			if os.path.exists("%s/.ignore" % dir):
-				logger.debug("found ignore file: %s", dir)
-
-				file_ignores = []
-				file = open("%s/.ignore" % dir)
-				try:
-					[file_ignores.append(line.rstrip("\n")) for line in file]
-				finally:
-					file.close()
-
-				# if the series has an ignore file and the first line is '*'
-				# (meaning ignore series) skip to the next series
-				if len(file_ignores):
-					if file_ignores[0] == "*": 
-						logger.info("ignoring series: %s", dir)
+				# check config filters
+				if sanitized_name in config['tv']['filter']:
+				
+					# check filters to see if user wants this series skipped...
+					filters = config['tv']['filter'][sanitized_name]
+					if 'skip' in filters and filters['skip'] == 'True':
+						logger.info("found skip filter, ignoring series: %s", dir)
 						continue
-					else:
-						ignores = file_ignores
-			
-			series.ignores = ignores
-			if len(ignores):
-				logger.info("ignoring the following seasons of %s: %s", sanitized_name, ignores)
 
-			shows[sanitized_name] = series
-			logger.debug("watching series: %s => %s", sanitized_name, dir)
+					# grab any defined season ignores
+					if 'ignore' in filters:
+						ignores = filters['ignore']
+
+				# check disk for .ignore file
+				if os.path.exists("%s/.ignore" % dir):
+					logger.debug("found ignore file: %s", dir)
+
+					file_ignores = []
+					file = open("%s/.ignore" % dir)
+					try:
+						[file_ignores.append(line.rstrip("\n")) for line in file]
+					finally:
+						file.close()
+
+					# if the series has an ignore file and the first line is '*'
+					# (meaning ignore series) skip to the next series
+					if len(file_ignores):
+						if file_ignores[0] == "*": 
+							logger.info("ignoring series: %s", dir)
+							continue
+						else:
+							ignores = file_ignores
+				
+				series.ignores = ignores
+				if len(ignores):
+					logger.info("ignoring the following seasons of %s: %s", sanitized_name, ignores)
+
+				shows[sanitized_name] = series
+				logger.debug("watching series: %s => %s", sanitized_name, dir)
 
 	logger.info("watching %d tv show(s)", len(shows))
-	logger.debug("finished processing tv directory")
+	logger.debug("finished processing watched tv")
 
 	logger.info("begin processing sources")
 

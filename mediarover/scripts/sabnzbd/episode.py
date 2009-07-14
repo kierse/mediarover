@@ -154,7 +154,7 @@ def _process_download(config, options, args):
 		raise InvalidArgument("path to completed job is missing or null")
 	elif os.path.basename(path).startswith("_FAILED_"):
 		try:
-			args[0] = _move_to_trash(tv_root, path)
+			args[0] = _move_to_trash(tv_root[0], path)
 		except OSError, (num, message):
 			if num == 13:
 				logger.error("unable to move download directory to '%s', permission denied", args[0])
@@ -164,46 +164,48 @@ def _process_download(config, options, args):
 	if job is None or job == "":
 		raise InvalidArgument("job name is missing or null")
 
-	# make sure tv root directory exists and that we have read and 
-	# write access to it
-	if not os.path.exists(tv_root):
-		raise FilesystemError("TV root directory (%s) does not exist!", (tv_root))
-	if not os.access(tv_root, os.R_OK | os.W_OK):
-		raise FilesystemError("Missing read/write access to tv root directory (%s)", (tv_root))
-
-	logger.info("begin processing tv directory: %s", tv_root)
-
-	ignore_metadata = True
-	if 'ignore_series_metadata' in config['tv']:
-		ignore_metadata = config['tv'].as_bool('ignore_series_metadata')
-
-	# set umask for files and directories created during this session
-	os.umask(config['tv']['umask'])
-
-	# get list of shows in root tv directory
 	shows = {}
-	dir_list = os.listdir(tv_root)
-	dir_list.sort()
-	for name in dir_list:
+	for root in tv_root:
 
-		# skip hidden directories
-		if name.startswith("."):
-			continue
+		# make sure tv root directory exists and that we have read and 
+		# write access to it
+		if not os.path.exists(root):
+			raise FilesystemError("TV root directory (%s) does not exist!", (root))
+		if not os.access(root, os.R_OK | os.W_OK):
+			raise FilesystemError("Missing read/write access to tv root directory (%s)", (root))
 
-		dir = "%s/%s" % (tv_root, name)
-		if os.path.isdir(dir):
+		logger.info("begin processing tv directory: %s", root)
 
-			series = Series(name, path=dir, ignore_metadata=ignore_metadata)
-			sanitized_name = Series.sanitize_series_name(series)
+		ignore_metadata = True
+		if 'ignore_series_metadata' in config['tv']:
+			ignore_metadata = config['tv'].as_bool('ignore_series_metadata')
 
-			if sanitized_name in shows:
-				logger.warning("duplicate series directory found! Multiple directories for the same series can result in sorting errors!  You've been warned...")
+		# set umask for files and directories created during this session
+		os.umask(config['tv']['umask'])
 
-			shows[sanitized_name] = series
-			logger.debug("watching series: %s => %s", sanitized_name, dir)
+		# get list of shows in root tv directory
+		dir_list = os.listdir(root)
+		dir_list.sort()
+		for name in dir_list:
+
+			# skip hidden directories
+			if name.startswith("."):
+				continue
+
+			dir = "%s/%s" % (root, name)
+			if os.path.isdir(dir):
+
+				series = Series(name, path=dir, ignore_metadata=ignore_metadata)
+				sanitized_name = Series.sanitize_series_name(series)
+
+				if sanitized_name in shows:
+					logger.warning("duplicate series directory found! Multiple directories for the same series can result in sorting errors!  You've been warned...")
+
+				shows[sanitized_name] = series
+				logger.debug("watching series: %s => %s", sanitized_name, dir)
 
 	logger.info("watching %d tv show(s)", len(shows))
-	logger.debug("finished processing tv directory")
+	logger.debug("finished processing watched tv")
 
 	ignored = [ext.lower() for ext in config['tv']['ignored_extensions']]
 
@@ -286,7 +288,7 @@ def _process_download(config, options, args):
 	except KeyError:
 
 		logger.info("series directory not found")
-		series_dir = "%s/%s" % (tv_root, episode.format_series(config['tv']['template']['series']))
+		series_dir = "%s/%s" % (tv_root[0], episode.format_series(config['tv']['template']['series']))
 		season_path = "%s/%s" % (series_dir, episode.format_season(config['tv']['template']['season']))
 		try:
 			os.makedirs(season_path)
@@ -396,7 +398,7 @@ def _process_download(config, options, args):
 				logger.error("unable to remove download directory '%s'", path)
 
 				try:
-					args[0] = _move_to_trash(tv_root, path)
+					args[0] = _move_to_trash(tv_root[0], path)
 					logger.info("moving download directory '%s' to '%s'", path, args[0])
 				except OSError, (num, message):
 					if num == 13:

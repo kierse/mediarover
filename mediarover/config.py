@@ -37,6 +37,7 @@ CONFIG_TEMPLATE = """[logging]
 
 	# tv root directory
 	# directory containing all tv shows to watch for
+	# NOTE: multiple directories can be specified but must be comma separated 
 	tv_root = 
 
 	# umask value used when creating any files or folders.  This option is 
@@ -273,7 +274,7 @@ CONFIG_SPEC = """[logging]
 	generate_sorting_log = boolean(default=True)
 
 [tv]
-	tv_root = path(default="")
+	tv_root = path_list(default=list())
 	umask = integer(default=022)
 	default_category = string(default=tv)
 	ignore_series_metadata = boolean(default=True)
@@ -470,6 +471,14 @@ def check_filesystem_path(path):
 
 	return path
 
+def check_filesystem_path_list(list):
+	""" make sure given list of paths are valid, filesystem paths """
+
+	for path in list:
+		check_filesystem_path(path)
+
+	return list
+
 def check_url(url):
 	""" make sure given url is valid (syntactically) """
 
@@ -513,6 +522,7 @@ def _get_validator():
 
 	vdt = Validator()
 	vdt.functions['path'] = check_filesystem_path
+	vdt.functions['path_list'] = check_filesystem_path_list
 	vdt.functions['url'] = check_url
 	vdt.functions['int_list'] = check_int_list
 
