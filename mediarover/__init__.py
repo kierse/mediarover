@@ -371,6 +371,11 @@ def _process(config, options, args):
 				logger.info("skipping '%s', already scheduled for download", item.title())
 				continue
 
+			# make sure current item hasn't already been downloaded before
+			if queue.processed(item):
+				logger.info("skipping '%s', already processed by queue", item.title())
+				continue
+
 			# if job is a multiepisode, check the following:
 			#
 			#  1) if all parts are already on disk (or in queue) and user prefers single episodes,

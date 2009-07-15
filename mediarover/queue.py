@@ -34,6 +34,10 @@ class Queue(object):
 		""" check if given download is already in queue """
 		raise NotImplementedError
 
+	def processed(self, item):
+		""" check if given item has already been processed by queue """
+		raise NotImplementedError
+
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def _root_prop(self, url = None):

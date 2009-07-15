@@ -18,13 +18,6 @@ class Download(object):
 
 	# abstract methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-#	def handle(self, title, category = None, source = None):
-#		""" 
-#			return boolean indicating whether or not current sub-class of Download is capable of
-#			properly representing report
-#		"""
-#		raise NotImplementedError
-
 	def __eq__(self, other):
 		""" 
 			compare two Download objects and check if they are equal

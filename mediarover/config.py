@@ -260,11 +260,15 @@ CONFIG_TEMPLATE = """[logging]
 #    # optional 
 #    username = <username>
 #    password = <password>
+#    backup_dir = /path/to/sabnzbd/nzb_backup_dir
+#
+# NOTE: if backup_dir is not specified, failed downloads may be rescheduled by Media Rover
 [queue]
 	
 	[[sabnzbd]]
 		root = http://localhost:8080/sabnzbd
 		api_key = <key>
+		backup_dir = 
 		#username = 
 		#password = 
 """
@@ -311,6 +315,7 @@ CONFIG_SPEC = """[logging]
 		username = string(default=None)
 		password = string(default=None)
 		api_key = string(default=None)
+		backup_dir = path(default="")
 """
 
 SYSTEM_SPEC = """

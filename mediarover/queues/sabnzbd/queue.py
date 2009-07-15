@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+import os
 import re
 import time
 import urllib
@@ -109,10 +110,35 @@ class SabnzbdQueue(Queue):
 		logger.debug("download '%s' NOT FOUND in queue", download)
 		return False
 
+	def processed(self, item):
+		""" return boolean indicating whether or not the given source item has already been processed by queue """
+		logger = logging.getLogger("mediarover.queues.sabnzbd.queue")
+
+		backup_dir = self._params['backup_dir']
+		if backup_dir:
+
+			# build name of nzb as it would appear on disk
+			try:
+				id = item.id()
+			except AttributeError:
+				file = ""
+			else:
+				file = "msgid_%s " % id
+			finally:
+				file += "%s.nzb.gz" % item.title()
+
+			logger.debug("looking for '%s' in SABnzbd backup directory...", file)
+
+			for nzb in os.listdir(backup_dir):
+				if file == nzb:
+					return True
+
+		return False
+
 	# private methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def __get_document(self):
-		logger = logging.getLogger('queue')
+		logger = logging.getLogger('mediarover.queues.sabnzbd.queue')
 
 		args = {
 			'mode': 'qstatus',
