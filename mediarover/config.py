@@ -476,13 +476,19 @@ def check_filesystem_path(path):
 
 	return path
 
-def check_filesystem_path_list(list):
-	""" make sure given list of paths are valid, filesystem paths """
+def check_filesystem_path_list(paths):
+	""" 
+		make sure given list of paths are valid, filesystem paths 
+		if given a string, return as list
+	"""
 
-	for path in list:
+	if not isinstance(paths, list):
+		paths = [paths]
+
+	for path in paths:
 		check_filesystem_path(path)
 
-	return list
+	return paths
 
 def check_url(url):
 	""" make sure given url is valid (syntactically) """
