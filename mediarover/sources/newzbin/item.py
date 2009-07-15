@@ -24,16 +24,6 @@ class NewzbinItem(Item):
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def report_category(self):
-		""" report category from source item """
-
-		try:
-			self.__reportCategory
-		except AttributeError:
-			self.__reportCategory = self.__item.getElementsByTagName("report:category")[0].childNodes[0].data
-
-		return self.__reportCategory
-	
 	def download(self):
 		""" return download object """
 
@@ -77,7 +67,7 @@ class NewzbinItem(Item):
 	def __parseItem(self):
 		""" parse item data and build appropriate download object """
 
-		if self.report_category() == "TV":
+		if self._report_category() == "TV":
 			from mediarover.sources.newzbin.episode import NewzbinEpisode, NewzbinMultiEpisode
 			
 			# first, check and see if current item is a multiepisode
@@ -94,6 +84,16 @@ class NewzbinItem(Item):
 					raise InvalidItemTitle("unable to parse item title and create episode object")
 			else:
 				raise InvalidItemTitle("unsupported item title format")
+
+	def _report_category(self):
+		""" report category from source item """
+
+		try:
+			self.__reportCategory
+		except AttributeError:
+			self.__reportCategory = self.__item.getElementsByTagName("report:category")[0].childNodes[0].data
+
+		return self.__reportCategory
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
