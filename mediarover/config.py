@@ -278,7 +278,7 @@ CONFIG_SPEC = """[logging]
 	generate_sorting_log = boolean(default=True)
 
 [tv]
-	tv_root = path_list(default=list())
+	tv_root = path_list()
 	umask = integer(default=022)
 	default_category = string(default=tv)
 	ignore_series_metadata = boolean(default=True)
@@ -483,7 +483,10 @@ def check_filesystem_path_list(paths):
 	"""
 
 	if not isinstance(paths, list):
-		paths = [paths]
+		if len(paths):
+			paths = [paths]
+		else:
+			paths = []
 
 	for path in paths:
 		check_filesystem_path(path)

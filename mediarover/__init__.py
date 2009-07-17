@@ -124,10 +124,13 @@ def _process(config, options, args):
 
 	tv_root = config['tv']['tv_root']
 
+	if not len(tv_root):
+		raise ConfigurationError("You must declare at least one tv_root directory!")
+
 	shows = {}
 	for root in tv_root:
 
-		# first things first, check that tv rootectory exists and that we
+		# first things first, check that tv root directory exists and that we
 		# have read access to it
 		if not os.access(root, os.F_OK):
 			raise FilesystemError("TV root rootectory (%s) does not exist!", root)
