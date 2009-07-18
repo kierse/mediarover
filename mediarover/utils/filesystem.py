@@ -170,10 +170,19 @@ def __find_season_episodes(series, season, path, ignored_extensions):
 	if season > 1000:
 		daily = True
 
+	# duplicate episodes are appended with the date and time that 
+	# they were detected.
+	dup_regex = re.compile("\.\d{12}$")
+
 	files = {}
 	for file in os.listdir(path):
 		if os.path.isfile("%s/%s" % (path, file)):
 			(name, ext) = os.path.splitext(file)
+
+			# skip duplicates when building list of season episodes
+			if dup_regex.search(name):
+				continue
+
 			ext = ext.lstrip(".")
 			if ext not in ignored_extensions:
 				size = os.path.getsize("%s/%s" % (path, file))
