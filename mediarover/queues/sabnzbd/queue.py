@@ -125,12 +125,12 @@ class SabnzbdQueue(Queue):
 			else:
 				file = "msgid_%s " % id
 			finally:
-				file += "%s.nzb.gz" % item.title()
+				file += "%s" % item.title()
 
 			logger.debug("looking for '%s' in SABnzbd backup directory...", file)
 
 			for nzb in os.listdir(backup_dir):
-				if file == nzb:
+				if file.startswith(nzb[:-7]):
 					return True
 
 		return False
