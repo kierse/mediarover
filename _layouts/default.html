@@ -1,19 +1,24 @@
 <html>
 	<head>
-		<title>{{page.title}}</title>
+		{% if page.title == '' %}
+		<title>Media Rover</title>
+		{% else %}
+		<title>Media Rover: {{page.title}}</title>
+		{% endif %}
 		<link rel="stylesheet" href="styles/default.css" type="text/css" media="screen" />
 	</head>
 
 	<body>
 		<div class="container">
 			<ul class="menu">
-				<li><a href="#introduction">Introduction</a></li>
-				<li><a href="#usage">Usage</a></li>
-				<li><a href="#dependencies">Dependencies</a></li>
-				<li><a href="#installation">Installation</a></li>
-				<li><a href="#license">License</a></li>
-				<li><a href="#contact">Contact</a></li>
+				<li><a href="index.html#introduction">Introduction</a></li>
+				<li><a href="index.html#usage">Usage</a></li>
+				<li><a href="index.html#dependencies">Dependencies</a></li>
+				<li><a href="index.html#installation">Installation</a></li>
+				<li><a href="index.html#license">License</a></li>
+				<li><a href="index.html#contact">Contact</a></li>
 				<br />
+				<li><a href="announcements.html">Announcements</a></li>
 				<li><a href="http://github.com/kierse/mediarover">Project</a></li>
 				<li><a href="http://wiki.github.com/kierse/mediarover">Wiki</a></li>
 				<li><a href="http://github.com/kierse/mediarover/issues">Issue tracker</a></li>
@@ -21,6 +26,12 @@
 				<li class="twitter"><a href="http://twitter.com/mediarover">Follow on Twitter!</a></li>
 			</ul>
 			<div class="content">
+				{% if page.title == '' %}
+					<h1>Media Rover</h1>
+				{% else %}
+					<h1>Media Rover: {{page.title}}</h1>
+				{% endif %}
+				<hr>
 				{{content}}
 			</div>
 		</div>

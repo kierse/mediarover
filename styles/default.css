@@ -20,6 +20,7 @@ a img
 div.container
 {
 	width: 915px;
+	min-height: 500px;
 	margin: 15px auto;
 	padding: 3px;
 	position: relative;
@@ -75,6 +76,8 @@ div.content h1
 	font-family: serif;
 }
 
+div.content h1 span#page { }
+
 div.content h3, h4
 {
 	margin-bottom: 15px;
@@ -106,5 +109,37 @@ div.content pre code
 	border: 1px solid #f8f8f8;
 	background-color: #fffffc;
 	color: black;
+}
+
+div.post 
+{
+	padding-bottom: 20px;
+}
+
+div.date
+{
+	font-weight: bold;
+	font-variant: small-caps;
+	font-size: 0.8em;
+}
+
+div.title
+{
+	font-weight: bold;
+}
+
+div.desc
+{
+	padding-left: 10px;
+}
+
+div.desc a
+{
+	font-size: 0.8em;
+}
+
+div.full a
+{
+	font-size: 1em;
 }
 

@@ -1,13 +1,24 @@
 ---
 layout: default
-title: Media Rover
+title: 
+desc:
 ---
 
-# Media Rover
+### Announcements >>
+
+{% for post in site.posts limit:2 %}
+<div class="post">
+	<div class="date">{{ post.date | date: "%B %d, %Y" }}</div>
+	<div class="title">{{post.title}}</div>
+	<div class="desc">{{post.desc}}...<a href="{{post.url}}">[link]</a></div>
+</div>
+{% endfor %}
+
+<a href="announcements.html">more...</a>
 
 - - - - -
 
-### Introduction
+### Introduction >>
 
 Media Rover is an automated TV download scheduler and catalogue maintainer.  
 
@@ -15,7 +26,7 @@ It monitors your filesystem for watched TV series, scours various newsgroup inde
 
 - - - - -
 
-### Usage
+### Usage >>
 
 Usage instructions:
 
@@ -48,7 +59,7 @@ The sorting script is invoked automatically by SABnzbd when it has finished proc
 
 - - - - -
 
-### Dependencies
+### Dependencies >>
 
 *  [Python][1] 2.5.x or later
 *  [SABnzbd+][2] 0.4.6 or later
@@ -56,7 +67,7 @@ The sorting script is invoked automatically by SABnzbd when it has finished proc
 
 - - - - -
 
-### Installation
+### Installation >>
 
 [<img src="http://github.com/images/modules/download/zip.png" width="90" />][4]
 [<img src="http://github.com/images/modules/download/tar.png" width="90" />][5]
@@ -84,7 +95,7 @@ new download.  Before SABnzbd will do this, it must be told of its sorting scrip
 
 - - - - -
 
-### Feature Requests / Issues
+### Feature Requests / Issues >>
 
 Future project goals can be found [here][6]
 
@@ -92,7 +103,7 @@ Feel free to email me with any bugs, suggestions, and/or feature requests.  Or (
 
 - - - - -
 
-### License
+### License >>
 Copyright &copy; 2009 Kieran Elliott
 
 Media Rover is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -101,7 +112,7 @@ Media Rover is distributed in the hope that it will be useful, but WITHOUT ANY W
 
 - - - - -
 
-### Contact
+### Contact >>
 
 Kieran Elliott
 

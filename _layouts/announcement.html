@@ -1,0 +1,35 @@
+{% assign root='../../..' %}
+
+<html>
+	<head>
+		<title>Media Rover: {{page.title}}</title>
+		<link rel="stylesheet" href="{{{root}}/styles/default.css" type="text/css" media="screen" />
+	</head>
+
+	<body>
+		<div class="container">
+			<ul class="menu">
+				<li><a href="{{root}}/index.html#introduction">Introduction</a></li>
+				<li><a href="{{root}}/index.html#usage">Usage</a></li>
+				<li><a href="{{root}}/index.html#dependencies">Dependencies</a></li>
+				<li><a href="{{root}}/index.html#installation">Installation</a></li>
+				<li><a href="{{root}}/index.html#license">License</a></li>
+				<li><a href="{{root}}/index.html#contact">Contact</a></li>
+				<br />
+				<li><a href="{{root}}/announcements.html">Announcements</a></li>
+				<li><a href="{{root}}/http://github.com/kierse/mediarover">Project</a></li>
+				<li><a href="{{root}}/http://wiki.github.com/kierse/mediarover">Wiki</a></li>
+				<li><a href="{{root}}/http://github.com/kierse/mediarover/issues">Issue tracker</a></li>
+				<br />
+				<li class="twitter"><a href="http://twitter.com/mediarover">Follow on Twitter!</a></li>
+			</ul>
+			<div class="content">
+				<h1>Media Rover: Announcements</h1>
+				<hr>
+				<div class="date">{{ page.date | date: "%B %d, %Y" }}</div>
+				<div class="title">{{page.title}}</div>
+				{{content}}
+			</div>
+		</div>
+	</body>
+</html>

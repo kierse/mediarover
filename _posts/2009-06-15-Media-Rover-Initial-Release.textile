@@ -1,0 +1,26 @@
+---
+layout: announcement
+title: Initial public release of Media Rover!
+desc: Announcing the initial public release of Media Rover, an automated TV download scheduler and catalogue maintainer
+---
+
+Media Rover is an automated TV download scheduler and catalogue maintainer.
+
+It monitors your filesystem for watched TV series, scours various newsgroup indexing sources for missing episodes, and schedules them for download with your binary newsreader. Once on disk, Media Rover renames and sorts the file in the appropriate series directory.
+
+Features:
+
+* support for daily and series type episodes
+* support for multi-part episodes (ie. 1x01-1x02)
+* episode filtering support (ie. ignore specific seasons or entire series)
+* customizable renaming and sorting templates
+* support for several popular indexing services (currently: newzbin.com, tvnzb.com, mytvnzb, nzbs.org)
+* rich configuration options
+
+Design:
+
+* designed from the ground up to be run as a cron job / scheduled task
+* modular design allows for easy addition of new indexing services.  It should also be possible to add support for additional binary newsgroup readers (ie. hellanzb)
+* platform independent (written in Python)
+
+Read the original public announcement "here":http://forums.sabnzbd.org/index.php?topic=2262.msg14942#msg14942!
