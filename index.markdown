@@ -10,7 +10,7 @@ desc:
 <div class="post">
 	<div class="date">{{ post.date | date: "%B %d, %Y" }}</div>
 	<div class="title">{{post.title}}</div>
-	<div class="desc">{{post.desc}}...<a href="{{post.url}}">[link]</a></div>
+	<div class="desc">{{post.desc}}...<a href="{{site.url}}{{post.url}}">[link]</a></div>
 </div>
 {% endfor %}
 

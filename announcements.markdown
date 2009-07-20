@@ -10,9 +10,9 @@ desc:
 	<div class="title">{{post.title}}</div>
 	{% if forloop.first %}
 		<div class="full">{{post.content}}</div>
-		<a href="{{post.url}}">[link]</a>
+		<a href="{{site.url}}{{post.url}}">[link]</a>
 	{% else %}
-		<div class="desc">{{post.desc}}...<a href="{{post.url}}">[link]</a></div>
+		<div class="desc">{{post.desc}}...<a href="{{site.url}}{{post.url}}">[link]</a></div>
 	{% endif %}
 </div>
 {% endfor %}
