@@ -118,6 +118,15 @@ CONFIG_TEMPLATE = """[logging]
 		
 	[[template]]
 
+		#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+		# NOTE: Replacing a template variable with its uppercase equivalent 
+		# (ie. $(series)s vs $(SERIES)s) will cause Media Rover to output 
+		# uppercase data (where relevant).  For example:
+		#
+		#  $(season_episode_1)s => s01e03
+		#  $(SEASON_EPISODE_1)s => S01E03
+		#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+
 		# series naming pattern
 		# used when creating series directories
 		# 
