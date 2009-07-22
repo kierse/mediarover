@@ -2,7 +2,6 @@
 layout: announcement
 title: 0.1.0 released!
 desc: "Key features of this release: ability to define multiple tv_root directories, have MR scan SABnzbd backupdir before scheduling a download, support for nzbs.org, support for new SABnzbd apikey"
-published: false
 ---
 
 Version 0.1.0 is the first official release of Media Rover!  It consists of all enhancements and bug fixes 
@@ -28,6 +27,5 @@ since the original release.
 * cleaned up default config
 * updated comments/documentation in default config template
 * set default logging levels to INFO
-* added '-' to list of characters stripped off the end of a valid series
 * updated default ignore list to include exe,bat,com
 
