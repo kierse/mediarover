@@ -127,8 +127,8 @@ kierse &#91;at&#93; mediarover.tv
 [1]: http://www.python.org/ "Python Programming Language"
 [2]: http://www.sabnzbd.org/ "SABnzbd+, the Full-Auto Newsreader"
 [3]: http://www.newzbin.com/ "Newzbin usenet search"
-[4]: http://github.com/kierse/mediarover/zipball/master
-[5]: http://github.com/kierse/mediarover/tarball/master
+[4]: http://github.com/kierse/mediarover/zipball/v0.1.0
+[5]: http://github.com/kierse/mediarover/tarball/v0.1.0
 [6]: http://wiki.github.com/kierse/mediarover/future
 [7]: http://wiki.github.com/kierse/mediarover/configuration
 [8]: http://wiki.github.com/kierse/mediarover/miscellaneous-sorting
