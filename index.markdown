@@ -14,7 +14,7 @@ desc:
 </div>
 {% endfor %}
 
-<a href="announcements.html">more...</a>
+<a href="{{site.url}}/announcements">more...</a>
 
 - - - - -
 
