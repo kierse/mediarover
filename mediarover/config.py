@@ -22,10 +22,13 @@ from time import strftime
 from mediarover.error import ConfigurationError
 from mediarover.utils.configobj import ConfigObj, flatten_errors
 from mediarover.utils.validate import Validator, VdtParamError, VdtValueError
+from mediarover.version import __config_version__
 
 # CONFIG SPECS- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-CONFIG_TEMPLATE = """[logging]
+CONFIG_TEMPLATE = """__version__ = %(version)d 
+
+[logging]
 
 	# sorting error log
 	# when sorting a download and a fatal error is encountered,
@@ -282,7 +285,9 @@ CONFIG_TEMPLATE = """[logging]
 		#password = 
 """
 
-CONFIG_SPEC = """[logging]
+CONFIG_SPEC = """
+__version__ = integer(default=0)
+[logging]
 	# this is a test
 	generate_sorting_log = boolean(default=True)
 
@@ -461,7 +466,7 @@ def write_config_files(path):
 
 	# write main config file
 	if _have_write_permission("%s/mediarover.conf" % path):
-		_write_new_config_file("%s/mediarover.conf" % path, CONFIG_TEMPLATE)
+		_write_new_config_file("%s/mediarover.conf" % path, CONFIG_TEMPLATE % {'version': __config_version__['version']})
 
 	# write logging config files
 	for config, log, data in zip(["logging.conf", "sabnzbd_episode_sort_logging.conf"], 

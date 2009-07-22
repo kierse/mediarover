@@ -30,10 +30,7 @@ from mediarover.series import Series
 from mediarover.sources.filesystem.episode import FilesystemEpisode, FilesystemMultiEpisode
 from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.filesystem import series_episode_exists, series_episode_path, series_season_path, series_season_multiepisodes, clean_path
-
-# script version - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-version = "0.0.1"
+from mediarover.version import __app_version__, __config_version__
 
 # public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -42,7 +39,7 @@ def sort():
 	""" parse command line options """
 
 	usage = "usage: %prog [options] <job_dir> <nzb> <job_name> <newzbin_id> <category> <newsgroup>"
-	parser = OptionParser(usage=usage, version=version)
+	parser = OptionParser(usage=usage, version=__app_version__)
 
 	# location of config dir
 	parser.add_option("-c", "--config", metavar="/PATH/TO/CONFIG/DIR", help="path to application configuration directory")
@@ -51,12 +48,6 @@ def sort():
 	parser.add_option("-d", "--dry-run", action="store_true", default=False, help="simulate downloading nzb's from configured sources")
 
 	(options, args) = parser.parse_args()
-
-	# make sure script was passed 6 arguments
-	if not len(args) == 6:
-		print "Warning: must provide 6 arguments when invoking %s" % os.path.basename(sys.argv[0])
-		parser.print_help()
-		exit(1)
 
 	""" config setup """
 
@@ -85,6 +76,21 @@ def sort():
 	logger = logging.getLogger("mediarover.scripts.sabnzbd.episode")
 
 	""" post configuration setup """
+
+	# check if users config file is current
+	if config['__version__'] > 0:
+		if config['__version__'] < __config_version__.get('min', __config_version__['version']):
+			raise ConfigurationError("Configuration file is out of date!  Regenerate using --write-configs")
+		elif config['__version__'] < __config_version__['version']:
+			logger.warning("Configuration file is out of date!  Regenerate using --write-configs")
+	else:
+		raise ConfigurationError("Out of date or corrupt configuration file!  Regenerate using --write-configs")
+
+	# make sure script was passed 6 arguments
+	if not len(args) == 6:
+		print "Warning: must provide 6 arguments when invoking %s" % os.path.basename(sys.argv[0])
+		parser.print_help()
+		exit(1)
 
 	# capture all logging output in local file.  If sorting script exits unexpectedly,
 	# or encounters an error and gracefully exits, the log file will be placed in
