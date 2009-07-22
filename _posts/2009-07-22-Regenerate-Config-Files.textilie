@@ -1,0 +1,19 @@
+---
+layout: announcement
+title: Regenerate Config Files
+desc: "Code changes in this release will require users to regenerate their config files"
+---
+
+Code pushed since the July 16th release of MR 0.1.0 will require users to regenerate their config files.
+Updates to the default config path (Windows) and a new config file versioning system make this code 
+incompatible with all previous config files.<br />
+<br />
+To regenerate your config files, run the following from a terminal:
+
+<pre><code>> python mediarover.py --write-configs</code></pre>
+
+Or, it you'd like the configs written to a specific directory:
+
+<pre><code>> python mediarover.py --write-configs -c /path/to/config/dir</code></pre>
+
+If all goes well, this MR 0.2.0 will be tagged in a few days.
