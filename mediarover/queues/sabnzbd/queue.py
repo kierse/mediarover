@@ -121,16 +121,14 @@ class SabnzbdQueue(Queue):
 			try:
 				id = item.id()
 			except AttributeError:
-				file = ""
+				file = item.title()
 			else:
-				file = "msgid_%s " % id
-			finally:
-				file += "%s" % item.title()
+				file = "msgid_%s" % id
 
 			logger.debug("looking for '%s' in SABnzbd backup directory...", file)
 
 			for nzb in os.listdir(backup_dir):
-				if file.startswith(nzb[:-7]):
+				if nzb.startswith(file):
 					return True
 
 		return False
