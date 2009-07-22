@@ -75,7 +75,7 @@ def main():
 	""" logging setup """
 
 	# initialize and retrieve logger for later use
-	logging.config.fileConfig(open("%s/logging.conf" % config_dir))
+	logging.config.fileConfig(open(os.path.join(config_dir, "logging.conf")))
 	logger = logging.getLogger("mediarover")
 
 	""" post configuration setup """
@@ -98,7 +98,6 @@ def main():
 	""" main """
 
 	logger.info("--- STARTING ---")
-	#logger.debug("log file set to: %s", file)
 	logger.debug("using config directory: %s", config_dir)
 
 	try:
@@ -111,11 +110,11 @@ def locate_config_files(path):
 	
 	if os.path.exists(path):
 		for file in ("mediarover.conf", "logging.conf"):
-			if not os.path.exists("%s/%s" % (path, file)):
-				print "ERROR: missing config file '%s/%s'.  Run `%s --config=%s --write-configs`" % (path, file, sys.argv[0], path)
+			if not os.path.exists(os.path.join(path, file)):
+				print "ERROR: missing config file '%s'.  Run `%s --config=%s --write-configs`" % (os.path.join(path, file), sys.argv[0], path)
 				exit(1)
-			if not os.access("%s/%s" % (path, file), os.R_OK):
-				print "ERROR: unable to read config file '%s/%s' - check file permissions!" % (path, file)
+			if not os.access(os.path.join(path, file), os.R_OK):
+				print "ERROR: unable to read config file '%s' - check file permissions!" % os.path.join(path, file)
 				exit(1)
 	else:
 		print "ERROR: configuration directory (%s) does not exist.  Do you need to run `%s --write-configs`?" % (path, sys.argv[0])
@@ -158,7 +157,7 @@ def _process(config, options, args):
 			if name.startswith("."):
 				continue
 
-			dir = "%s/%s" % (root, name)
+			dir = os.path.join(root, name)
 			if os.path.isdir(dir):
 				
 				series = Series(name, path=dir, ignore_metadata=ignore_metadata)
@@ -183,11 +182,11 @@ def _process(config, options, args):
 						ignores = filters['ignore']
 
 				# check disk for .ignore file
-				if os.path.exists("%s/.ignore" % dir):
+				if os.path.exists(os.path.join(dir, ".ignore")):
 					logger.debug("found ignore file: %s", dir)
 
 					file_ignores = []
-					file = open("%s/.ignore" % dir)
+					file = open(os.path.join(dir, ".ignore"))
 					try:
 						[file_ignores.append(line.rstrip("\n")) for line in file]
 					finally:

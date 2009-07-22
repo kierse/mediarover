@@ -72,7 +72,7 @@ def sort():
 
 	# initialize and retrieve logger for later use
 	# set logging path using default_log_dir from config file
-	logging.config.fileConfig(open("%s/sabnzbd_episode_sort_logging.conf" % config_dir))
+	logging.config.fileConfig(open(os.path.join(config_dir, "sabnzbd_episode_sort_logging.conf")))
 	logger = logging.getLogger("mediarover.scripts.sabnzbd.episode")
 
 	""" post configuration setup """
@@ -107,7 +107,6 @@ def sort():
 
 	logger.info("--- STARTING ---")
 	logger.debug("using config directory: %s", config_dir)
-	#logger.debug("log file set to: %s", file)
 
 	# check if user has requested a dry-run
 	if options.dry_run:
@@ -126,7 +125,7 @@ def sort():
 			tmp_file.seek(0)
 
 			# flush log data in temporary file handler to disk 
-			sort_log = open("%s/sort.log" % args[0], "w")
+			sort_log = open(os.path.join(args[0], "sort.log"), "w")
 			shutil.copyfileobj(tmp_file, sort_log)
 			sort_log.close()
 
@@ -201,7 +200,7 @@ def _process_download(config, options, args):
 			if name.startswith("."):
 				continue
 
-			dir = "%s/%s" % (root, name)
+			dir = os.path.join(root, name)
 			if os.path.isdir(dir):
 
 				series = Series(name, path=dir, ignore_metadata=ignore_metadata)
@@ -224,18 +223,17 @@ def _process_download(config, options, args):
 	extension = None
 	size = 0
 	for file in os.listdir(path):
-		if os.path.isfile("%s/%s" % (path, file)):
+		if os.path.isfile(os.path.join(path, file)):
 			
 			# check if current file's extension is in list
 			# of ignored extensions
-			#(name, dot, ext) = file.rpartition(".")
 			(name, ext) = os.path.splitext(file)
 			ext = ext.lstrip(".")
 			if ext.lower() in ignored:
 				continue
 
 			# get size of current file (in bytes)
-			stat = os.stat("%s/%s" % (path, file))
+			stat = os.stat(os.path.join(path, file))
 			if stat.st_size > size:
 				filename = file
 				extension = ext
@@ -245,7 +243,7 @@ def _process_download(config, options, args):
 		if filename is None:
 			raise FilesystemError("unable to find episode file in given download path '%s'", path)
 
-		orig_path = "%s/%s" % (path, filename)
+		orig_path = os.path.join(path, filename)
 		logger.info("found download file at '%s'", orig_path)
 
 	# build episode object using command line values
@@ -297,8 +295,8 @@ def _process_download(config, options, args):
 	except KeyError:
 
 		logger.info("series directory not found")
-		series_dir = "%s/%s" % (tv_root[0], episode.format_series(config['tv']['template']['series']))
-		season_path = "%s/%s" % (series_dir, episode.format_season(config['tv']['template']['season']))
+		series_dir = os.path.join(tv_root[0], episode.format_series(config['tv']['template']['series']))
+		season_path = os.path.join(series_dir, episode.format_season(config['tv']['template']['season']))
 		try:
 			os.makedirs(season_path)
 			logger.info("created series directory '%s'", series_dir)
@@ -320,7 +318,7 @@ def _process_download(config, options, args):
 		# if not, we need to create it
 		except FilesystemError:
 			dir = episode.format_season(config['tv']['template']['season'])
-			season_path = "%s/%s" % (episode.series.path, dir)
+			season_path = os.path.join(episode.series.path, dir)
 			try:
 				os.mkdir(season_path)
 			except OSError, (num, message):
@@ -336,12 +334,12 @@ def _process_download(config, options, args):
 				additional = strftime("%Y%m%d%H%M")
 
 	# generate new filename for current episode
-	new_path = season_path + "/" + episode.format_episode(
+	new_path = os.path.join(season_path, episode.format_episode(
 		series_template = config['tv']['template']['series_episode'],
 		daily_template = config['tv']['template']['daily_episode'], 
 		smart_title_template = config['tv']['template']['smart_title'],
 		additional = additional
-	)
+	))
 
 	# move downloaded file to new location and rename
 	if not options.dry_run:
@@ -416,7 +414,7 @@ def _process_download(config, options, args):
 
 def _move_to_trash(root, path):
 
-	trash_path = "%s/.trash/%s" % (root, os.path.basename(path))
+	trash_path = os.path.join(root, ".trash", os.path.basename(path))
 	if not os.path.exists(trash_path):
 		os.makedirs(trash_path)
 

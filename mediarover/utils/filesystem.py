@@ -61,7 +61,7 @@ def series_episode_path(series, episode, ignored_extensions = []):
 		# check if episode exists on disk
 		if episode in cache['episodes']: 
 			index = cache['episodes'].index(episode)
-			path = "%s/%s" % (cache['path'], cache['episodes'][index].filename)
+			path = os.path.join(cache['path'], cache['episodes'][index].filename)
 
 	if path is None:
 		raise FilesystemError("episode '%s' does not exist on disk" % episode)
@@ -110,14 +110,14 @@ def clean_path(path, extensions):
 					# try and remove all files that match extensions list
 					for file in files:
 						try:
-							clean_file("%s/%s" % (root, file), extensions)
+							clean_file(os.path.join(root, file), extensions)
 						except FilesystemError:
 							pass
 					
 					# remove all directories
 					for dir in dirs:
 						try: 
-							os.rmdir("%s/%s" % (root, dir))
+							os.rmdir(os.path.join(root, dir))
 						except OSError:
 							pass
 
@@ -176,7 +176,7 @@ def __find_season_episodes(series, season, path, ignored_extensions):
 
 	files = {}
 	for file in os.listdir(path):
-		if os.path.isfile("%s/%s" % (path, file)):
+		if os.path.isfile(os.path.join(path, file)):
 			(name, ext) = os.path.splitext(file)
 
 			# skip duplicates when building list of season episodes
@@ -185,7 +185,7 @@ def __find_season_episodes(series, season, path, ignored_extensions):
 
 			ext = ext.lstrip(".")
 			if ext not in ignored_extensions:
-				size = os.path.getsize("%s/%s" % (path, file))
+				size = os.path.getsize(os.path.join(path, file))
 				if name not in files or size > files[name]['size']:
 					files[name] = {'size': size, 'name': file}
 
@@ -223,10 +223,10 @@ def __find_season_path(series, season):
 		root = series.path
 
 	for dir in os.listdir(root):
-		if os.path.isdir("%s/%s" % (root, dir)):
+		if os.path.isdir(os.path.join(root, dir)):
 			number = re.sub("[^\d]", "", dir)
 			if len(number) and season == int(number):
-				path = "%s/%s" % (root, dir)
+				path = os.path.join(root, dir)
 				logger.debug("series '%s', season %d found at: %s'", series, season, path)
 				break
 	

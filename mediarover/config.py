@@ -436,7 +436,7 @@ def generate_config(path):
 	""" build and validate a ConfigObj using config file found at given filesystem path """
 
 	spec = (CONFIG_SPEC + SYSTEM_SPEC).splitlines()
-	config = ConfigObj("%s/mediarover.conf" % path, configspec=spec)
+	config = ConfigObj(os.path.join(path, "mediarover.conf"), configspec=spec)
 
 	# validate config options
 	results = config.validate(_get_validator(), preserve_errors=True)
@@ -460,26 +460,26 @@ def write_config_files(path):
 	""" write default application configs to given path """
 
 	# if given path doesn't exist, create it
-	if not os.path.exists("%s/logs" % path):
-		os.makedirs("%s/logs" % path, 0755)
+	if not os.path.exists(os.path.join(path, "logs")):
+		os.makedirs(os.path.join(path, "logs"), 0755)
 		print "Created %s" % path
 
 	# write main config file
-	if _have_write_permission("%s/mediarover.conf" % path):
-		_write_new_config_file("%s/mediarover.conf" % path, CONFIG_TEMPLATE % {'version': __config_version__['version']})
+	if _have_write_permission(os.path.join(path, "mediarover.conf")):
+		_write_new_config_file(os.path.join(path, "mediarover.conf"), CONFIG_TEMPLATE % {'version': __config_version__['version']})
 
 	# write logging config files
 	for config, log, data in zip(["logging.conf", "sabnzbd_episode_sort_logging.conf"], 
 		['mediarover.log', 'sabnzbd_episode_sort.log'], 
 		[MEDIAROVER_LOGGING, SABNZBD_EPISODE_SORT_LOGGING]):
 
-		if _have_write_permission("%s/%s" % (path, config)):
+		if _have_write_permission(os.path.join(path, config)):
 
 			# update default template and set default location of log file
 			template = Template(data)
-			data = template.safe_substitute(file="%s/logs/%s" % (path,log))
+			data = template.safe_substitute(file=os.path.join(path, log))
 
-			_write_new_config_file("%s/%s" % (path, config), data)
+			_write_new_config_file(os.path.join(path, config), data)
 
 def check_filesystem_path(path):
 	""" make sure given path is a valid, filesystem path """
