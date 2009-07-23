@@ -1,0 +1,23 @@
+@ECHO OFF
+
+REM filesystem path where Media Rover is installed
+SET ROOT=%PROGRAMFILES%\mediarover
+
+REM filesystem path to configuration directory
+IF DEFINED LOCALAPPDATA
+(
+	# Vista and newer
+	SET CONFIG=%LOCALAPPDATA%\Mediarover
+)
+ELSE
+(
+	# XP
+	SET CONFIG=%APPDATA%\Mediarover
+)
+
+REM filesystem path to python installation
+SET PYTHON=%HOMEDRIVE%\Python26\pythonw.exe
+
+REM invoke Media Rover episode sorting script
+%PYTHON% %ROOT%\episodesort.py -c "%CONFIG%" "%1" "%2" "%3" "%4" "%5" "%6"
+
