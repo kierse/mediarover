@@ -1,17 +1,35 @@
 @ECHO OFF
 
+REM Copyright 2009 Kieran Elliott <kierse@mediarover.tv>
+REM
+REM Media Rover is free software: you can redistribute it and/or modify
+REM it under the terms of the GNU General Public License as published by
+REM the Free Software Foundation, either version 3 of the License, or
+REM (at your option) any later version.
+REM 
+REM Media Rover is distributed in the hope that it will be useful,
+REM but WITHOUT ANY WARRANTY; without even the implied warranty of
+REM MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+REM GNU General Public License for more details.
+REM 
+REM You should have received a copy of the GNU General Public License
+REM along with this program.  If not, see <http://www.gnu.org/licenses/>.
+REM
+REM OSX hack: SABnzbd on Mac OSX comes bundled with all Python libraries
+REM necessary for its function.  Because of this, SABnzbd sets PYTHONHOME
+REM to point to its own Python libraries.  This causes a problem for Media
+REM Rover due to the fact that some of the key Python libraries are not
+REM bundled.  Therefore, we delete PYTHONHOME before invoking Media Rover
+
 REM filesystem path where Media Rover is installed
 SET ROOT=%PROGRAMFILES%\mediarover
 
 REM filesystem path to configuration directory
-IF DEFINED LOCALAPPDATA
-(
-	# Vista and newer
+IF DEFINED LOCALAPPDATA (
+	REM Vista and newer
 	SET CONFIG=%LOCALAPPDATA%\Mediarover
-)
-ELSE
-(
-	# XP
+) ELSE (
+	REM XP
 	SET CONFIG=%APPDATA%\Mediarover
 )
 
@@ -19,5 +37,5 @@ REM filesystem path to python installation
 SET PYTHON=%HOMEDRIVE%\Python26\pythonw.exe
 
 REM invoke Media Rover episode sorting script
-%PYTHON% %ROOT%\episodesort.py -c "%CONFIG%" "%1" "%2" "%3" "%4" "%5" "%6"
+%PYTHON% %ROOT%\episodesort.py -c "%CONFIG%" %1 %2 %3 %4 %5 %6
 
