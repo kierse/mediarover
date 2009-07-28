@@ -477,7 +477,7 @@ def write_config_files(path):
 
 			# update default template and set default location of log file
 			template = Template(data)
-			data = template.safe_substitute(file=os.path.join(path, log))
+			data = template.safe_substitute(file=os.path.join(path, "logs", log))
 
 			_write_new_config_file(os.path.join(path, config), data)
 
