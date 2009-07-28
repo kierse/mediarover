@@ -173,7 +173,7 @@ def _process(config, options, args):
 				
 					# check filters to see if user wants this series skipped...
 					filters = config['tv']['filter'][sanitized_name]
-					if 'skip' in filters and filters['skip'] == 'True':
+					if 'skip' in filters and filters['skip'] == True:
 						logger.info("found skip filter, ignoring series: %s", dir)
 						continue
 
