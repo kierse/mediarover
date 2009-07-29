@@ -20,6 +20,7 @@ import re
 import shutil
 import sys
 from optparse import OptionParser
+from tempfile import TemporaryFile
 from time import strftime
 
 from mediarover import locate_config_files
@@ -97,7 +98,7 @@ def sort():
 	# the download directory for debugging
 	tmp_file = None
 	if config['logging']['generate_sorting_log']:
-		tmp_file = os.tmpfile()
+		tmp_file = TemporaryFile()
 		handler = logging.StreamHandler(tmp_file)
 		formatter = logging.Formatter('%(asctime)s %(levelname)s - %(message)s - %(filename)s:%(lineno)s')
 		handler.setFormatter(formatter)
