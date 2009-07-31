@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import with_statement
 import os
 import os.path
 import re
@@ -551,6 +552,39 @@ def check_int_list(data):
 			int_list.append(num)
 
 	return int_list
+
+def build_series_filters(path, seed=None):
+	""" build a dict of filters for a given path and seed """
+
+	logger = logging.getLogger("mediarover.config")
+
+	if seed is None:
+		seed= {
+			'skip':False, 
+			'ignore':[]
+		}
+
+	# avoid a little I/O overhead and only look for the
+	# ignore file if skip isn't True
+	if 'skip' not in seed or seed['skip'] is False:
+
+		# check given path for .ignore file
+		if os.path.exists(os.path.join(path, ".ignore")):
+			logger.debug("found ignore file: %s", path)
+
+			file_ignores = []
+			with open(os.path.join(path, ".ignore")) as file:
+				line = file.next().rstrip("\n")
+				if line == "*":
+					seed['skip'] = True
+				else:
+					file_ignores.append(line)
+				[file_ignores.append(line.rstrip("\n")) for line in file]
+
+			# replace existing ignore list with current
+			seed['ignore'] = file_ignores
+
+	return seed
 
 # private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

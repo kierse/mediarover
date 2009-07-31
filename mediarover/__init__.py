@@ -22,7 +22,7 @@ import sys
 from urllib2 import URLError
 from optparse import OptionParser
 
-from mediarover.config import generate_config, write_config_files
+from mediarover.config import generate_config, write_config_files, build_series_filters
 from mediarover.error import *
 from mediarover.series import Series
 from mediarover.utils.configobj import ConfigObj
@@ -160,44 +160,19 @@ def _process(config, options, args):
 				if sanitized_name in shows:
 					logger.warning("duplicate series directory found! Multiple directories for the same series can/will result in duplicate downloads!  You've been warned...")
 
-				ignores = []
-
-				# check config filters
 				if sanitized_name in config['tv']['filter']:
-				
-					# check filters to see if user wants this series skipped...
-					filters = config['tv']['filter'][sanitized_name]
-					if 'skip' in filters and filters['skip'] == True:
-						logger.info("found skip filter, ignoring series: %s", dir)
-						continue
+					config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['filter'][sanitized_name])
+				else:
+					config['tv']['filter'][sanitized_name] = build_series_filters(dir)
 
-					# grab any defined season ignores
-					if 'ignore' in filters:
-						ignores = filters['ignore']
+				# check filters to see if user wants this series skipped...
+				if config['tv']['filter'][sanitized_name]["skip"]:
+					logger.info("found skip filter, ignoring series: %s", dir)
+					continue
 
-				# check disk for .ignore file
-				if os.path.exists(os.path.join(dir, ".ignore")):
-					logger.debug("found ignore file: %s", dir)
-
-					file_ignores = []
-					file = open(os.path.join(dir, ".ignore"))
-					try:
-						[file_ignores.append(line.rstrip("\n")) for line in file]
-					finally:
-						file.close()
-
-					# if the series has an ignore file and the first line is '*'
-					# (meaning ignore series) skip to the next series
-					if len(file_ignores):
-						if file_ignores[0] == "*": 
-							logger.info("ignoring series: %s", dir)
-							continue
-						else:
-							ignores = file_ignores
-				
-				series.ignores = ignores
-				if len(ignores):
-					logger.info("ignoring the following seasons of %s: %s", sanitized_name, ignores)
+				if len(config['tv']['filter'][sanitized_name]['ignore']):
+					logger.debug("ignoring the following seasons of %s: %s", sanitized_name, config['tv']['filter'][sanitized_name]['ignore'])
+					series.ignores = config['tv']['filter'][sanitized_name]['ignore']
 
 				shows[sanitized_name] = series
 				logger.debug("watching series: %s => %s", sanitized_name, dir)
