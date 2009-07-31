@@ -35,6 +35,16 @@ def main():
 	
 	""" parse command line options """
 
+	# determine default config path
+	config_dir = None
+	if os.name == "nt":
+		if "LOCALAPPDATA" in os.environ: # Vista or better default path
+			config_dir = os.path.expandvars("$LOCALAPPDATA\Mediarover")
+		else: # XP default path
+			config_dir = os.path.expandvars("$APPDATA\Mediarover")
+	else: # os.name == "posix":
+		config_dir = os.path.expanduser("~/.mediarover")
+
 	parser = OptionParser(version=__app_version__)
 
 	# location of config dir
@@ -44,22 +54,15 @@ def main():
 	parser.add_option("-d", "--dry-run", action="store_true", default=False, help="simulate downloading nzb's from configured sources")
 
 	# write configs to disk
-	parser.add_option("--write-configs", action="store_true", default=False, help="write default application and logging config files to disk.  If -c|--config is not specified, will default to $HOME/.mediarover/")
+	parser.add_option("--write-configs", action="store_true", default=False, help="write default application and logging config files to disk.  If -c|--config is not specified, will default to %s" % config_dir)
 
 	(options, args) = parser.parse_args()
 
 	""" config setup """
 
-	config_dir = None
+	# if user has provided a config path, override default value
 	if options.config:
 		config_dir = options.config
-	elif os.name == "nt":
-		if "LOCALAPPDATA" in os.environ: # Vista or better default path
-			config_dir = os.path.expandvars("$LOCALAPPDATA\Mediarover")
-		else: # XP default path
-			config_dir = os.path.expandvars("$APPDATA\Mediarover")
-	else: # os.name == "posix":
-		config_dir = os.path.expanduser("~/.mediarover")
 
 	# if user has requested that app or log config files be generated
 	if options.write_configs:
