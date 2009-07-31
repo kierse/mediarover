@@ -29,8 +29,7 @@ class Series(object):
 	def ignore(self, season):
 		""" return boolean indicating whether or not the given season number should be ignored """
 
-		#if int(season) in self.ignores:
-		if int(season) in self._ignores:
+		if int(season) in self.ignores:
 			return True
 
 		return False
@@ -132,10 +131,6 @@ class Series(object):
 		if ignores is not None:
 			ignores = [int(re.sub("[^\d]", "", str(i))) for i in ignores if i]
 			self._ignores = set(ignores)
-
-			if len(ignores):
-				logger = logging.getLogger('mediarover.series')
-				logger.debug("ignoring seasons: %s", ignores)
 
 		return self._ignores
 
