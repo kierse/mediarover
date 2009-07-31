@@ -454,6 +454,15 @@ def generate_config(path):
 			message.append(" %s %s = %s" % (" ".join(section), error[1], error[2]))
 		raise ConfigurationError("Invalid Data in configuration file\n\n%s\n" % "\n".join(message), log_errors=False)
 
+	# check if users config file is current
+	if config['__version__'] > 0:
+		if config['__version__'] < __config_version__.get('min', __config_version__['version']):
+			raise ConfigurationError("Configuration file is out of date!  Regenerate using --write-configs")
+		elif config['__version__'] < __config_version__['version']:
+			logger.warning("Configuration file is out of date!  Regenerate using --write-configs")
+	else:
+		raise ConfigurationError("Out of date or corrupt configuration file!  Regenerate using --write-configs")
+
 	return config
 
 def write_config_files(path):

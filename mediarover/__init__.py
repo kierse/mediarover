@@ -27,7 +27,7 @@ from mediarover.error import *
 from mediarover.series import Series
 from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.filesystem import *
-from mediarover.version import __app_version__, __config_version__
+from mediarover.version import __app_version__
 
 # public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -82,15 +82,6 @@ def main():
 	logger = logging.getLogger("mediarover")
 
 	""" post configuration setup """
-
-	# check if users config file is current
-	if config['__version__'] > 0:
-		if config['__version__'] < __config_version__.get('min', __config_version__['version']):
-			raise ConfigurationError("Configuration file is out of date!  Regenerate using --write-configs")
-		elif config['__version__'] < __config_version__['version']:
-			logger.warning("Configuration file is out of date!  Regenerate using --write-configs")
-	else:
-		raise ConfigurationError("Out of date or corrupt configuration file!  Regenerate using --write-configs")
 
 	# sanitize tv series filter subsection names for 
 	# consistent lookups
