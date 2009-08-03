@@ -18,11 +18,10 @@ import logging.config
 import os
 import os.path
 import re
-import sys
 from urllib2 import URLError
 from optparse import OptionParser
 
-from mediarover.config import generate_config, write_config_files, build_series_filters
+from mediarover.config import read_config, generate_config_files, build_series_filters
 from mediarover.error import *
 from mediarover.series import Series
 from mediarover.utils.configobj import ConfigObj
@@ -66,14 +65,14 @@ def main():
 
 	# if user has requested that app or log config files be generated
 	if options.write_configs:
-		write_config_files(config_dir)
+		generate_config_files(config_dir)
 		exit(0)
 
 	# make sure application config file exists and is readable
 	locate_config_files(config_dir)
 
 	# create config object using user config values
-	config = generate_config(config_dir)
+	config = read_config(config_dir)
 
 	""" logging setup """
 

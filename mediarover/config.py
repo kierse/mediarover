@@ -433,7 +433,7 @@ datefmt = %Y-%m-%d %H:%M
 
 # public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def generate_config(path):
+def read_config(path):
 	""" build and validate a ConfigObj using config file found at given filesystem path """
 
 	spec = (CONFIG_SPEC + SYSTEM_SPEC).splitlines()
@@ -466,7 +466,7 @@ def generate_config(path):
 
 	return config
 
-def write_config_files(path):
+def generate_config_files(path):
 	""" write default application configs to given path """
 
 	# if given path doesn't exist, create it

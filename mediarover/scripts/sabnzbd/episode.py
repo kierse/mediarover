@@ -24,7 +24,7 @@ from tempfile import TemporaryFile
 from time import strftime
 
 from mediarover import locate_config_files
-from mediarover.config import generate_config, write_config_files
+from mediarover.config import read_config
 from mediarover.error import *
 from mediarover.scripts.error import *
 from mediarover.series import Series
@@ -67,7 +67,7 @@ def sort():
 	locate_config_files(config_dir)
 
 	# create config object using user config values
-	config = generate_config(config_dir)
+	config = read_config(config_dir)
 
 	""" logging setup """
 
