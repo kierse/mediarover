@@ -14,6 +14,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import with_statement
+
+import logging
+import logging.config
 import os
 import os.path
 import re
@@ -431,6 +434,50 @@ format = %(asctime)s %(levelname)s - %(message)s - %(filename)s:%(lineno)s
 datefmt = %Y-%m-%d %H:%M
 """
 
+UI_LOGGING = """# keys - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[loggers]
+keys = root,mediarover
+
+[handlers]
+keys = logfile,screen
+
+[formatters]
+keys = default
+
+# definitions- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# loggers
+[logger_root]
+level = DEBUG
+handlers = logfile,screen
+
+[logger_mediarover]
+level = DEBUG
+handlers = logfile,screen
+propagate = 0
+qualname = mediarover
+
+# handlers
+[handler_logfile]
+class = handlers.RotatingFileHandler
+level = NOTSET 
+formatter = default
+args = ('${file}', None, 1024000, 5)
+
+[handler_screen]
+class = StreamHandler
+level = NOTSET 
+formatter = default
+args = (sys.stdout, )
+
+# formatter
+[formatter_default]
+class = logging.Formatter
+format = %(asctime)s %(levelname)s - %(message)s - %(filename)s:%(lineno)s
+datefmt = %Y-%m-%d %H:%M
+"""
+
 # public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def read_config(path):
@@ -479,9 +526,9 @@ def generate_config_files(path):
 		_write_new_config_file(os.path.join(path, "mediarover.conf"), CONFIG_TEMPLATE % {'version': __config_version__['version']})
 
 	# write logging config files
-	for config, log, data in zip(["logging.conf", "sabnzbd_episode_sort_logging.conf"], 
-		['mediarover.log', 'sabnzbd_episode_sort.log'], 
-		[MEDIAROVER_LOGGING, SABNZBD_EPISODE_SORT_LOGGING]):
+	for config, log, data in zip(["logging.conf", "sabnzbd_episode_sort_logging.conf", "ui_logging.conf"], 
+		['mediarover.log', 'sabnzbd_episode_sort.log', 'ui.log'], 
+		[MEDIAROVER_LOGGING, SABNZBD_EPISODE_SORT_LOGGING, UI_LOGGING]):
 
 		if _have_write_permission(os.path.join(path, config)):
 
