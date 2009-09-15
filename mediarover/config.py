@@ -291,6 +291,9 @@ CONFIG_TEMPLATE = """__version__ = %(version)d
 		backup_dir = 
 		#username = 
 		#password = 
+
+[__SYSTEM__]
+
 """
 
 CONFIG_SPEC = """
