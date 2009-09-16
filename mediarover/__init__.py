@@ -55,9 +55,9 @@ def main():
 		config_dir = options.config
 	elif os.name == "nt":
 		if "LOCALAPPDATA" in os.environ: # Vista or better default path
-			config_dir = os.path.expandvars("%LOCALAPPDATA%\Mediarover")
+			config_dir = os.path.expandvars("$LOCALAPPDATA\Mediarover")
 		else: # XP default path
-			config_dir = os.path.expandvars("%APPDATA%\Mediarover")
+			config_dir = os.path.expandvars("$APPDATA\Mediarover")
 	else: # os.name == "posix":
 		config_dir = os.path.expanduser("~/.mediarover")
 
