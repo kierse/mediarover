@@ -442,7 +442,7 @@ def generate_config(path):
 	results = config.validate(_get_validator(), preserve_errors=True)
 	if results != True:
 		results = flatten_errors(config, results)
-		print "ERROR: Encountered the following configuration error(s):"
+		message = ["ERROR: Encountered the following configuration error(s):"]
 		for error in results:
 			level = 1
 			section = []
@@ -451,8 +451,8 @@ def generate_config(path):
 				section.append(("[" * level) + key + ("]" * level))
 				dict = dict[key]
 				level += 1
-			print " %s %s = %s" % (" ".join(section), error[1], error[2])
-		raise ConfigurationError("Invalid Data in configuration file", log_errors=False)
+			message.append(" %s %s = %s" % (" ".join(section), error[1], error[2]))
+		raise ConfigurationError("Invalid Data in configuration file\n\n%s\n" % "\n".join(message), log_errors=False)
 
 	return config
 
