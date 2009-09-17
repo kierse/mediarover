@@ -73,24 +73,31 @@ def bootstrap():
 	logger.debug("using config directory: %s", config_dir)
 
 	# set a few config values
-	cherrypy.config.update(
-		updateMap={
-			'/js': {
-				'static_filter.on': True, 
-				'static_filter.dir': os.path.join(os.path.abspath(config['ui']['templates_dir']), config['ui']['template'], "static", "js"),
-				'static_filter.content_types': {
-					'js': 'application/x-javascript'
-				}
-			},
-			'/css': {
-				'static_filter.on': True, 
-				'static_filter.dir': os.path.join(os.path.abspath(config['ui']['templates_dir']), config['ui']['template'], "static", "css"),
-				'static_filter.content_types': {
-					'css': 'text/css'
-				}
+	cherrypy_config = {
+		'server.environment': 'production',
+		'server.log_to_screen': True,
+		'server.log_file': os.path.join(config_dir, "logs", "ui.log"),
+		'/js': {
+			'static_filter.on': True, 
+			'static_filter.dir': os.path.join(os.path.abspath(config['ui']['templates_dir']), config['ui']['template'], "static", "js"),
+			'static_filter.content_types': {
+				'js': 'application/x-javascript'
+			}
+		},
+		'/css': {
+			'static_filter.on': True, 
+			'static_filter.dir': os.path.join(os.path.abspath(config['ui']['templates_dir']), config['ui']['template'], "static", "css"),
+			'static_filter.content_types': {
+				'css': 'text/css'
 			}
 		}
-	)
+	}
+
+	# merge user defined settings from config file
+	cherrypy_config.update(config['ui']['server'])
+
+	# configure cherrypy using default and user provided values
+	cherrypy.config.update(updateMap=cherrypy_config)
 
 	# launch cherry web server
 	cherrypy.root = Mrconfig(config)

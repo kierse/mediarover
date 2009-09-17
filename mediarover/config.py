@@ -36,6 +36,11 @@ CONFIG_TEMPLATE = """__version__ = %(version)d
 	#templates_dir = templates/
 	#template = default
 
+	[[server]]
+
+		# NOTE: defaults to 8081
+		#server.socket_port = 8081
+
 [logging]
 
 	# sorting error log
@@ -301,6 +306,10 @@ __version__ = integer(default=0)
 [ui]
 	templates_dir = path(default=templates/)
 	template = string(default=default)
+	
+	[[server]]
+		server.socket_port = integer(min=1, max=65535, default=8081)
+
 [logging]
 	# this is a test
 	generate_sorting_log = boolean(default=True)
