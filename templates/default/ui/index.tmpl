@@ -1,0 +1,25 @@
+#def title
+ui index
+#end def
+
+#def body
+ui index template!
+
+<form method="post">
+	<div class="templates_dir"><label>template directory:</label><input type="text" name="templates_dir" value="$templates_dir" disabled="disabled" /></div>
+	<div class="template"><label>template:</label>
+		<select name="template">
+		#for $t in $templates_list
+			#if $template == $t
+			<option selected="selected">$t</option>
+			#else
+			<option>$t</option>
+			#end if
+		#end for
+		</select>
+	</div>
+	<div class="save"><input type="submit" value="Save" /></div>
+</form>
+#end def
+
+#include $template_dir + "/ui/_template.tmpl"

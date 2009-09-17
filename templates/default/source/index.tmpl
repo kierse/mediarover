@@ -1,0 +1,46 @@
+#def title
+source index
+#end def
+
+#def body
+source index template!
+
+<div class="source_container">
+	<form id="source_editor" action="/source/" method="post"> 
+		<div class="default_timeout"><label>default timeout:</label><input type="text" name="default_timeout" id="default_timeout" value="$default_timeout" /></div>
+		<br />
+		<div class="source"><label>source:</label>
+			<select name="source" id="source">
+				<option value=""></option>
+				#for $plugin, $url in $supported_sources.items()
+				<option value="$plugin">$url</option>
+				#end for
+			</select>
+		<div class="label"><label>label:</label><input type="text" name="label" id="label" /></div>
+		<div class="url"><label>url:</label><input type="text" name="url" id="url" /></div>
+		<div class="category"><label>category:</label><input type="text" name="category" id="category" /></div>
+		<div class="timeout"><label>timeout:</label><input type="text" name="timeout" id="timeout" /></div>
+		<div class="save"><input type="submit" id="submit" value="add" /><input type="reset" id="reset" value="clear" onclick="javascript:form.submit.value='add';" /></div>
+	</form>
+</div>
+<br />
+#for $url, $list in $source_list.items()
+	<h4>$url</h4>
+	#if $list
+		#for $source in $list
+		<div class="source_container" ondblclick="edit_source(this);">
+			<div class="label"><label>label:</label><span id="label">$source.label</span></div>
+			<div class="url"><label>url:</label><span id="url">$source.url</span></div>
+			<div class="category"><label>category:</label><span id="category">$source.category</span></div>
+			<div class="timeout"><label>timeout:</label><span id="timeout">$source.timeout</span></div>
+			<span id="plugin" style="display: none;">$source.source</span>
+		</div>
+		<br />
+		#end for
+	#else
+		None
+	#end if
+#end for
+#end def
+
+#include $template_dir + "/source/_template.tmpl"

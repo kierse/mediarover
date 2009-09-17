@@ -1,0 +1,15 @@
+#def title
+logging index
+#end def
+
+#def body
+logging index template!
+
+	#set $generate = $generate_sorting_log and 'checked="checked"' or ''
+	<form action="/logging/" method="post">
+		<div class="sorting_log"><label>generate sorting log:</label><input type="checkbox" name="generate_sorting_log" $generate /></div>
+		<div class="save"><input type="submit" value="Save" /></div>
+	</form>
+#end def
+
+#include $template_dir + "/logging/_template.tmpl"

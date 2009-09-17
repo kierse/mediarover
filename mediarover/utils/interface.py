@@ -1,3 +1,4 @@
+#!/usr/bin/python -OO
 # Copyright 2009 Kieran Elliott <kierse@mediarover.tv>
 #
 # Media Rover is free software: you can redistribute it and/or modify
@@ -13,5 +14,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__app_version__ = "0.3.0"
-__config_version__ = {'version': 2, 'min': 2}
+import os.path
+
+def build_default_template_vars(config):
+
+	# deterine template dir path
+	vars = {}
+	vars['template_dir'] = os.path.join(config['ui']['templates_dir'], config['ui']['template'])
+
+	return vars
+
+def save_config(config):
+
+	config.write()
+

@@ -1,0 +1,41 @@
+#def title
+queue index
+#end def
+
+#def body
+queue index template!
+
+<div class="queue_container">
+	<form id="queue_editor" action="/queue/" method="post"> 
+		<div class="plugin"><label>queue:</label>
+			<select name="plugin" id="plugin">
+				#for $plugin in $supported_queues
+				<option>$plugin</option>
+				#end for
+			</select>
+		<div class="root"><label>root:</label><input type="text" name="root" id="root" /></div>
+		<div class="api_key"><label>api_key:</label><input type="text" name="api_key" id="api_key" /></div>
+		<div class="backup_dir"><label>backup_dir:</label><input type="text" name="backup_dir" id="backup_dir" /></div>
+		<div class="username"><label>username:</label><input type="text" name="username" id="username" /></div>
+		<div class="password"><label>password:</label><input type="text" name="password" id="password" /></div>
+		<div class="save"><input type="submit" id="submit" value="add" /><input type="reset" id="reset" value="clear" onclick="javascript:form.submit.value='add';" /></div>
+	</form>
+</div>
+<br />
+#for $queue in $queue_list
+<div class="queue_container" ondblclick="edit_queue(this);">
+	<div class="root"><label>root:</label><span id="root">$queue.root</span></div>
+	<div class="api_key"><label>api_key:</label><span id="api_key">$queue.api_key</span></div>
+	<div class="backup_dir"><label>backup_dir:</label><span id="backup_dir">$queue.backup_dir</span></div>
+	#if $varExists('queue.username')
+	<div class="username"><label>username:</label><span id="username">$queue.username</span></div>
+	#end if
+	#if $varExists('queue.password')
+	<div class="password"><label>password:</label><span id="password">$queue.password</span></div>
+	#end if
+</div>
+<br />
+#end for
+#end def
+
+#include $template_dir + "/queue/_template.tmpl"

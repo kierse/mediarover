@@ -32,6 +32,10 @@ from mediarover.version import __config_version__
 
 CONFIG_TEMPLATE = """__version__ = %(version)d 
 
+[ui]
+	#templates_dir = templates/
+	#template = default
+
 [logging]
 
 	# sorting error log
@@ -291,6 +295,9 @@ CONFIG_TEMPLATE = """__version__ = %(version)d
 
 CONFIG_SPEC = """
 __version__ = integer(default=0)
+[ui]
+	templates_dir = path(default=templates/)
+	template = string(default=default)
 [logging]
 	# this is a test
 	generate_sorting_log = boolean(default=True)
@@ -340,6 +347,7 @@ SYSTEM_SPEC = """
 
 [__SYSTEM__]
 	__available_sources = list(default=list('newzbin','tvnzb','mytvnzb','nzbs'))
+	__available_sources_label = list(default=list('http://www.newzbin.com', 'http://www.tvnzb.com', 'http://mytvnzb.foechoer.be (MyTvNZB)', 'http://nzbs.org'))
 	__available_queues = list(default=list('sabnzbd'))
 
 """
@@ -512,6 +520,12 @@ def read_config(path):
 		raise ConfigurationError("Out of date or corrupt configuration file!  Regenerate using --write-configs")
 
 	return config
+
+#def write_config(path, config):
+#	""" write config file to disk at given path """
+#
+#	# does any validation need to be done here?
+#	config.write()
 
 def generate_config_files(path):
 	""" write default application configs to given path """

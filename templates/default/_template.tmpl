@@ -1,0 +1,30 @@
+<html>
+<head>
+	<title>$title</title>
+	<script type="text/javascript" language="javascript" src="/js/prototype.js"></script>
+	<script type="text/javascript" language="javascript" src="/js/functions.js"></script>
+</head>
+
+<body>
+<div class="menu">
+	<ul>
+		<li><a href="/">home</a></li>
+		<li><a href="/ui">ui</a></li>
+		<li><a href="/logging">logging</a></li>
+		<li><a href="/tv">tv</a></li>
+		<li><a href="/source">source</a></li>
+		<li><a href="/queue">queue</a></li>
+	</ul>
+</div>
+<div class="submenu">$submenu</div>
+<div class="content">
+#if $varExists('error')
+<div class="error">$error</div>
+#end if
+#if $varExists('message')
+<div class="message">$message</div>
+#end if
+$body
+</div>
+</body>
+</html>

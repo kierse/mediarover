@@ -1,0 +1,36 @@
+#def title
+tv filter
+#end def
+#def body
+	tv filter template!
+
+<div class="series_container">
+	<form id="filter_editor" action="/tv/filter/list" method="post"> 
+		<div class="series"><label>series:</label><input type="text" name="series" id="series" /></div>
+		<div class="skip"><label>skip:</label><input type="checkbox" name="skip" id="skip" /></div>
+		<div class="ignore"><label>ignore:</label><input type="text" name="ignore" id="ignore" /></div>
+		<div class="save"><input type="submit" id="submit" value="add" /><input type="reset" id="reset" value="clear" onclick="javascript:form.submit.value='add';" /></div>
+	</form>
+</div>
+#for $series in $dir_list
+
+	## determine if current series is being ignored
+	#set $skip = $series.skip and 'yes' or 'no'
+
+	## build season ignore list string for current series
+	#set $ignore = ",".join(map(str, $series.ignore))
+
+	<div class="series_container" ondblclick="edit_filter(this);">
+		<div class="series"><label>series:</label><span id="series">$series.name</span></div>
+		<div class="path"><label>path:</label><span id="path">$series.path</span></div>
+		<div class="skip"><label>skip:</label><span id="skip">$skip</span></div>
+		<div class="ignore"><label>ignore:</label><span id="ignore">$ignore</span></div>
+		#if $series.ignore_file
+			<div class="ignore_file"><label>ignore file:</label><span id="ignore_file">true</span></div>
+		#end if
+	</div>
+	<br />
+#end for
+#end def
+
+#include $template_dir + "/tv/_template.tmpl"

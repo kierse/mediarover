@@ -1,3 +1,4 @@
+#!/usr/bin/python -OO
 # Copyright 2009 Kieran Elliott <kierse@mediarover.tv>
 #
 # Media Rover is free software: you can redistribute it and/or modify
@@ -13,5 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__app_version__ = "0.3.0"
-__config_version__ = {'version': 2, 'min': 2}
+from mediarover.interface import bootstrap
+
+bootstrap()
+

@@ -1,0 +1,17 @@
+#def title
+multiepisode index
+#end def
+
+#def body
+multiepisode index template!
+
+	#set $allow = $allow and 'checked="checked"' or ''
+	#set $prefer = $prefer and 'checked="checked"' or ''
+	<form id="multiepisode_editor" action="/tv/multiepisode/" method="post">
+		<div class="allow_multiepisodes"><label>Download Multipart Episodes:</label><input type="checkbox" name="allow" $allow onclick="multiepisode_allow(this);"/></div>
+		<div class="prefer_multiepisodes"><label>Prefer Multipart Episodes:</label><input type="checkbox" name="prefer" $prefer onclick="multiepisode_prefer(this);" /></div>
+		<div class="save"><input type="submit" value="Save" /></div>
+	</form>
+#end def
+
+#include $template_dir + "/tv/_template.tmpl"

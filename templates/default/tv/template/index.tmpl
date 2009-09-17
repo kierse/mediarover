@@ -1,0 +1,20 @@
+#def title
+template index
+#end def
+
+#def body
+template index template!
+
+<!--<div class="example"<label>example:</label><input type="text" name="example" value="Series Name" /></div>-->
+<form action="/tv/template/" method="post">
+	<div class="series"><label>series:</label><input type="text" name="series" value="$series" /><span></span></div>
+	<div class="season"><label>season:</label><input type="text" name="season" value="$season" /><span></span></div>
+	<div class="title"><label>title:</label><input type="text" name="title" value="$title" /><span></span></div>
+	<div class="smart_title"><label>smart_title:</label><input type="text" name="smart_title" value="$smart_title" /><span></span></div>
+	<div class="series_episode"><label>series_episode:</label><input type="text" name="series_episode" value="$series_episode" /><span></span></div>
+	<div class="daily_episode"><label>daily_episode:</label><input type="text" name="daily_episode" value="$daily_episode" /><span></span></div>
+	<div class="save"><input type="submit" id="submit" value="Save" /><input type="reset" id="reset" value="clear" /></div>
+</form>
+#end def
+
+#include $template_dir + "/tv/_template.tmpl"
