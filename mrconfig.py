@@ -14,7 +14,31 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from mediarover.interface import bootstrap
+import os
+import os.path
 
-bootstrap()
+from optparse import OptionParser
+from mediarover.version import __app_version__
+
+""" parse command line options """
+
+parser = OptionParser(version=__app_version__)
+
+# location of config dir
+parser.add_option("-c", "--config", metavar="/PATH/TO/CONFIG/DIR", help="path to application configuration directory")
+
+# location of external library
+parser.add_option("-l", "--library", action='append', metavar="/PATH/TO/EXTERNAL/LIBRARY", help="path to external application libraries, such as Cherrypy or Cheetah")
+
+(options, args) = parser.parse_args()
+
+# if user has provided any external libraries, append them to the s
+# earch path
+if options.library:
+	import sys
+	sys.path.extend(options.library)
+
+# bootstrap the application server
+from mediarover.interface import bootstrap
+bootstrap(options, args)
 

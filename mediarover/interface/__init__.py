@@ -20,7 +20,7 @@ import cherrypy
 import logging
 import os
 import os.path
-from optparse import OptionParser
+#from optparse import OptionParser
 from Cheetah.Template import Template
 
 from mediarover.config import read_config
@@ -30,11 +30,11 @@ from mediarover.interface.source import Source
 from mediarover.interface.tv import Tv
 from mediarover.interface.ui import Ui
 from mediarover.utils.interface import build_default_template_vars
-from mediarover.version import __app_version__
+#from mediarover.version import __app_version__
 
-def bootstrap():
+def bootstrap(options, args):
 
-	""" parse command line options """
+	""" config setup """
 
 	# determine default config path
 	config_dir = None
@@ -45,15 +45,6 @@ def bootstrap():
 			config_dir = os.path.expandvars("%APPDATA%\Mediarover")
 	else: # os.name == "posix":
 		config_dir = os.path.expanduser("~/.mediarover")
-
-	parser = OptionParser(version=__app_version__)
-
-	# location of config dir
-	parser.add_option("-c", "--config", metavar="/PATH/TO/CONFIG/DIR", help="path to application configuration directory")
-
-	(options, args) = parser.parse_args()
-
-	""" config setup """
 
 	# if user has provided a config path, override default value
 	if options.config:
