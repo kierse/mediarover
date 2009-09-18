@@ -52,7 +52,6 @@ def sort():
 
 	""" config setup """
 
-	config_dir = None
 	if options.config:
 		config_dir = options.config
 	elif os.name == "nt":

@@ -16,6 +16,7 @@
 from __future__ import with_statement
 
 import cherrypy
+import logging
 import os
 import os.path
 from Cheetah.Template import Template
@@ -35,6 +36,8 @@ class Filter(object):
 		
 	@cherrypy.expose
 	def list(self, series=None, skip=None, ignore=None):
+		logger = logging.getLogger("mediarover.interface.tv.filter")
+
 		vars = build_default_template_vars(self._config)
 
 		all_filters = {}
@@ -42,7 +45,7 @@ class Filter(object):
 			clean = Series.sanitize_series_name(name, self._config['tv']['ignore_series_metadata'])
 			all_filters[clean] = {
 				'name': name,
-				'filters': self._config['tv']['filter'][name]
+				'filters': self._config['tv']['filter'][name],
 			}
 
 		# build list of template filters
@@ -86,13 +89,20 @@ class Filter(object):
 			# its existing filters.  If not, we need to create a directory
 			# on disk
 			clean = Series.sanitize_series_name(series, self._config['tv']['ignore_series_metadata'])
-			if clean in all_filters:
+			if clean in all_filters and 'template' in all_filters[clean]:
 				filters = all_filters[clean]['filters']
 				template = all_filters[clean]['template']
 				message = "Successfully updated filter for %s" % series
 
 			# create new series directory on disk
 			else:
+	
+				# before creating a directory on disk, check if there are filters for current series
+				# if yes, this means that we have some stale filters.  Delete them and proceed
+				if clean in all_filters:
+					logger.info("Found stale filters for '%s', deleting", series)
+					del self._config['tv']['filter'][all_filters[clean]['name']]
+					del all_filters[clean]
 
 				# TODO trap exceptions
 				path = os.path.join(self._config['tv']['tv_root'][0], series)

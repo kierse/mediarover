@@ -23,7 +23,7 @@ import os.path
 #from optparse import OptionParser
 from Cheetah.Template import Template
 
-from mediarover.config import read_config
+from mediarover.config import read_config, generate_config_files
 from mediarover.interface.log import Logging
 from mediarover.interface.queue import Queue
 from mediarover.interface.source import Source
@@ -36,9 +36,10 @@ def bootstrap(options, args):
 
 	""" config setup """
 
-	# determine default config path
-	config_dir = None
-	if os.name == "nt":
+	# determine path of config directory
+	if options.config:
+		config_dir = options.config
+	elif os.name == "nt":
 		if "LOCALAPPDATA" in os.environ: # Vista or better default path
 			config_dir = os.path.expandvars("%LOCALAPPDATA%\Mediarover")
 		else: # XP default path
@@ -46,9 +47,9 @@ def bootstrap(options, args):
 	else: # os.name == "posix":
 		config_dir = os.path.expanduser("~/.mediarover")
 
-	# if user has provided a config path, override default value
-	if options.config:
-		config_dir = options.config
+	# if config_dir doesn't exist, create it
+	if not os.path.isdir(config_dir):
+		generate_config_files(config_dir)
 
 	config = read_config(config_dir)
 
