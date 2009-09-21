@@ -32,8 +32,8 @@ parser.add_option("-l", "--library", action='append', metavar="/PATH/TO/EXTERNAL
 
 (options, args) = parser.parse_args()
 
-# if user has provided any external libraries, append them to the s
-# earch path
+# if user has provided any external libraries, append them to the
+# search path
 if options.library:
 	import sys
 	sys.path.extend(options.library)
