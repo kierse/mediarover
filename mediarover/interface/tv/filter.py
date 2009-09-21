@@ -83,7 +83,10 @@ class Filter(object):
 
 			# parse ignore list
 			# TODO check for non-integers
-			ignore = [int(i) for i in ignore.split(",")]
+			if ignore in ("", None):
+				ignore = []
+			else:
+				ignore = [int(i) for i in ignore.split(",")]
 
 			# check if given series already exists.  If it does, modify 
 			# its existing filters.  If not, we need to create a directory
@@ -124,6 +127,8 @@ class Filter(object):
 			# update current filter with new values
 			if skip is not None:
 				filters['skip'] = template['skip'] = True
+			elif filters['skip'] == True:
+				filters['skip'] = template['skip'] = False
 
 			if len(ignore):
 				filters['ignore'] = template['ignore'] = ignore
