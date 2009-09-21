@@ -24,5 +24,9 @@ CONFIG=$HOME/.mediarover
 # filesystem path to sabnzbd library zip archive
 ARCHIVE=/Applications/SABnzbd.app/Contents/Resources/lib/python2.5/site-packages.zip
 
+# change to application directory so that relative template
+# directories in config file work properly
+cd $ROOT
+
 python $ROOT/mrconfig.py -c "$CONFIG" --library "$ARCHIVE"
 

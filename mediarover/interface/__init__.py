@@ -114,3 +114,13 @@ class Mrconfig(object):
 		t = Template(file=os.path.join(vars['template_dir'], "index.tmpl"), searchList=[vars])
 		return t.respond()
 
+	@cherrypy.expose
+	def shutdown(self):
+		vars = build_default_template_vars(self._config)
+		t = Template(file=os.path.join(vars['template_dir'], "shutdown.tmpl"), searchList=[vars])
+
+		# stop server
+		cherrypy.server.stop()
+
+		return t.respond()
+

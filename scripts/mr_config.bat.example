@@ -34,11 +34,15 @@ IF DEFINED LOCALAPPDATA (
 )
 
 REM filesystem path to python installation
-SET PYTHON=%HOMEDRIVE%\Python26\pythonw.exe
+SET PYTHON=%HOMEDRIVE%\Python25\pythonw.exe
 
 REM filesystem path to external library
 SET ARCHIVE=%PROGRAMFILES%\SABnzbd\lib\sabnzbd.zip
 
+REM change to application directory so that relative template
+REM directories in config file work properly
+CD %ROOT%
+
 REM run Media Rover configuration application
-%PYTHON% %ROOT%\mrconfig.py -c "%CONFIG%" --library %ARCHIVE%
+%PYTHON% %ROOT%\mrconfig.py -c "%CONFIG%" --library "%ARCHIVE%"
 
