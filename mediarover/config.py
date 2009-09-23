@@ -20,6 +20,7 @@ import logging.config
 import os
 import os.path
 import re
+import sys
 from string import Template
 from time import strftime
 
@@ -568,8 +569,15 @@ def check_filesystem_path(path):
 	""" make sure given path is a valid, filesystem path """
 
 	if path != "":
+
+		# if given path doesn't exist, it might be a relative path.
+		# append app directory and check again
 		if not os.path.isdir(path):
-			raise VdtValueException("path '%s' does not exist!", path)
+			new_path = os.path.join(sys.path[0], path)
+			if not os.path.isdir(new_path):
+				raise VdtValueException("path '%s' does not exist!", path)
+			else:
+				path = new_path
 
 	return path
 
