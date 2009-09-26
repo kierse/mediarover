@@ -146,6 +146,9 @@ def _process_download(config, options, args):
 	category = args[4]
 	group = args[5]
 
+	# remove any unwanted characters from the end of the download path
+	path = path.rstrip("/\ ")
+
 	tv_root = config['tv']['tv_root']
 
 	# check to ensure we have the necessary data to proceed
