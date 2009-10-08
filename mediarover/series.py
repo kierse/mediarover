@@ -66,18 +66,30 @@ class Series(object):
 		logger = logging.getLogger("mediarover.series")
 
 		# check if the series names just match...
-		try:
-			otherSeries = other.name.lower()
-			if self.name.lower() == otherSeries:
+		otherSeries = other.name.lower()
+		if self.name.lower() == otherSeries:
+			return True
+
+		# compare sanitized self to sanitized other 
+		# and all its aliases
+		sanitized_self = Series.sanitize_series_name(self)
+		other_aliases = [other.name]
+		other_aliases.extend(other.aliases)
+		for i in range(0, len(other_aliases)):
+			other_aliases[i] = Series.sanitize_series_name(other_aliases[i], self.ignore_metadata)
+			if sanitized_self == other_aliases[i]:
+				logger.debug("matched series alias '%s'" % sanitized_self)
 				return True
 
-			# clean up the names a bit and see if we can make a match
-			one = Series.sanitize_series_name(self)
-			two = Series.sanitize_series_name(other)
-			if one == two:
-				return True
-		except AttributeError:
-			pass
+		# still no match, compare self's aliases to all
+		# of other's sanitized names
+		self_aliases = list(self.aliases)
+		for i in range(0, len(self_aliases)):
+			self_aliases[i] = Series.sanitize_series_name(self_aliases[i], self.ignore_metadata)
+			for alias in other_aliases: 
+				if self_aliases[i] == alias:	
+					logger.debug("matched series alias '%s'" % alias)
+					return True
 
 		return False
 
@@ -140,14 +152,21 @@ class Series(object):
 
 		return self._ignore_metadata
 
+	def _aliases_prop(self, aliases = None):
+		if aliases is not None:
+			self._aliases = aliases
+
+		return self._aliases
+
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	path = property(fget=_path_prop, fset=_path_prop, doc="series filesystem path")
 	name = property(fget=_name_prop, doc="series name")
 	ignores = property(fget=_ignores_prop, fset=_ignores_prop, doc="season ignore list")
 	ignore_metadata = property(fget=_ignore_metadata_prop, fset=_ignore_metadata_prop, doc="ignore series metadata")
+	aliases = property(fget=_aliases_prop, fset=_aliases_prop, doc="aliases for current series")
 
-	def __init__(self, name, path = None, ignores = [], ignore_metadata = True):
+	def __init__(self, name, path = None, ignores = [], ignore_metadata = True, aliases = []):
 		
 		logger = logging.getLogger('mediarover.series')
 
@@ -158,6 +177,7 @@ class Series(object):
 		self.__raw_name = name
 		self.ignore_metadata = ignore_metadata
 		self.ignores = ignores
+		self.aliases = aliases
 
 		if path is not None: self.path = path
 

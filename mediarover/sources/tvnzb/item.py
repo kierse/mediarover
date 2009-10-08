@@ -39,11 +39,7 @@ class TvnzbItem(Item):
 		try:
 			self.__reportTitle
 		except AttributeError:
-			desc = self.__item.getElementsByTagName("description")[0].childNodes[0].data
-			if desc.startswith("#"):
-				self.__reportTitle = self.__item.getElementsByTagName("title")[0].childNodes[0].data
-			else:
-				self.__reportTitle = desc
+			self.__reportTitle = self.__item.getElementsByTagName("title")[0].childNodes[0].data
 
 		return self.__reportTitle
 

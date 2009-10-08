@@ -94,6 +94,12 @@ def sort():
 		handler.setFormatter(formatter)
 		logger.addHandler(handler)
 
+	# sanitize tv series filter subsection names for 
+	# consistent lookups
+	for name, filters in config['tv']['filter'].items():
+		del config['tv']['filter'][name]
+		config['tv']['filter'][Series.sanitize_series_name(name, ignore_metadata=config['tv'].as_bool('ignore_series_metadata'))] = filters
+
 	""" main """
 
 	logger.info("--- STARTING ---")
@@ -167,6 +173,7 @@ def _process_download(config, options, args):
 		raise InvalidArgument("job name is missing or null")
 
 	shows = {}
+	alias_map = {}
 	for root in tv_root:
 
 		# make sure tv root directory exists and that we have read and 
@@ -202,6 +209,19 @@ def _process_download(config, options, args):
 
 				if sanitized_name in shows:
 					logger.warning("duplicate series directory found! Multiple directories for the same series can result in sorting errors!  You've been warned...")
+
+				# process series aliases
+				if sanitized_name in config['tv']['filter']:
+					if 'alias' in config['tv']['filter'][sanitized_name]:
+						series.aliases = config['tv']['filter'][sanitized_name]['alias'];
+						count = 0
+						for alias in series.aliases:
+							sanitized_alias = Series.sanitize_series_name(alias, series.ignore_metadata)
+							if sanitized_alias in alias_map:
+								logger.warning("duplicate series alias found! Duplicate aliases (when part of two different series filters) can/will result in incorrect downloads and improper sorting! You've been warned...")
+							alias_map[sanitized_alias] = sanitized_name
+							count += 1
+						logger.info("%d alias(es) identified for series '%s'" % (count, series))
 
 				shows[sanitized_name] = series
 				logger.debug("watching series: %s => %s", sanitized_name, dir)
@@ -282,8 +302,14 @@ def _process_download(config, options, args):
 	# determine if episode belongs to a currently watched series
 	season_path = None
 	additional = None
+
+	# get actual name of series
+	sanitized_name = Series.sanitize_series_name(episode.series)
+	if sanitized_name in alias_map:
+		sanitized_name = alias_map[sanitized_name]
+
 	try:
-		episode.series = shows[Series.sanitize_series_name(episode.series)]
+		episode.series = shows[sanitized_name]
 
 	# if not, we need to create the series directory
 	except KeyError:
@@ -300,7 +326,7 @@ def _process_download(config, options, args):
 			raise
 		finally:
 			episode.series.path = series_dir
-			shows[Series.sanitize_series_name(episode.series)] = episode.series
+			shows[sanitized_name] = episode.series
 	
 	# series directory found, look for season directory
 	else:

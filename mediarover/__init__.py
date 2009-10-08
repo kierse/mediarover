@@ -129,6 +129,7 @@ def _process(config, options, args):
 		raise ConfigurationError("You must declare at least one tv_root directory!")
 
 	shows = {}
+	alias_map = {}
 	for root in tv_root:
 
 		# first things first, check that tv root directory exists and that we
@@ -172,6 +173,18 @@ def _process(config, options, args):
 				if len(config['tv']['filter'][sanitized_name]['ignore']):
 					logger.debug("ignoring the following seasons of %s: %s", sanitized_name, config['tv']['filter'][sanitized_name]['ignore'])
 					series.ignores = config['tv']['filter'][sanitized_name]['ignore']
+
+				# process series aliases
+				if config['tv']['filter'][sanitized_name]['alias']:
+					series.aliases = config['tv']['filter'][sanitized_name]['alias'];
+					count = 0
+					for alias in series.aliases:
+						sanitized_alias = Series.sanitize_series_name(alias, series.ignore_metadata)
+						if sanitized_alias in alias_map:
+							logger.warning("duplicate series alias found! Duplicate aliases (when part of two different series filters) can/will result in incorrect downloads and improper sorting! You've been warned...")
+						alias_map[sanitized_alias] = sanitized_name
+						count += 1
+					logger.debug("%d alias(es) identified for series '%s'" % (count, series))
 
 				shows[sanitized_name] = series
 				logger.debug("watching series: %s => %s", sanitized_name, dir)
@@ -308,14 +321,20 @@ def _process(config, options, args):
 			# make sure episode series object is correctly handling metadata
 			episode.series.ignore_metadata = config['tv']['ignore_series_metadata']
 
+			# grab real series object
+			sanitized = Series.sanitize_series_name(episode.series)
+			if sanitized in alias_map:
+				sanitized = alias_map[sanitized]
+
 			# check if episode series is in watch list.  If it is, grab complete
 			# series object and update episode.  Otherwise, skip to next item
 			try:
-				series = shows[Series.sanitize_series_name(episode.series)]
-				episode.series = series
+				series = shows[sanitized]
 			except KeyError:
 				logger.info("skipping '%s', not watching series", item.title())
 				continue
+			else:
+				episode.series = series
 
 			# if multiepisode job: check if user will accept, otherwise 
 			# continue to next job

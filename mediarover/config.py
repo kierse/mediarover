@@ -100,10 +100,12 @@ CONFIG_TEMPLATE = """__version__ = %(version)d
 	#     [[[ series_name_1 ]]]
 	#        skip = <boolean>
 	#        ignore = <list>
+	#        alias = <list>
 	#
 	#     [[[ series_name_2 ]]]
 	#        skip = <boolean>
 	#        ignore = <list>
+	#        alias = <list>
 	#
 	#     ...
 	#     ..
@@ -111,6 +113,7 @@ CONFIG_TEMPLATE = """__version__ = %(version)d
 	#     [[[ series_name_N ]]]
 	#        skip = <boolean>
 	#        ignore = <list>
+	#        alias = <list>
 	#
 	# Options:
 	#  filter:      skip
@@ -123,10 +126,20 @@ CONFIG_TEMPLATE = """__version__ = %(version)d
 	#  default:     none (empty list)
 	#  description: comma separated list of seasons to ignore when downloading new episode
 	#
+	#  filter:      alias
+	#  values:      comma separated list (ie. 1,2,3,4)
+	#  default:     none (empty list)
+	#  description: comma separated list of aliases that will be used to match nzb titles 
+	#               when downloading new episodes. For example:
+	#
+   #               [[ filter ]]
+	#                  [[[ The Show Name ]]]
+	#                    alias = "Show Name", "Show Name, The"
+	#
 	# ATTENTION: subsection names should exactly match series folder on disk in order to
 	#            guarantee consistent application of filters
 	#
-	# NOTE: filters can optionally be stored on the filesystem in the series directory.  See
+	# NOTE: SOME filters can optionally be stored on the filesystem in the series directory.  See
 	#       http://wiki.github.com/kierse/mediarover/config-filter for more details
 	#
 	# See http://wiki.github.com/kierse/mediarover/config-filter for examples
@@ -330,6 +343,7 @@ __version__ = integer(default=0)
 		[[[__many__]]]
 			ignore = int_list(default=list())
 			skip = boolean(default=False)
+			alias = string_list(default=list())
 
 	[[template]]
 		series = string(default=$(series)s)
@@ -641,8 +655,9 @@ def build_series_filters(path, seed=None):
 
 	if seed is None:
 		seed= {
-			'skip':False, 
-			'ignore':[]
+			'skip': False, 
+			'ignore': [],
+			'alias': []
 		}
 
 	# avoid a little I/O overhead and only look for the
