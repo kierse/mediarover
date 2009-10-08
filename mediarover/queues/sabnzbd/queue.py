@@ -86,8 +86,6 @@ class SabnzbdQueue(Queue):
 		# check response for status of request
 		response = handle.readline()
 		if response == "ok\n":
-			#self.__clear()
-			#time.sleep(5)
 			logger.info("item '%s' successfully queued for download", item.title())
 		elif response == "error\n":
 			raise QueueInsertionError("unable to queue item '%s' for download", item.title())
