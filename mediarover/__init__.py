@@ -158,7 +158,7 @@ def _process(config, options, args):
 				sanitized_name = Series.sanitize_series_name(series)
 
 				if sanitized_name in shows:
-					logger.warning("duplicate series directory found! Multiple directories for the same series can/will result in duplicate downloads!  You've been warned...")
+					logger.warning("duplicate series directory found for '%s'! Multiple directories for the same series can/will result in duplicate downloads!  You've been warned..." % series)
 
 				if sanitized_name in config['tv']['filter']:
 					config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['filter'][sanitized_name])
@@ -181,7 +181,7 @@ def _process(config, options, args):
 					for alias in series.aliases:
 						sanitized_alias = Series.sanitize_series_name(alias, series.ignore_metadata)
 						if sanitized_alias in alias_map:
-							logger.warning("duplicate series alias found! Duplicate aliases (when part of two different series filters) can/will result in incorrect downloads and improper sorting! You've been warned...")
+							logger.warning("duplicate series alias found for '%s'! Duplicate aliases (when part of two different series filters) can/will result in incorrect downloads and improper sorting! You've been warned..." % series)
 						alias_map[sanitized_alias] = sanitized_name
 						count += 1
 					logger.debug("%d alias(es) identified for series '%s'" % (count, series))
