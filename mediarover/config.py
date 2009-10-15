@@ -31,8 +31,7 @@ from mediarover.version import __config_version__
 
 # CONFIG SPECS- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-CONFIG_TEMPLATE = """__version__ = %(version)d 
-
+CONFIG_TEMPLATE = """
 [ui]
 	#templates_dir = templates/
 	#template = default
@@ -312,11 +311,10 @@ CONFIG_TEMPLATE = """__version__ = %(version)d
 		#password = 
 
 [__SYSTEM__]
-
+	__version__ = %(version)d 
 """
 
 CONFIG_SPEC = """
-__version__ = integer(default=0)
 [ui]
 	templates_dir = path(default=templates/)
 	template = string(default=default)
@@ -373,6 +371,7 @@ __version__ = integer(default=0)
 SYSTEM_SPEC = """
 
 [__SYSTEM__]
+	__version__ = integer(default=0)
 	__available_sources = list(default=list('newzbin','tvnzb','mytvnzb','nzbs'))
 	__available_sources_label = list(default=list('http://www.newzbin.com', 'http://www.tvnzb.com', 'http://mytvnzb.foechoer.be (MyTvNZB)', 'http://nzbs.org'))
 	__available_queues = list(default=list('sabnzbd'))
@@ -537,11 +536,18 @@ def read_config(path):
 			message.append(" %s %s = %s" % (" ".join(section), error[1], error[2]))
 		raise ConfigurationError("Invalid Data in configuration file\n\n%s\n" % "\n".join(message), log_errors=False)
 
+	# TODO the next time the user is required to regenerate the config file this code will no long
+	# be needed.  Between version 1 and version 2, __version__ was moved into the __SYSTEM__ subsection
+	if '__version__' in config:
+		version = config['__version__']
+	else:
+		version = config['__SYSTEM__']['__version__']
+
 	# check if users config file is current
-	if config['__version__'] > 0:
-		if config['__version__'] < __config_version__.get('min', __config_version__['version']):
+	if version > 0:
+		if version < __config_version__.get('min', __config_version__['version']):
 			raise ConfigurationError("Configuration file is out of date!  Regenerate using --write-configs")
-		elif config['__version__'] < __config_version__['version']:
+		elif version < __config_version__['version']:
 			logger.warning("Configuration file is out of date!  Regenerate using --write-configs")
 	else:
 		raise ConfigurationError("Out of date or corrupt configuration file!  Regenerate using --write-configs")
