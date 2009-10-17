@@ -407,7 +407,7 @@ qualname = mediarover
 # handlers
 [handler_logfile]
 class = handlers.RotatingFileHandler
-level = INFO
+level = DEBUG
 formatter = default
 args = ('${file}', None, 1024000, 5)
 
