@@ -45,7 +45,7 @@ class FilesystemEpisode(Episode):
 			return "%04d" % self.year
 		else:
 			pattern = pattern.replace("$(", "%(")
-			return pattern % self.format_parameters(season=True)
+			return pattern % self.format_parameters(series=True, season=True)
 
 	def format_episode(self, series_template=None, daily_template=None, smart_title_template=None, additional=""):
 		""" return formatted pattern using episode data """
