@@ -24,6 +24,9 @@ REM bundled.  Therefore, we delete PYTHONHOME before invoking Media Rover
 REM filesystem path where Media Rover is installed
 SET ROOT=%PROGRAMFILES%\mediarover
 
+REM filesystem path to python installation
+SET PYTHON=%HOMEDRIVE%\Python26\pythonw.exe
+
 REM filesystem path to configuration directory
 IF DEFINED LOCALAPPDATA (
 	REM Vista and newer
@@ -32,9 +35,6 @@ IF DEFINED LOCALAPPDATA (
 	REM XP
 	SET CONFIG=%APPDATA%\Mediarover
 )
-
-REM filesystem path to python installation
-SET PYTHON=%HOMEDRIVE%\Python26\pythonw.exe
 
 REM invoke Media Rover episode sorting script
 %PYTHON% %ROOT%\episodesort.py -c "%CONFIG%" %1 %2 %3 %4 %5 %6
