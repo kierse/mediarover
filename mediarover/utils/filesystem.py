@@ -200,8 +200,10 @@ def __find_season_episodes(series, season, path, ignored_extensions):
 				episode = FilesystemEpisode.new_from_string(file['name'], series=series, season=season, daily=daily)
 				logger.debug("create filesystem episode: %s", episode.__repr__())
 			else:
+				logger.warning("unable to parse filename and extract episode specifics, skipping '%s'" % file['name'])
 				pass
 		except (InvalidData, MissingParameterError):
+			logger.warning("unable to determine episode specifics, encountered error while parsing filename. Skipping '%s'" % file['name'])
 			pass
 		else:
 			episodes.append(episode)
