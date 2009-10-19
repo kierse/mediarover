@@ -141,13 +141,19 @@ class FilesystemEpisode(Episode):
 	@classmethod
 	def handle(cls, string):
 		
+		if Episode.handle(string):
+			print "ep"
+			return True
+
 		if FilesystemEpisode.regex_1.search(string):
+			print "1"
 			return True
 
 		if FilesystemEpisode.regex_2.search(string):
+			print "2"
 			return True
 
-		return Episode.handle(string)
+		return False
 
 	@classmethod
 	def new_from_episode(cls, episode, file, extension = None):
