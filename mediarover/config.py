@@ -83,7 +83,39 @@ CONFIG_TEMPLATE = """
 		# NOTE: defaults to True
 		#allow = True
 
+		# aggressively schedule downloads based on prefer flag
+		# WARNING: SETTING THIS OPTION TO TRUE MAY RESULT IN EPISODES BEING DELETED
+		#
+		# when set to True, Media Rover becomes more aggressive in scheduling downloads and 
+		# cleaning up unnecessary data.  Here's how it's used:
+		#
+		#   If you prefer single episodes =>
+		#      aggresive = True
+		#      prefer = False
+		#    
+		#    - this will cause Media Rover to download single episodes that already exist on disk 
+		#      as part of a multiepisode.  Once all the individual parts are on disk, Media Rover
+		#      will attempt to delete the multiepisode
+		#
+		#  If you prefer multiepisodes =>
+		#     aggressive = True
+		#     prefer = True
+		#
+		#   - this will cause Media Rover to download multiepisodes when available and attempt
+		#     to delete any/all individual episodes.
+		#
+		# NOTE: defaults to False
+		#aggressive = False
+
 		# prefer multiepisode files over individual files
+		#
+		# ATTENTION: this flag works in conjunction with the aggressive flag above.  It is ignored
+		# unless the aggressive flag is set.  A value of True indicates that you prefer multiepisodes
+		# over single episodes whenever possible.  A value of False indicates that you prefer single
+		# episodes over multiepisodes whenever possible.  When the aggressive flag is set, Media 
+		# Rover will make all attempts to see that your specified preference (single or multi episodes)
+		# is met.
+		#
 		# NOTE: defaults to False
 		#prefer = False
 
@@ -336,6 +368,7 @@ CONFIG_SPEC = """
 	[[multiepisode]]
 		allow = boolean(default=True)
 		prefer = boolean(default=False)
+		aggressive = boolean(default=False)
 
 	[[filter]]
 		[[[__many__]]]

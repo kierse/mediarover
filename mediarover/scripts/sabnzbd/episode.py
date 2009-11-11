@@ -373,50 +373,8 @@ def _process_download(config, options, args):
 	
 		# move successful, cleanup download directory
 		else:
-			# since new download was successfully moved, check if any existing downloads 
-			# can now be removed
-			list = []
-			try:
-				episode.episodes
 
-			# single episode
-			except AttributeError:
-				if not config['tv']['multiepisode'].as_bool('prefer'):
-					for multi in series_season_multiepisodes(episode.series, episode.season, config['tv']['ignored_extensions']):
-						if episode in multi.episodes:
-							for ep in multi.episodes:
-								if not series_episode_exists(ep.series, ep, config['tv']['ignored_extensions']):
-									break
-							else:
-								file = series_episode_path(multi.series, multi, config['tv']['ignored_extensions'])
-								logger.debug("scheduling '%s' for deletion", file)
-								list.append(file)
-
-			# multipart episode
-			else:
-				if config['tv']['multiepisode'].as_bool('prefer'):
-					for ep in episode.episodes:
-						try:
-							file = series_episode_path(ep.series, ep, config['tv']['ignored_extensions'])
-						except FilesystemError:
-							break
-						else:
-							logger.debug("scheduling '%s' for deletion", file)
-							list.append(file)
-
-			# iterate over list of stale downloads and remove them from filesystem
-			finally:
-				if len(list):
-					for file in list:
-						try:
-							os.remove(file)
-							logger.info("removing file '%s'", file)
-						except OSError, (num, message):
-							if num == 13:
-								logger.error("unable to delete file '%s', permission denied", file)
-							raise
-
-			# finally, clean up download directory by removing all files matching ignored extensions list.
+			# clean up download directory by removing all files matching ignored extensions list.
 			# if unable to download directory (because it's not empty), move it to .trash
 			try:
 				clean_path(path, ignored)
@@ -431,6 +389,55 @@ def _process_download(config, options, args):
 					if num == 13:
 						logger.error("unable to move download directory to '%s', permission denied", args[0])
 					raise
+
+			# if aggressive flag is set, check to see if current download
+			# made any existing files redundant or unnecessary
+			if config['tv']['multiepisode']['aggressive']:
+				logger.info("aggressive flag set to True, checking for redundant files...")
+	
+				list = []
+				try:
+					episode.episodes
+
+				# single episode
+				except AttributeError:
+					if not config['tv']['multiepisode']['prefer']:
+						for multi in series_season_multiepisodes(episode.series, episode.season, config['tv']['ignored_extensions']):
+							if episode in multi.episodes:
+								for ep in multi.episodes:
+									# ATTENTION: when a file is moved using shutil, its modification time IS NOT updated
+									# this means that the cache won't be regenerated (because its stale) meaning we won't 
+									# find the current episode.  Therefore, skip the current episode as we know its in the 
+									# correct place
+									if ep != episode and not series_episode_exists(ep.series, ep, config['tv']['ignored_extensions']):
+										break
+								else:
+									logger.info("scheduling '%s' for deletion", multi)
+									list.append(multi)
+
+				# multipart episode
+				else:
+					if config['tv']['multiepisode']['prefer']:
+						for ep in episode.episodes:
+							if series_episode_exists(ep.series, ep, config['tv']['ignored_extensions']):
+								logger.info("scheduling '%s' for deletion", ep)
+								list.append(file)
+
+				# iterate over list of stale downloads and remove them from filesystem
+				finally:
+					for ep in list:
+						try:
+							file = series_episode_path(ep.series, ep, config['tv']['ignored_extensions'])
+						except:
+							logger.warning("unable to locate '%s' on disk!", ep)
+							raise
+						try:
+							os.remove(file)
+							logger.info("removing file '%s'", file)
+						except OSError, (num, message):
+							if num == 13:
+								logger.error("unable to delete file '%s', permission denied", file)
+							raise
 
 def _move_to_trash(root, path):
 

@@ -54,20 +54,16 @@ def series_episode_path(series, episode, ignored_extensions = []):
 
 	season = episode.season
 	daily = episode.daily
-	path = None
 
 	cache = __get_cached_season(series, season, ignored_extensions)
 	if cache is not None:
 		# check if episode exists on disk
 		if episode in cache['episodes']: 
+			logger.info("episode '%s' FOUND on disk", episode)
 			index = cache['episodes'].index(episode)
-			path = os.path.join(cache['path'], cache['episodes'][index].filename)
+			return os.path.join(cache['path'], "%s.%s" % (cache['episodes'][index].filename, cache['episodes'][index].extension))
 
-	if path is None:
-		raise FilesystemError("episode '%s' does not exist on disk" % episode)
-
-	logger.info("episode '%s' FOUND on disk", episode)
-	return path
+	raise FilesystemError("episode '%s' does not exist on disk" % episode)
 
 def series_episode_exists(series, episode, ignored_extensions = []):
 	""" return boolean indicating whether or not the given episode exists on disk """

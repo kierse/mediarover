@@ -344,7 +344,7 @@ def _process(config, options, args):
 			except AttributeError:
 				pass
 			else:
-				if not config['tv']['multiepisode'].as_bool('allow'):
+				if not config['tv']['multiepisode']['allow']:
 					continue
 				multi = True
 
@@ -376,26 +376,34 @@ def _process(config, options, args):
 
 			# if job is a multiepisode, check the following:
 			#
-			#  1) if all parts are already on disk (or in queue) and user prefers single episodes,
-			#     skip job
+			#  all parts are on disk (or in queue) 
+			#     1) if aggressive flag IS set and user prefers multiepisodes, schedule episode for download
+			#     2) if aggressive flag IS NOT set, skip
 			if multi:
 				for ep in episode.episodes:
 					if not series_episode_exists(series, ep, config['tv']['ignored_extensions']): 
 						if not queue.in_queue(ep):
 							break
 				else:
-					if not config['tv']['multiepisode'].as_bool('prefer'):
-						logger.info("skipping '%s', already on disk", item.title())
+					# if the aggressive flag is true, then we only want to proceed if the 
+					# prefer flag is also true.  Otherwise, the user prefers single episodes
+					if config['tv']['multiepisode']['aggressive']:
+						if not config['tv']['multiepisode']['prefer']:
+							logger.info("skipping '%s', prefer single over multiepisodes", item.title())
+							continue
+					else:
+						logger.info("skipping '%s', all parts are already on disk and/or in the download queue", item.title())
 						continue
 
 			# job is a single episode, check the following
 			#
-			#  1) if a multiepisode containing current download exists on disk (or in queue) and user
-			#     prefers multiepisodes, skip job
+			#  a multiepisode containing current download exists on disk (or in queue)
+			#     1) if aggressive flag IS set and user prefers single episodes, schedule episode for download
+			#     2) if aggressive flag IS NOT set, skip
 			#
 			# NOTE: only need to check multiepisodes on disk and in queue if user allows multiepisodes to
 			#       be downloaded, and that they prefer single episodes over multiepisodes
-			elif config['tv']['multiepisode'].as_bool('allow'):
+			elif config['tv']['multiepisode']['allow']:
 				found = 0
 				for multi in series_season_multiepisodes(series, episode.season, config['tv']['ignored_extensions']):
 					if episode in multi.episodes:
@@ -417,9 +425,11 @@ def _process(config, options, args):
 						except AttributeError:
 							continue
 
-				# if current episode was found on disk (or in queue) as part of
-				# a multiepisode and user prefers multiepisodes, skip
-				if config['tv']['multiepisode'].as_bool('prefer'):
+				if config['tv']['multiepisode']['aggressive']:
+					if config['tv']['multiepisode']['prefer']:
+						logger.info("skipping '%s', prefer multi over single episodes", item.title())
+						continue
+				else:
 					if found == 1:
 						logger.info("skipping '%s', part of multiepisode found on disk", item.title())
 					else:

@@ -247,7 +247,7 @@ class FilesystemEpisode(Episode):
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	extension = property(fget=_extension_prop, fset=_extension_prop, doc="file extension")
+	extension = property(fget=_extension_prop, doc="file extension")
 	filename = property(fget=_filename_prop, doc="filename")
 
 	def __init__(self, series, season, daily, episode = None, year = None, month = None, day = None, title = "", 
@@ -452,7 +452,7 @@ class FilesystemMultiEpisode(MultiEpisode):
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	extension = property(fget=_extension_prop, fset=_extension_prop, doc="multiepisode file extension")
+	extension = property(fget=_extension_prop, doc="multiepisode file extension")
 	filename = property(fget=_filename_prop, doc="multiepisode filename")
 
 	def __init__(self, episodes, title, filename = None, extension = None):
