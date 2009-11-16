@@ -429,7 +429,7 @@ def _process(config, options, args):
 					if config['tv']['multiepisode']['prefer']:
 						logger.info("skipping '%s', prefer multi over single episodes", item.title())
 						continue
-				else:
+				elif found > 0:
 					if found == 1:
 						logger.info("skipping '%s', part of multiepisode found on disk", item.title())
 					else:
