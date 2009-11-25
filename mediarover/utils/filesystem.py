@@ -220,9 +220,15 @@ def __find_season_path(series, season):
 	else:
 		root = series.path
 
+	metadata_regex = re.compile("\(.+?\)$")
 	for dir in os.listdir(root):
 		if os.path.isdir(os.path.join(root, dir)):
-			number = re.sub("[^\d]", "", dir)
+
+			# strip any metadata that may be appended to the end of 
+			# the season folder as it can interfer with season identification
+			clean_dir = metadata_regex.sub("", dir)
+
+			number = re.sub("[^\d]", "", clean_dir)
 			if len(number) and season == int(number):
 				path = os.path.join(root, dir)
 				logger.debug("series '%s', season %d found at: %s'", series, season, path)
