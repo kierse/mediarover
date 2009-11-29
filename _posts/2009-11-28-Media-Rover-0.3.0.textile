@@ -1,0 +1,34 @@
+---
+layout: announcement
+title: 0.3.0 released!
+desc: "Key features of this release: bugs, bugs, and more bugs!"
+---
+
+Announcing Media Rover 0.3.0!  This release is primarily a maintenance release.  It contains several fixes for bugs identified by various users since the 0.2.0 release
+
+*Release Details:*
+
+* fixed Windows bug that was causing Media Rover to look for the config directory in the wrong location
+* updated config related error messages 
+* updated command line help text to display default config path (platform specific)
+* fixed bug that cause Media Rover to crash when it encountered a config filter for a series that doesn't exist on disk
+* fixed bug preventing Media Rover from using the skip and ignore filter options
+* fixed bug preventing Media Rover from properly cleaning up after it sorted a download
+* fixed several bugs with the tvnzb.com and MyTvNzb source plugins
+* introduced series aliases
+* updated sorting to allow putting the series name in a season template
+* updated algorithm responsible for parsing the filename of episodes found on disk
+* reworked how Media Rover schedules single vs multi-part episodes.  Introduced concept of Aggressive sorting
+* updated Media Rover to ignore any/all metadata appended to the end of a series season folder
+
+*Upgrading*
+This release contains several minor updates that shouldn't require a full config regeneration.
+
+Note: if upgrading from 0.1.0 or earlier, you will need to regenerate your config files.  Run the following from a terminal:
+
+<pre><code>> python mediarover.py --write-configs</code></pre>
+
+Or, it you'd like the configs written to a specific directory:
+
+<pre><code>> python mediarover.py --write-configs -c /path/to/config/dir</code></pre>
+
