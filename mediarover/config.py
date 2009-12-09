@@ -74,8 +74,8 @@ CONFIG_TEMPLATE = """
 	#ignore_series_metadata = True
 
 	# ignored file extensions (used when sorting downloads)
-	# NOTE: defaults to: nfo,txt,sfv,srt,nzb,idx,log,par,par2,exe,bat,com
-	#ignored_extensions = nfo,txt,sfv,srt,nzb,idx,log,par,par2,exe,bat,com
+	# NOTE: defaults to: nfo,txt,sfv,srt,nzb,idx,log,par,par2,exe,bat,com,tbn,jpg,png,gif,info
+	#ignored_extensions = nfo,txt,sfv,srt,nzb,idx,log,par,par2,exe,bat,com,tbn,jpg,png,gif,info
 
 	[[multiepisode]]
 
@@ -363,7 +363,7 @@ CONFIG_SPEC = """
 	umask = integer(default=022)
 	default_category = string(default=tv)
 	ignore_series_metadata = boolean(default=True)
-	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com"))
+	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com","tbn","jpg","png","gif","info"))
 
 	[[multiepisode]]
 		allow = boolean(default=True)
