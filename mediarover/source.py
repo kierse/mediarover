@@ -58,6 +58,9 @@ class Source:
 
 		return self._category
 
+	def _type_prop(self):
+		return self._type
+
 	def _timeout_prop(self, timeout = None):
 		if timeout is not None:
 			self._timeout = timeout
@@ -68,13 +71,15 @@ class Source:
 
 	name = property(fget=_name_prop, fset=_name_prop, doc="source name")
 	url = property(fget=_url_prop, fset=_url_prop, doc="source url")
-	category = property(fget=_category_prop, fset=_category_prop, doc="source category")
+	category = property(fget=_category_prop, fset=_category_prop, doc="source category label (ie. SABnzbd category type)")
+	type = property(fget=_type_prop, doc="source type (ie. tv, movies, music, etc)")
 
-	def __init__(self, url, name, category, timeout):
+	def __init__(self, url, name, category, type, timeout):
 		""" validate given url and verify that it is a valid url (syntactically) """
 
 		self.url = url
 		self.name = name
 		self.category = category
+		self._type = type
 		self.timeout = timeout
 

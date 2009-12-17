@@ -210,8 +210,7 @@ def _process(config, options, args):
 				if 'url' in params:
 					logger.info("found feed '%s'", label)
 					params['label'] = label
-					if params['category'] is None:
-						params['category'] = config['tv']['default_category']
+					params['category'] = config['tv']['category']
 					if params['timeout'] is None:
 						params['timeout'] = config['source']['default_timeout']
 					feeds.append(params)
@@ -234,7 +233,7 @@ def _process(config, options, args):
 				else:
 					for feed in feeds:
 						logger.debug("creating source for feed '%s'", feed['label'])
-						sources.append(getattr(module, "%sSource" % available.capitalize())(feed['url'], feed['label'], feed['category'], feed['timeout']))
+						sources.append(getattr(module, "%sSource" % available.capitalize())(feed['url'], feed['label'], feed['category'], feed['type'], feed['timeout']))
 
 			else:
 				logger.debug("skipping source '%s', no feeds", available)

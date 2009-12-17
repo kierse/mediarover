@@ -61,9 +61,9 @@ CONFIG_TEMPLATE = """
 	# NOTE: defaults to 022
 	#umask = 022
 
-	# default download category
+	# download category
 	# NOTE: defaults to 'tv'
-	#default_category = tv
+	#category = tv
 
 	# ignore series metadata
 	# ie. ignore year, country of origin, etc commonly found between ()
@@ -277,13 +277,11 @@ CONFIG_TEMPLATE = """
 #        	url = http://path/to/rss/feed/...
 #        
 #        	# optional
-#        	category = tv
 #        	timeout = 60 # in seconds
 #        
 #        # source 2
 #        [[[ user_label_2 ]]]
 #        	url = http://path/to/rss/feed/...
-#        	category = tv
 #        	timeout = 60 # in seconds
 #
 #     [[ plugin_2 ]]
@@ -361,7 +359,7 @@ CONFIG_SPEC = """
 [tv]
 	tv_root = path_list()
 	umask = integer(default=022)
-	default_category = string(default=tv)
+	category = string(default=tv)
 	ignore_series_metadata = boolean(default=True)
 	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com","tbn","jpg","png","gif","info"))
 
@@ -389,7 +387,7 @@ CONFIG_SPEC = """
 	[[__many__]]
 		[[[__many__]]]
 			url = url()
-			category = string(default=None)
+			type = option('tv', default='tv')
 			timeout = integer(default=None)
 
 [queue]
