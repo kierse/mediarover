@@ -65,6 +65,11 @@ CONFIG_TEMPLATE = """
 	# NOTE: defaults to 'tv'
 	#category = tv
 
+	# download priority
+	# OPTIONS: normal, high, low, force
+	# NOTE: defaults to normal
+	#priority = normal
+
 	# ignore series metadata
 	# ie. ignore year, country of origin, etc commonly found between ()
 	#	Lost (2004)
@@ -360,6 +365,7 @@ CONFIG_SPEC = """
 	tv_root = path_list()
 	umask = integer(default=022)
 	category = string(default=tv)
+	priority = option('normal', 'high', 'low', 'force', default='normal')
 	ignore_series_metadata = boolean(default=True)
 	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com","tbn","jpg","png","gif","info"))
 

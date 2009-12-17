@@ -76,13 +76,18 @@ class TvnzbItem(Item):
 	def _category_prop(self):
 		return self._category
 
+	def _priority_prop(self):
+		return self._priority
+
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	category = property(fget=_category_prop, doc="item category")
+	priority = property(fget=_priority_prop, doc="item priority")
 
-	def __init__(self, item, category):
+	def __init__(self, item, category, priority):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
 		self.__item = item
 		self._category = category
+		self._priority = priority
 

@@ -40,7 +40,7 @@ class MytvnzbSource(Source):
 
 			self.__items = []
 			for rawItem in self.__document.getElementsByTagName("item"):
-				self.__items.append(TvnzbItem(rawItem, self.category))
+				self.__items.append(TvnzbItem(rawItem, self.category, self.priority))
 
 		# return item list to caller
 		return self.__items

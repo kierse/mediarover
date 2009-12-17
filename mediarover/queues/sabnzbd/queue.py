@@ -61,7 +61,18 @@ class SabnzbdQueue(Queue):
 		"""
 		logger = logging.getLogger("mediarover.queues.sabnzbd.queue")
 
-		args = {'cat': item.category}
+		priority = {
+			'low': -1,
+			'normal': 0,
+			'high': 1,
+			'force': 2,
+		}
+
+		args = {
+			'cat': item.category,
+			'priority': priority[item.priority.lower()]
+		}
+
 		try:
 			args['name'] = item.id()
 		except AttributeError:

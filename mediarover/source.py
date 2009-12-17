@@ -61,6 +61,12 @@ class Source:
 	def _type_prop(self):
 		return self._type
 
+	def _priority_prop(self, priority = None):
+		if priority is not None:
+			self._priority = priority
+
+		return self._priority
+
 	def _timeout_prop(self, timeout = None):
 		if timeout is not None:
 			self._timeout = timeout
@@ -71,15 +77,18 @@ class Source:
 
 	name = property(fget=_name_prop, fset=_name_prop, doc="source name")
 	url = property(fget=_url_prop, fset=_url_prop, doc="source url")
-	category = property(fget=_category_prop, fset=_category_prop, doc="source category label (ie. SABnzbd category type)")
+	category = property(fget=_category_prop, fset=_category_prop, doc="source item category label (ie. SABnzbd category type)")
+	priority = property(fget=_priority_prop, fset=_priority_prop, doc="source item download priority")
 	type = property(fget=_type_prop, doc="source type (ie. tv, movies, music, etc)")
 
-	def __init__(self, url, name, category, type, timeout):
+	def __init__(self, url, name, category, priority, type, timeout):
 		""" validate given url and verify that it is a valid url (syntactically) """
 
-		self.url = url
 		self.name = name
+		self.url = url
 		self.category = category
-		self._type = type
+		self.priority = priority
 		self.timeout = timeout
+
+		self._type = type
 

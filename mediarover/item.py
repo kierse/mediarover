@@ -20,6 +20,10 @@ class Item(object):
 		""" return category of current report """
 		raise NotImplementedError
 
+	def priority(self):
+		""" return download priority of current report """
+		raise NotImplementedError
+
 	def download(self):
 		""" return Download object representing current source Item """
 		raise NotImplementedError
