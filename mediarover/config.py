@@ -297,7 +297,7 @@ CONFIG_TEMPLATE = """
 #
 #  newzbin - http://newzbin.com
 #  tvnzb   - http://www.tvnzb.com/
-#  mytvznb - http://mytvnzb.foechoer.be/
+#  mytvznb - any version 2.5 site
 #  nzbs    - http://www.nzbs.org
 #
 # See http://wiki.github.com/kierse/mediarover/config-source for examples
@@ -410,7 +410,7 @@ SYSTEM_SPEC = """
 [__SYSTEM__]
 	__version__ = integer(default=0)
 	__available_sources = list(default=list('newzbin','tvnzb','mytvnzb','nzbs'))
-	__available_sources_label = list(default=list('http://www.newzbin.com', 'http://www.tvnzb.com', 'http://mytvnzb.foechoer.be (MyTvNZB)', 'http://nzbs.org'))
+	__available_sources_label = list(default=list('http://www.newzbin.com', 'http://www.tvnzb.com', 'MyTvNZB v2.5', 'http://nzbs.org'))
 	__available_queues = list(default=list('sabnzbd'))
 
 """

@@ -21,7 +21,7 @@ from mediarover.source import Source
 from mediarover.sources.tvnzb.item import TvnzbItem
 
 class MytvnzbSource(Source):
-	""" mytvnzb.foechoer.be source class """
+	""" MyTvNZB v2.5 source class """
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
