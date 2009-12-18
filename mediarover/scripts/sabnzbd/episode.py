@@ -39,7 +39,7 @@ def sort():
 
 	""" parse command line options """
 
-	usage = "usage: %prog [options] <job_dir> <nzb> <job_name> <newzbin_id> <category> <newsgroup>"
+	usage = "usage: %prog [options] <result_dir> <nzb_name> <nice_name> <newzbin_id> <category> <newsgroup> <status>"
 	parser = OptionParser(usage=usage, version=__app_version__)
 
 	# location of config dir
@@ -78,8 +78,8 @@ def sort():
 	""" post configuration setup """
 
 	# make sure script was passed 6 arguments
-	if not len(args) == 6:
-		print "Warning: must provide 6 arguments when invoking %s" % os.path.basename(sys.argv[0])
+	if not len(args) == 7:
+		print "Warning: must provide 7 arguments when invoking %s" % os.path.basename(sys.argv[0])
 		parser.print_help()
 		exit(1)
 
@@ -134,16 +134,17 @@ def _process_download(config, options, args):
 
 	logger = logging.getLogger("mediarover.scripts.sabnzbd.episode")
 
-	logger.debug(sys.argv[0] + " '%s' '%s' '%s' '%s' '%s' '%s'" % tuple(args))
+	logger.debug(sys.argv[0] + " '%s' '%s' '%s' '%s' '%s' '%s' '%s'" % tuple(args))
 
 	"""
 	arguments:
 	  1. The final directory of the job (full path)
 	  2. The name of the NZB file
-	  3. Clean version of the job name (no path info and ".nzb" removed)
-	  4. Newzbin report number (may be empty
+	  3. User modifiable job name
+	  4. Newzbin report number (may be empty)
 	  5. Newzbin or user-defined category
 	  6. Group that the NZB was posted in e.g. alt.binaries.x
+	  7. Status
 	"""
 	path = args[0]
 	nzb = args[1]
@@ -151,6 +152,7 @@ def _process_download(config, options, args):
 	report_id = args[3]
 	category = args[4]
 	group = args[5]
+	status = args[6]
 
 	# remove any unwanted characters from the end of the download path
 	path = path.rstrip("/\ ")
