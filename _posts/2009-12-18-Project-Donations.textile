@@ -4,7 +4,7 @@ title: Project Donations
 desc: "Project donations now accepted"
 ---
 
-After being asked by several users if there was a way in which they could donate money to the project, I decided to set one up.  There is now a PayPal donate link at the bottom of the navigation menu on "{{site.url}}":{{site.url}} and there will soon be one on the main GitHub project page.
+After being asked by several users if there was a way in which they could donate money to the project, I decided to set one up.  There is now a PayPal donate link at the bottom of the navigation menu on "http://mediarover.tv":http://mediarover.tv and there will soon be one on the main GitHub project page.
 
 Thanks for all your support!
 
