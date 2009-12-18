@@ -45,7 +45,7 @@ class SabnzbdQueue(Queue):
 				self.__get_document()
 
 			self.__jobs = []
-			for rawJob in self.__document.getElementsByTagName("job"):
+			for rawJob in self.__document.getElementsByTagName("slot"):
 				self.__jobs.append(SabnzbdJob(rawJob))
 
 		# return job list to caller
@@ -148,9 +148,14 @@ class SabnzbdQueue(Queue):
 		logger = logging.getLogger('mediarover.queues.sabnzbd.queue')
 
 		args = {
-			'mode': 'qstatus',
+			'mode': 'queue',
 			'output': 'xml',
 		}
+
+		if 'username' and 'password' in self._params:
+			if self._params['username'] is not None and self._params['password'] is not None:
+				args['ma_username'] = self._params['username']
+				args['ma_password'] = self._params['password']
 
 		# check if user is running version of sabnzbd that requires
 		# an apikey for all api calls
