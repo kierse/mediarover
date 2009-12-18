@@ -1,0 +1,18 @@
+---
+layout: announcement
+title: SABnzbd 0.5.0 support
+desc: "Updates introducing preliminary SABnzbd 0.5.0 support"
+---
+
+The latest code changes pushed to Github include preliminary support for SABnzbd 0.5.0.
+
+*Details:*
+
+* added support for setting priority on scheduled downloads
+* fixed bug preventing queue from being retrieved
+* fixed "Authentication missing" warning
+* updated episode sort script to reflect new argument being passed when called by SABnzbd
+
+*Download:*
+
+Get the latest code updates "here":http://mediarover.tv/#installation, or you can grab them straight from "GitHub":http://github.com/kierse/mediarover/tree/dev (dev branch)
