@@ -199,6 +199,11 @@ class SabnzbdQueue(Queue):
 
 		self.__document = xml.dom.minidom.parseString(data)
 
+		# make sure we didn't get any errors back instead of the queue data
+		errors = self.__document.getElementsByTagName('error')
+		if errors:
+			raise QueueRetrievalError("unable to retrieve queue: %s" % errors[0].childNodes[0].nodeValue)
+
 	def __clear(self):
 
 		# queue data is now stale, delete it so that next time
