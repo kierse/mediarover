@@ -40,7 +40,7 @@ Generate the default configuration and logging files:
 
 	> python mediarover.py --write-configs -c /path/to/config/dir
 
-Before running Media Rover, several required values in the configuration file will need to be set.  Consult the [wiki][7] for a list of available options and a description of their use.
+Before running Media Rover, several required values in the configuration file will need to be set.  Consult the [wiki][9] for a list of available options and a description of their use.
 
 **Note:** On Unix systems (Linux, OSX, etc), the default configuration directory is $HOME/.mediarover.  On Windows, the default location is $HOME\Application Data\mediarover
 
@@ -55,7 +55,7 @@ Once configured, Media Rover can be invoked via the command line:
 The sorting script is invoked automatically by SABnzbd when it has finished processing a download.  You may however manually run the sorting script.  For further details, consult the sorting script usage instructions:
 
 	> cd /path/to/mediarover
-	> python scripts/sabnzbd_episode_sort.py --help
+	> python scripts/episodesort.py --help
 
 - - - - -
 
@@ -69,8 +69,15 @@ The sorting script is invoked automatically by SABnzbd when it has finished proc
 
 ### Installation >>
 
+#### stable release: v0.3.0
+
 [<img src="http://github.com/images/modules/download/zip.png" width="90" />][4]
 [<img src="http://github.com/images/modules/download/tar.png" width="90" />][5]
+
+#### development
+
+[<img src="http://github.com/images/modules/download/zip.png" width="90" />][6]
+[<img src="http://github.com/images/modules/download/tar.png" width="90" />][7]
 
 #### general installation
 
@@ -91,13 +98,13 @@ new download.  Before SABnzbd will do this, it must be told of its sorting scrip
 		> cd /path/to/sabnzbd/user/scripts/directory
 		> ln -s /path/to/mediarover/sort_script .
 
-3. create a new shell script that invokes the Media Rover sorting script.  Consult the [wiki][8] for examples.
+3. create a new shell script that invokes the Media Rover sorting script.  Consult the [wiki][10] for examples.
 
 - - - - -
 
 ### Feature Requests / Issues >>
 
-Future project goals can be found [here][6]
+Future project goals can be found [here][8]
 
 Feel free to email me with any bugs, suggestions, and/or feature requests.  Or (if you feel so inclined), fork the project and submit a pull request.
 
@@ -129,7 +136,9 @@ kierse &#91;at&#93; mediarover.tv
 [3]: http://www.newzbin.com/ "Newzbin usenet search"
 [4]: http://github.com/kierse/mediarover/zipball/v0.3.0
 [5]: http://github.com/kierse/mediarover/tarball/v0.3.0
-[6]: http://wiki.github.com/kierse/mediarover/future
-[7]: http://wiki.github.com/kierse/mediarover/configuration
-[8]: http://wiki.github.com/kierse/mediarover/miscellaneous-sorting
+[6]: http://github.com/kierse/mediarover/zipball/dev
+[7]: http://github.com/kierse/mediarover/tarball/dev
+[8]: http://wiki.github.com/kierse/mediarover/future
+[9]: http://wiki.github.com/kierse/mediarover/configuration
+[10]: http://wiki.github.com/kierse/mediarover/miscellaneous-sorting
 

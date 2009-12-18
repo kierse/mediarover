@@ -20,9 +20,18 @@
 				<li><a href="http://github.com/kierse/mediarover/issues">Issue tracker</a></li>
 				<br />
 				<li class="twitter"><a href="http://twitter.com/mediarover">Follow on Twitter!</a></li>
+				<br />
+				<li class="donate">
+					<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+						<input type="hidden" name="cmd" value="_s-xclick">
+						<input type="hidden" name="hosted_button_id" value="10626219">
+						<input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+						<img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
+					</form>
+				</li>
 			</ul>
 			<div class="content">
-				<h1>Media Rover: Announcements</h1>
+				<h1><a href="{{site.url}}">Media Rover</a>: Announcements</h1>
 				<hr>
 				<div class="date">{{ page.date | date: "%B %d, %Y" }}</div>
 				<div class="title">{{page.title}}</div>

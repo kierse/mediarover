@@ -60,6 +60,16 @@ ul.menu li.twitter
 	background-repeat: no-repeat;
 }
 
+ul.menu li.twitter:hover
+{
+	background-color: #f0f0f0;
+}
+
+ul.menu li.donate:hover
+{
+	background-color: #f0f0f0;
+}
+
 div.content
 {
 	width: 700px;
@@ -74,6 +84,11 @@ div.content h1
 	margin: 0px 225px 0px 0px;
 	color: #818acd;
 	font-family: serif;
+}
+
+div.content h1 a
+{
+	color: #818acd;
 }
 
 div.content h1 span#page { }
