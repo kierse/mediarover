@@ -98,10 +98,10 @@ class SabnzbdQueue(Queue):
 		response = handle.readline()
 		if response == "ok\n":
 			logger.info("item '%s' successfully queued for download", item.title())
-		elif response == "error\n":
-			raise QueueInsertionError("unable to queue item '%s' for download", item.title())
+		elif response.startswith("error"):
+			raise QueueInsertionError("unable to queue item '%s' for download: %s", args=(item.title(), response))
 		else:
-			raise QueueInsertionError("unexpected response received from queue, unable to schedule item '%s' for download", item.title())
+			raise QueueInsertionError("unexpected response received from queue while attempting to schedule item '%s' for download: %s", args=(item.title(), response))
 
 	def in_queue(self, download):
 		""" return boolean indicating whether or not the given source item is in queue """
