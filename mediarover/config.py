@@ -584,8 +584,6 @@ def read_config(path):
 	if version > 0:
 		if version < __config_version__.get('min', __config_version__['version']):
 			raise ConfigurationError("Configuration file is out of date!  Regenerate using --write-configs")
-		elif version < __config_version__['version']:
-			logger.warning("Configuration file is out of date!  Regenerate using --write-configs")
 	else:
 		raise ConfigurationError("Out of date or corrupt configuration file!  Regenerate using --write-configs")
 

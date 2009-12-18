@@ -13,5 +13,5 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__app_version__ = "0.3.0"
-__config_version__ = {'version': 2, 'min': 2}
+__app_version__ = "0.4.0"
+__config_version__ = {'version': 3, 'min': 2}
