@@ -1,0 +1,11 @@
+---
+layout: announcement
+title: nzbmatrix.com support
+desc: "Updates introducing support for nzbmatrix.com"
+---
+
+The latest code changes pushed to Github include support for nzbmatrix.com.  Note: an account with VIP access is required in order to download from nzbmatrix.
+
+*Download:*
+
+Get the latest code updates "here":http://mediarover.tv/#installation, or you can grab them straight from "GitHub":http://github.com/kierse/mediarover/tree/dev (dev branch)
