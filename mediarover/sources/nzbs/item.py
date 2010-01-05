@@ -67,7 +67,7 @@ class NzbsItem(Item):
 			try:
 				self.__download = Episode.new_from_string(title)
 			except MissingParameterError:
-				raise InvalidItemTitle("unable to parse item title and create MultiEpisode object")
+				raise InvalidItemTitle("unable to parse item title and create Episode object")
 		else:
 			raise InvalidItemTitle("unsupported item title format")
 
