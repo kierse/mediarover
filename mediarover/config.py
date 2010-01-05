@@ -295,10 +295,11 @@ CONFIG_TEMPLATE = """
 #
 # Available source plugins:
 #
-#  newzbin - http://newzbin.com
-#  tvnzb   - http://www.tvnzb.com/
-#  mytvznb - any version 2.5 site
-#  nzbs    - http://www.nzbs.org
+#  newzbin   - http://newzbin.com
+#  tvnzb     - http://www.tvnzb.com
+#  mytvznb   - any version 2.5 site
+#  nzbs      - http://www.nzbs.org
+#  nzbmatrix - http://nzbmatrix.com
 #
 # See http://wiki.github.com/kierse/mediarover/config-source for examples
 #
@@ -320,6 +321,9 @@ CONFIG_TEMPLATE = """
 
 	# nzbs.org RSS feeds go here
 	[[ nzbs ]]
+
+	# nzbmatrix.com RSS feeds go here
+	[[ nzbmatrix ]]
 
 # binary newsreader consumable queue
 # ATTENTION: you must declare at least one queue
@@ -409,8 +413,8 @@ SYSTEM_SPEC = """
 
 [__SYSTEM__]
 	__version__ = integer(default=0)
-	__available_sources = list(default=list('newzbin','tvnzb','mytvnzb','nzbs'))
-	__available_sources_label = list(default=list('http://www.newzbin.com', 'http://www.tvnzb.com', 'MyTvNZB v2.5', 'http://nzbs.org'))
+	__available_sources = list(default=list('newzbin','tvnzb','mytvnzb','nzbs','nzbmatrix'))
+	__available_sources_label = list(default=list('http://www.newzbin.com', 'http://www.tvnzb.com', 'MyTvNZB v2.5', 'http://nzbs.org', 'http://nzbmatrix.com'))
 	__available_queues = list(default=list('sabnzbd'))
 
 """
