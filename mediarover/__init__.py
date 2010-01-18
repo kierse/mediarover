@@ -308,6 +308,9 @@ def _process(config, options, args):
 		except URLError, (msg):
 			logger.error("skipping source '%s', %s", source.name, msg)
 			continue
+		except Exception as error:
+			logger.error("skipping source '%s', unknown error: %s", source.name, error)
+			continue
 
 		for item in items:
 
