@@ -659,6 +659,10 @@ def check_filesystem_path_list(paths):
 
 def check_url(url):
 	""" make sure given url is valid (syntactically) """
+	
+	# ConfigObj splits up url's that contain commas.  Rebuild url and continue
+	if isinstance(url, list):
+		url = ",".join(url)
 
 	if url != "":
 		if not re.match("^\w+://", url):
