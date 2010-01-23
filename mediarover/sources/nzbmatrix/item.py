@@ -16,9 +16,10 @@
 import logging
 import re
 
-from mediarover.episode import Episode, MultiEpisode
+from mediarover.episode import MultiEpisode
 from mediarover.error import *
 from mediarover.item import Item
+from mediarover.sources.nzbmatrix.episode import NzbmatrixEpisode
 
 class NzbmatrixItem(Item):
 	""" wrapper object representing an unparsed report object """
@@ -63,11 +64,11 @@ class NzbmatrixItem(Item):
 				self.__download = MultiEpisode.new_from_string(title)
 			except (InvalidMultiEpisodeData, MissingParameterError):
 				raise InvalidItemTitle("unable to parse item title and create MultiEpisode object")
-		elif Episode.handle(title):
+		elif NzbmatrixEpisode.handle(title):
 			try:
-				self.__download = Episode.new_from_string(title)
+				self.__download = NzbmatrixEpisode.new_from_string(title)
 			except MissingParameterError:
-				raise InvalidItemTitle("unable to parse item title and create Episode object")
+				raise InvalidItemTitle("unable to parse item title and create NzbmatrixEpisode object")
 		else:
 			raise InvalidItemTitle("unsupported item title format")
 

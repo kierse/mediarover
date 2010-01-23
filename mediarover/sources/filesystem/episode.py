@@ -142,15 +142,12 @@ class FilesystemEpisode(Episode):
 	def handle(cls, string):
 		
 		if Episode.handle(string):
-			print "ep"
 			return True
 
 		if FilesystemEpisode.regex_1.search(string):
-			print "1"
 			return True
 
 		if FilesystemEpisode.regex_2.search(string):
-			print "2"
 			return True
 
 		return False
