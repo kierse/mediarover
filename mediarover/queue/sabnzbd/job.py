@@ -13,9 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from mediarover.episode import Episode, MultiEpisode
+from mediarover.source.episode import Episode, MultiEpisode
 from mediarover.error import *
-from mediarover.job import Job
+from mediarover.queue.job import Job
 
 class SabnzbdJob(Job):
 	""" SABnzbd Job object """

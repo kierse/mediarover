@@ -18,7 +18,7 @@ import os.path
 import re
 from datetime import date
 
-from mediarover.episode import Episode, MultiEpisode
+from mediarover.source.episode import Episode, MultiEpisode
 from mediarover.error import *
 
 class FilesystemEpisode(Episode):

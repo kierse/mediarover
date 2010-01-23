@@ -16,10 +16,10 @@
 import logging
 import re
 
-from mediarover.episode import MultiEpisode
 from mediarover.error import *
-from mediarover.item import Item
-from mediarover.sources.nzbmatrix.episode import NzbmatrixEpisode
+from mediarover.source.episode import MultiEpisode
+from mediarover.source.item import Item
+from mediarover.source.nzbmatrix.episode import NzbmatrixEpisode
 
 class NzbmatrixItem(Item):
 	""" wrapper object representing an unparsed report object """

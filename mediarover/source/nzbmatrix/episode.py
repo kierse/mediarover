@@ -16,7 +16,7 @@
 import logging
 import re
 
-from mediarover.episode import Episode
+from mediarover.source.episode import Episode
 
 class NzbmatrixEpisode(Episode):
 	""" nzbmatrix episode """
@@ -47,7 +47,7 @@ class NzbmatrixEpisode(Episode):
 	def new_from_string(cls, string):
 		""" parse given string and create new Episode object from extracted values """
 
-		logger = logging.getLogger("mediarover.sources.nzbmatrix.episode")
+		logger = logging.getLogger("mediarover.source.nzbmatrix.episode")
 		logger.debug("parsing '%s'", string)
 
 		# get a dict containing all values successfully extracted from given string

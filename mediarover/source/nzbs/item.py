@@ -16,11 +16,11 @@
 import logging
 import re
 
-from mediarover.episode import Episode, MultiEpisode
 from mediarover.error import *
-from mediarover.item import Item
+from mediarover.source.episode import Episode, MultiEpisode
+from mediarover.source.item import Item
 
-class TvnzbItem(Item):
+class NzbsItem(Item):
 	""" wrapper object representing an unparsed report object """
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -44,7 +44,7 @@ class TvnzbItem(Item):
 		return self.__reportTitle
 
 	def url(self):
-		""" return tvnzb nzb url """
+		""" return nzbs.org nzb url """
 		try:
 			self.__url
 		except AttributeError:

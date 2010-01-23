@@ -18,7 +18,7 @@ import urllib2
 import xml.dom.minidom
 
 from mediarover.source import Source
-from mediarover.sources.tvnzb.item import TvnzbItem
+from mediarover.source.tvnzb.item import TvnzbItem
 
 class MytvnzbSource(Source):
 	""" MyTvNZB v2.5 source class """

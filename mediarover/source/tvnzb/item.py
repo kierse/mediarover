@@ -17,16 +17,16 @@ import logging
 import re
 
 from mediarover.error import *
-from mediarover.item import Item
+from mediarover.source.episode import Episode, MultiEpisode
+from mediarover.source.item import Item
 
-class NewzbinItem(Item):
+class TvnzbItem(Item):
 	""" wrapper object representing an unparsed report object """
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def download(self):
-		""" return download object """
-
+		""" return a download object """
 		try:
 			self.__download
 		except AttributeError:
@@ -36,7 +36,6 @@ class NewzbinItem(Item):
 
 	def title(self):
 		""" report title from source item """
-
 		try:
 			self.__reportTitle
 		except AttributeError:
@@ -45,55 +44,32 @@ class NewzbinItem(Item):
 		return self.__reportTitle
 
 	def url(self):
-		""" return newzbin report url """
+		""" return tvnzb nzb url """
 		try:
-			self.__url		
+			self.__url
 		except AttributeError:
-			self.__url = self.__item.getElementsByTagName("report:nzb")[0].childNodes[0].data
+			self.__url = self.__item.getElementsByTagName("link")[0].childNodes[0].data
 
 		return self.__url
 
-	def id(self):
-		""" return newzbin report id """
-		try:
-			self.__id
-		except AttributeError:
-			self.__id = self.__item.getElementsByTagName("report:id")[0].childNodes[0].data
-	
-		return self.__id
-	
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def __parseItem(self):
 		""" parse item data and build appropriate download object """
 
-		if self._report_category() == "TV":
-			from mediarover.sources.newzbin.episode import NewzbinEpisode, NewzbinMultiEpisode
-			
-			# first, check and see if current item is a multiepisode
-			title = self.title()
-			if NewzbinMultiEpisode.handle(title):
-				try:
-					self.__download = NewzbinMultiEpisode.new_from_string(title)
-				except InvalidMultiEpisodeData:
-					raise InvalidItemTitle("unable to parse item title and create MultiEpisode object")
-			elif NewzbinEpisode.handle(title):
-				try:
-					self.__download = NewzbinEpisode.new_from_string(title)
-				except MissingParameterError:
-					raise InvalidItemTitle("unable to parse item title and create Episode object")
-			else:
-				raise InvalidItemTitle("unsupported item title format")
-
-	def _report_category(self):
-		""" report category from source item """
-
-		try:
-			self.__reportCategory
-		except AttributeError:
-			self.__reportCategory = self.__item.getElementsByTagName("report:category")[0].childNodes[0].data
-
-		return self.__reportCategory
+		title = self.title()
+		if MultiEpisode.handle(title):
+			try:
+				self.__download = MultiEpisode.new_from_string(title)
+			except (InvalidMultiEpisodeData, MissingParameterError):
+				raise InvalidItemTitle("unable to parse item title and create MultiEpisode object")
+		elif Episode.handle(title):
+			try:
+				self.__download = Episode.new_from_string(title)
+			except MissingParameterError:
+				raise InvalidItemTitle("unable to parse item title and create Episode object")
+		else:
+			raise InvalidItemTitle("unsupported item title format")
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

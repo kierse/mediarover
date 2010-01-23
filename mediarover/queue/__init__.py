@@ -15,7 +15,7 @@
 
 import re
 
-from error import *
+from mediarover.error import *
 
 class Queue(object):
 	""" newsreader download queue """

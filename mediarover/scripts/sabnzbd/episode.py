@@ -28,7 +28,7 @@ from mediarover.config import read_config
 from mediarover.error import *
 from mediarover.scripts.error import *
 from mediarover.series import Series
-from mediarover.sources.filesystem.episode import FilesystemEpisode, FilesystemMultiEpisode
+from mediarover.source.filesystem.episode import FilesystemEpisode, FilesystemMultiEpisode
 from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.filesystem import series_episode_exists, series_episode_path, series_season_path, series_season_multiepisodes, clean_path
 from mediarover.version import __app_version__
@@ -264,7 +264,7 @@ def _process_download(config, options, args):
 
 	# build episode object using command line values
 	if report_id is not None and report_id != "":
-		from mediarover.sources.newzbin.episode import NewzbinEpisode, NewzbinMultiEpisode
+		from mediarover.source.newzbin.episode import NewzbinEpisode, NewzbinMultiEpisode
 		
 		try:
 			if NewzbinMultiEpisode.handle(job):
@@ -278,7 +278,7 @@ def _process_download(config, options, args):
 
 	# other download
 	else:
-		from mediarover.episode import Episode, MultiEpisode
+		from mediarover.source.episode import Episode, MultiEpisode
 
 		try:
 			if MultiEpisode.handle(job):

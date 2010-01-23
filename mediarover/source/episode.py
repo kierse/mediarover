@@ -18,8 +18,8 @@ import os.path
 import re
 
 from mediarover.error import *
-from download import Download
-from series import Series
+from mediarover.download import Download
+from mediarover.series import Series
 
 class Episode(Download):
 	""" represents an episode of tv """

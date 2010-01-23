@@ -16,7 +16,7 @@
 import re
 import logging
 
-from mediarover.episode import Episode, MultiEpisode
+from mediarover.source.episode import Episode, MultiEpisode
 
 class NewzbinEpisode(Episode):
 	""" newzbin episode """
@@ -31,7 +31,7 @@ class NewzbinEpisode(Episode):
 	def new_from_string(cls, string):
 		""" parse given string and create new Episode object from extracted values """
 
-		logger = logging.getLogger("mediarover.sources.newzbin.episode")
+		logger = logging.getLogger("mediarover.source.newzbin.episode")
 		logger.debug("parsing '%s'", string)
 
 		# grab the series name

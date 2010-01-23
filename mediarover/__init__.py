@@ -225,10 +225,10 @@ def _process(config, options, args):
 				# attempt to load the required Source module 
 				module = None
 				try:
-					logger.debug("attempting to load module: 'mediarover.sources.%s.source", available)
-					module = __import__("mediarover.sources.%s.source" % available, globals(), locals(), [available + "Source"], -1)
+					logger.debug("attempting to load module: 'mediarover.source.%s", available)
+					module = __import__("mediarover.source.%s" % available, globals(), locals(), [available.capitalize() + "Source"], -1)
 				except ImportError:
-					logger.warning("error loading source module 'mediarover.sources.%s.source, moving on...", available)
+					logger.warning("error loading source module 'mediarover.source.%s, moving on...", available)
 
 				# loop through list of available feeds and create Source object
 				else:
@@ -259,7 +259,7 @@ def _process(config, options, args):
 					# attept to load the nntp client Queue object
 					module = None
 					try:
-						module = __import__("mediarover.queues.%s.queue" % client, globals(), locals(), [client + "Queue"], -1)
+						module = __import__("mediarover.queue.%s" % client, globals(), locals(), [client.capitalize() + "Queue"], -1)
 					except ImportError:
 						logger.info("error loading queue module %sQueue", client)
 						raise

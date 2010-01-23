@@ -18,7 +18,7 @@ import os.path
 import os
 import re
 
-from mediarover.sources.filesystem.episode import FilesystemEpisode, FilesystemMultiEpisode
+from mediarover.source.filesystem.episode import FilesystemEpisode, FilesystemMultiEpisode
 from mediarover.error import *
 
 # variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
