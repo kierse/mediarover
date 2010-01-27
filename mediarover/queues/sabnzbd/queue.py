@@ -127,13 +127,7 @@ class SabnzbdQueue(Queue):
 		if backup_dir:
 
 			# build name of nzb as it would appear on disk
-			try:
-				id = item.id()
-			except AttributeError:
-				file = item.title()
-			else:
-				file = "msgid_%s" % id
-
+			file = item.title()
 			logger.debug("looking for '%s' in SABnzbd backup directory...", file)
 
 			for nzb in os.listdir(backup_dir):
