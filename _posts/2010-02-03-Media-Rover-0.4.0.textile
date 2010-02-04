@@ -2,7 +2,6 @@
 layout: announcement
 title: 0.4.0 released!
 desc: "Key features of this release: SABnzbd 0.5.0 support, nzbmatrix.com support"
-published: false
 ---
 
 Announcing Media Rover 0.2.0! 
@@ -12,6 +11,7 @@ Announcing Media Rover 0.2.0!
 * added support for SABnzbd 0.5.0
 * added support for nzbmatrix.com
 * introduced priority scheduling
+* several minor bug fixes
 
 *Upgrading:*
 This release contains updates that will require all users that are upgrading from a previous version to regenerate their configuration file.
