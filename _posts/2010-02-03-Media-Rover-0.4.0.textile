@@ -16,7 +16,7 @@ Announcing Media Rover 0.2.0!
 *Upgrading:*
 This release contains updates that will require all users that are upgrading from a previous version to regenerate their configuration file.
 
-To regenerate your config files, run the following from a terminal:
+To regenerate your config files, run the following from a terminal: 
 
 <pre><code>> python mediarover.py --write-configs</code></pre>
 
