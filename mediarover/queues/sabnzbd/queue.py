@@ -46,7 +46,9 @@ class SabnzbdQueue(Queue):
 
 			self.__jobs = []
 			for rawJob in self.__document.getElementsByTagName("slot"):
-				self.__jobs.append(SabnzbdJob(rawJob))
+				cat = rawJob.getElementsByTagName("cat")[0].childNodes[0].data.lower()
+				if cat in self._supported_categories:
+					self.__jobs.append(SabnzbdJob(rawJob))
 
 		# return job list to caller
 		return self.__jobs

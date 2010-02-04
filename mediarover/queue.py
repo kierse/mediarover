@@ -59,9 +59,10 @@ class Queue(object):
 
 	root = property(fget=_root_prop, fset=_root_prop, doc="root url of current queue object")
 
-	def __init__(self, root, params = {}):
+	def __init__(self, root, supported_categories, params = {}):
 		""" validate given root and verify that it is a valid url (syntactically) """
 
 		self.root = root
+		self._supported_categories = supported_categories
 		self._params = params
 

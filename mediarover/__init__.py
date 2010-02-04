@@ -268,6 +268,9 @@ def _process(config, options, args):
 					params = dict(config['queue'][client])
 					logger.debug("queue source: %s", params["root"])
 
+					# build list of supported categories
+					supported_categories = set([config['tv']['category'].lower()])
+
 					# grab constructor and create new queue object
 					try:
 						init = getattr(module, "%sQueue" % client.capitalize())
@@ -275,7 +278,7 @@ def _process(config, options, args):
 						logger.info("error retrieving queue init method")
 						raise 
 					else:
-						queue = init(params['root'], params)
+						queue = init(params['root'], supported_categories, params)
 						break
 		else:
 			raise ConfigurationError("Unable to find configured queue in configuration file")
