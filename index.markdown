@@ -62,7 +62,7 @@ The sorting script is invoked automatically by SABnzbd when it has finished proc
 ### Dependencies >>
 
 *  [Python][1] 2.5.x or later
-*  [SABnzbd+][2] 0.4.6 or later
+*  [SABnzbd+][2] 0.5.0 or later
 *  [Newzbin][3] account *(optional)*
 
 - - - - -
