@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from mediarover.episode import Episode
+from mediarover.episode import Episode, MultiEpisode
 from mediarover.error import *
 from mediarover.job import Job
 
@@ -72,5 +72,16 @@ class SabnzbdJob(Job):
 
 		# otherwise, attempt to create a regular Episode object
 		else:
-			self.__download = Episode.new_from_string(title)
+			if MultiEpisode.handle(title):
+				try:
+					self.__download = MultiEpisode.new_from_string(title)
+				except InvalidMultiEpisodeData:
+					raise InvalidItemTitle("unable to parse job title and create MultiEpisode object")
+			elif Episode.handle(title):
+				try:
+					self.__download = Episode.new_from_string(title)
+				except MissingParameterError:
+					raise InvalidItemTitle("unable to parse job title and create episode object")
+			else:
+				raise InvalidItemTitle("unsupported job title format: '%s'", self.title())
 
