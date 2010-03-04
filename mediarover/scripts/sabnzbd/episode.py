@@ -444,9 +444,6 @@ def _process_download(config, options, args):
 def _move_to_trash(root, path):
 
 	trash_path = os.path.join(root, ".trash", os.path.basename(path))
-	if not os.path.exists(trash_path):
-		os.makedirs(trash_path)
-
 	shutil.move(path, trash_path)
 
 	return trash_path
