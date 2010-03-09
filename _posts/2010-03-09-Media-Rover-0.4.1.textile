@@ -10,4 +10,4 @@ Announcing Media Rover 0.4.1!
 
 * bug fix: corrected problem causing episode sorting script to crash when attempting to clean up a download folder
 
-Get the latest code updates "here":http://mediarover.tv/#installation, or you can grab them straight from "GitHub":http://github.com/kierse/mediarover/tree/0.4.1
+Get the latest code updates "here":http://mediarover.tv/#installation, or you can grab them straight from "GitHub":http://github.com/kierse/mediarover/tree/v0.4.1

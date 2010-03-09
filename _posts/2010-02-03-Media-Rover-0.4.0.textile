@@ -24,4 +24,4 @@ Or, it you'd like the configs written to a specific directory:
 
 <pre><code>> python mediarover.py --write-configs -c /path/to/config/dir</code></pre>
 
-Get the latest code updates "here":http://mediarover.tv/#installation, or you can grab them straight from "GitHub":http://github.com/kierse/mediarover/tree/0.4.0
+Get the latest code updates "here":http://mediarover.tv/#installation, or you can grab them straight from "GitHub":http://github.com/kierse/mediarover/tree/v0.4.0
