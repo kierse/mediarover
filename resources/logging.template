@@ -1,0 +1,42 @@
+# keys - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[loggers]
+keys = root,mediarover
+
+[handlers]
+keys = logfile,screen
+
+[formatters]
+keys = default
+
+# definitions- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# loggers
+[logger_root]
+level = WARNING
+handlers = logfile,screen
+
+[logger_mediarover]
+level = DEBUG
+handlers = logfile,screen
+propagate = 0
+qualname = mediarover
+
+# handlers
+[handler_logfile]
+class = handlers.RotatingFileHandler
+level = DEBUG
+formatter = default
+args = ('${file}', None, 1024000, 5)
+
+[handler_screen]
+class = StreamHandler
+level = INFO
+formatter = default
+args = (sys.stdout, )
+
+# formatter
+[formatter_default]
+class = logging.Formatter
+format = %(asctime)s %(levelname)s - %(message)s - %(filename)s:%(lineno)s
+datefmt = %Y-%m-%d %H:%M

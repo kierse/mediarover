@@ -18,6 +18,7 @@ import logging.config
 import os
 import os.path
 import re
+import sys
 from urllib2 import URLError
 from optparse import OptionParser
 
@@ -28,21 +29,27 @@ from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.filesystem import *
 from mediarover.version import __app_version__
 
+# package variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+CONFIG_DIR = None
+RESOURCES_DIR = None
+
 # public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def main():
+
+	global CONFIG_DIR, RESOURCES_DIR
 	
 	""" parse command line options """
 
 	# determine default config path
-	config_dir = None
 	if os.name == "nt":
 		if "LOCALAPPDATA" in os.environ: # Vista or better default path
-			config_dir = os.path.expandvars("$LOCALAPPDATA\Mediarover")
+			CONFIG_DIR = os.path.expandvars("$LOCALAPPDATA\Mediarover")
 		else: # XP default path
-			config_dir = os.path.expandvars("$APPDATA\Mediarover")
+			CONFIG_DIR = os.path.expandvars("$APPDATA\Mediarover")
 	else: # os.name == "posix":
-		config_dir = os.path.expanduser("~/.mediarover")
+		CONFIG_DIR = os.path.expanduser("~/.mediarover")
 
 	parser = OptionParser(version=__app_version__)
 
@@ -53,31 +60,34 @@ def main():
 	parser.add_option("-d", "--dry-run", action="store_true", default=False, help="simulate downloading nzb's from configured sources")
 
 	# write configs to disk
-	parser.add_option("--write-configs", action="store_true", default=False, help="write default application and logging config files to disk.  If -c|--config is not specified, will default to %s" % config_dir)
+	parser.add_option("--write-configs", action="store_true", default=False, help="write default application and logging config files to disk.  If -c|--config is not specified, will default to %s" % CONFIG_DIR)
 
 	(options, args) = parser.parse_args()
 
 	""" config setup """
 
+	# grab location of resources folder
+	RESOURCES_DIR = os.path.join(sys.path[0], "resources")
+
 	# if user has provided a config path, override default value
 	if options.config:
-		config_dir = options.config
+		CONFIG_DIR = options.config
 
 	# if user has requested that app or log config files be generated
 	if options.write_configs:
-		generate_config_files(config_dir)
+		generate_config_files(RESOURCES_DIR, CONFIG_DIR)
 		exit(0)
 
 	# make sure application config file exists and is readable
-	locate_config_files(config_dir)
+	locate_config_files(CONFIG_DIR)
 
 	# create config object using user config values
-	config = read_config(config_dir)
+	config = read_config(RESOURCES_DIR, CONFIG_DIR)
 
 	""" logging setup """
 
 	# initialize and retrieve logger for later use
-	logging.config.fileConfig(open(os.path.join(config_dir, "logging.conf")))
+	logging.config.fileConfig(open(os.path.join(CONFIG_DIR, "logging.conf")))
 	logger = logging.getLogger("mediarover")
 
 	""" post configuration setup """
@@ -91,7 +101,7 @@ def main():
 	""" main """
 
 	logger.info("--- STARTING ---")
-	logger.debug("using config directory: %s", config_dir)
+	logger.debug("using config directory: %s", CONFIG_DIR)
 
 	try:
 		_process(config, options, args)
@@ -102,7 +112,7 @@ def main():
 def locate_config_files(path):
 	
 	if os.path.exists(path):
-		for file in ("mediarover.conf", "logging.conf"):
+		for file in ("mediarover.conf", "logging.conf", "sabnzbd_episode_sort_logging.conf", "ui_logging.conf"):
 			if not os.path.exists(os.path.join(path, file)):
 				print "ERROR: missing config file '%s'.  Run `python mediarover.py --config=%s --write-configs`" % (os.path.join(path, file), path)
 				exit(1)
@@ -117,6 +127,8 @@ def locate_config_files(path):
 
 def _process(config, options, args):
 
+	global CONFIG_DIR, RESOURCES_DIR
+	
 	logger = logging.getLogger("mediarover")
 
 	# check if user has requested a dry-run
