@@ -69,7 +69,7 @@ The sorting script is invoked automatically by SABnzbd when it has finished proc
 
 ### Installation >>
 
-#### stable release: v0.4.0
+#### stable release: v0.4.1
 
 [<img src="http://github.com/images/modules/download/zip.png" width="90" />][4]
 [<img src="http://github.com/images/modules/download/tar.png" width="90" />][5]
@@ -134,8 +134,8 @@ kierse &#91;at&#93; mediarover.tv
 [1]: http://www.python.org/ "Python Programming Language"
 [2]: http://www.sabnzbd.org/ "SABnzbd+, the Full-Auto Newsreader"
 [3]: http://www.newzbin.com/ "Newzbin usenet search"
-[4]: http://github.com/kierse/mediarover/zipball/v0.4.0
-[5]: http://github.com/kierse/mediarover/tarball/v0.4.0
+[4]: http://github.com/kierse/mediarover/zipball/v0.4.1
+[5]: http://github.com/kierse/mediarover/tarball/v0.4.1
 [6]: http://github.com/kierse/mediarover/zipball/dev
 [7]: http://github.com/kierse/mediarover/tarball/dev
 [8]: http://wiki.github.com/kierse/mediarover/future
