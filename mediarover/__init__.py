@@ -23,6 +23,7 @@ from urllib2 import URLError
 from optparse import OptionParser
 
 from mediarover.config import read_config, generate_config_files, build_series_filters
+from mediarover.ds.metadata import Metadata
 from mediarover.error import *
 from mediarover.series import Series
 from mediarover.utils.configobj import ConfigObj
@@ -33,12 +34,13 @@ from mediarover.version import __app_version__
 
 CONFIG_DIR = None
 RESOURCES_DIR = None
+QUALITY_DS = None
 
 # public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def main():
 
-	global CONFIG_DIR, RESOURCES_DIR
+	global CONFIG_DIR, RESOURCES_DIR, QUALITY_DS
 	
 	""" parse command line options """
 
@@ -108,6 +110,10 @@ def main():
 	except Exception, e:
 		logger.exception(e)
 		raise
+	finally:
+		# close db handler
+		if QUALITY_DS is not None:
+			QUALITY_DS.cleanup()
 
 def locate_config_files(path):
 	
@@ -127,7 +133,7 @@ def locate_config_files(path):
 
 def _process(config, options, args):
 
-	global CONFIG_DIR, RESOURCES_DIR
+	global CONFIG_DIR, RESOURCES_DIR, QUALITY_DS
 	
 	logger = logging.getLogger("mediarover")
 
@@ -246,7 +252,7 @@ def _process(config, options, args):
 				else:
 					for feed in feeds:
 						logger.debug("creating source for feed '%s'", feed['label'])
-						sources.append(getattr(module, "%sSource" % available.capitalize())(feed['url'], feed['label'], feed['category'], feed['priority'], feed['type'], feed['timeout']))
+						sources.append(getattr(module, "%sSource" % available.capitalize())(feed['url'], feed['label'], feed['category'], feed['priority'], feed['type'], feed['timeout'], feed['quality']))
 
 			else:
 				logger.debug("skipping source '%s', no feeds", available)
@@ -300,6 +306,9 @@ def _process(config, options, args):
 		exit(1)
 
 	logger.debug("finished queue configuration")
+
+	if len(sources):
+		QUALITY_DS = Metadata(CONFIG_DIR, config, RESOURCES_DIR)
 
 	"""
 		for each Source object, loop through the list of available Items and

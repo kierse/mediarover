@@ -93,6 +93,11 @@ def generate_config_files(resources, path):
 		os.makedirs(logs, 0755)
 		print "Created %s" % logs
 
+	ds = os.path.join(path, "ds")
+	if not os.path.exists(ds):
+		os.makedirs(ds, 0755)
+		print "Created %s" % ds
+
 	# write main config file
 	if _have_write_permission(os.path.join(path, "mediarover.conf")):
 		
@@ -195,6 +200,33 @@ def check_int_list(data):
 
 	return int_list
 
+def check_options_list(selections, **kargs):
+	"""
+		make sure given list of options are valid.  If given a string,
+		return as list
+	"""
+	if not isinstance(selections, list):
+		if len(selections):
+			selections = [selections]
+		elif None not in kargs['options']:
+			raise VdtValueException("missing required value!")
+		else:
+			if 'default' in kargs:
+				selections = kargs['default']
+			else:
+				selections = []
+
+	options = frozenset(kargs['options'])
+	for val in selections:
+		if val in options:
+			if val == 'all':
+				selections = ['all']
+				break
+		else:
+			raise VdtValueException("unknown option!")
+
+	return selections
+
 def build_series_filters(path, seed=None):
 	""" build a dict of filters for a given path and seed """
 
@@ -239,6 +271,7 @@ def _get_validator():
 	vdt.functions['path_list'] = check_filesystem_path_list
 	vdt.functions['url'] = check_url
 	vdt.functions['int_list'] = check_int_list
+	vdt.functions['options_list'] = check_options_list
 
 	return vdt
 

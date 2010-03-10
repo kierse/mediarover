@@ -16,9 +16,9 @@
 	ignore_series_metadata = boolean(default=True)
 	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com","tbn","jpg","png","gif","info"))
 
-#	[[quality]]
-#		acceptable = options_list(options=list('all', 'low', 'medium', 'high'), default=list('all'))
-#		desired = option('low', 'medium', 'high', None, default=None)
+	[[quality]]
+		acceptable = options_list(options=list('all', 'low', 'medium', 'high'), default=list('all'))
+		desired = option('low', 'medium', 'high', None, default=None)
 
 	[[multiepisode]]
 		allow = boolean(default=True)
@@ -30,9 +30,9 @@
 			ignore = int_list(default=list())
 			skip = boolean(default=False)
 			alias = string_list(default=list())
-#			[[[[quality]]]]
-#				acceptable = options_list('all', 'low', 'medium', 'high', None, default=None)
-#				desired = option('low', 'medium', 'high', None, default=None)
+			[[[[quality]]]]
+				acceptable = options_list('all', 'low', 'medium', 'high', None, default=None)
+				desired = option('low', 'medium', 'high', None, default=None)
 
 	[[template]]
 		series = string(default=$(series)s)
@@ -48,7 +48,7 @@
 		[[[__many__]]]
 			url = url()
 			type = option('tv', default='tv')
-#			quality = option('low', 'medium', 'high')
+			quality = option('low', 'medium', 'high')
 			timeout = integer(default=None)
 
 [queue]
