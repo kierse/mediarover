@@ -211,6 +211,12 @@ def _process(config, options, args):
 	logger.info("watching %d tv show(s)", len(shows))
 	logger.debug("finished processing watched tv")
 
+	# grab quality management flag.  This will determine if Media Rover
+	# will actively manage the quality of filesystem episodes or not
+	manage_quality = config['tv']['quality']['managed']
+	if manage_quality and config['tv']['quality']['desired'] is None:
+		raise ConfigurationError("must specify a desired quality level when Media Rover manages episode quality!")
+
 	logger.info("begin processing sources")
 
 	# grab list of source url's from config file and build appropriate Source objects
@@ -226,6 +232,12 @@ def _process(config, options, args):
 			# as they may contain '%' which will throw off Config parser
 			feeds = []
 			for label, params in config['source'][available].items():
+
+				# first things first: if manage_quality is True, make sure the user
+				# has specified a quality for this source
+				if manage_quality and params['quality'] is None:
+					raise ConfigurationError("missing quality flag for source '%s'" % label)
+
 				if 'url' in params:
 					logger.info("found feed '%s'", label)
 					params['label'] = label
@@ -258,58 +270,60 @@ def _process(config, options, args):
 			else:
 				logger.debug("skipping source '%s', no feeds", available)
 
+	# if we don't have any sources there isn't any reason to continue.  Print
+	# message and exit
+	if not len(sources):
+		logger.warning("No sources found!")
+		print "Did not find any configured sources in configuration file.  Nothing to do!"
+		exit(1)
+
 	logger.info("watching %d source(s)", len(sources))
 	logger.debug("finished processing sources")
 
+	logger.debug("preparing metadata store...")
+	QUALITY_DS = Metadata(CONFIG_DIR, config, RESOURCES_DIR)
+
 	logger.debug("begin queue configuration")
 
-	# retrieve Queue object
+	# loop through list of available queues and find one that the user
+	# has configured
 	queue = None
-	try:
+	for client in config['__SYSTEM__']['__available_queues']:
 
-		# loop through list of available queues and find one that the user
-		# has configured
-		for client in config['__SYSTEM__']['__available_queues']:
+			logger.debug("looking for configured queue: %s", client)
+			if client in config['queue']:
+				logger.debug("using %s nntp client", client)
 
-				logger.debug("looking for configured queue: %s", client)
-				if client in config['queue']:
-					logger.debug("using %s nntp client", client)
+				# attept to load the nntp client Queue object
+				module = None
+				try:
+					module = __import__("mediarover.queue.%s" % client, globals(), locals(), [client.capitalize() + "Queue"], -1)
+				except ImportError:
+					logger.info("error loading queue module %sQueue", client)
+					raise
 
-					# attept to load the nntp client Queue object
-					module = None
-					try:
-						module = __import__("mediarover.queue.%s" % client, globals(), locals(), [client.capitalize() + "Queue"], -1)
-					except ImportError:
-						logger.info("error loading queue module %sQueue", client)
-						raise
+				# grab list of config options for current queue
+				params = dict(config['queue'][client])
+				logger.debug("queue source: %s", params["root"])
 
-					# grab list of config options for current queue
-					params = dict(config['queue'][client])
-					logger.debug("queue source: %s", params["root"])
+				# build list of supported categories
+				supported_categories = set([config['tv']['category'].lower()])
 
-					# build list of supported categories
-					supported_categories = set([config['tv']['category'].lower()])
-
-					# grab constructor and create new queue object
-					try:
-						init = getattr(module, "%sQueue" % client.capitalize())
-					except AttributeError:
-						logger.info("error retrieving queue init method")
-						raise 
-					else:
-						queue = init(params['root'], supported_categories, params)
-						break
-		else:
-			raise ConfigurationError("Unable to find configured queue in configuration file")
-
-	except ConfigurationError:
-		print "Encountered error while creating queue object.  See log file for more details"
+				# grab constructor and create new queue object
+				try:
+					init = getattr(module, "%sQueue" % client.capitalize())
+				except AttributeError:
+					logger.info("error retrieving queue init method")
+					raise 
+				else:
+					queue = init(params['root'], supported_categories, QUALITY_DS, params)
+					break
+	else:
+		logger.warning("No queue found!")
+		print "Did not find a configured queue in configuration file.  Unable to proceed!"
 		exit(1)
 
 	logger.debug("finished queue configuration")
-
-	if len(sources):
-		QUALITY_DS = Metadata(CONFIG_DIR, config, RESOURCES_DIR)
 
 	"""
 		for each Source object, loop through the list of available Items and
