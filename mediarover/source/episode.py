@@ -71,14 +71,14 @@ class Episode(Download):
 
 	@classmethod
 	def new_from_string(cls, string, series = None, season = None, daily = None, 
-		episode = None, year = None, month = None, day = None, title = ""):
+		episode = None, year = None, month = None, day = None, title = "", quality = None):
 		""" parse given string and create new Episode object from extracted values """
 
 		# get a dict containing all values successfully extracted from given string
 		p = Episode.parse_string(string, series, season, daily, episode, year, month, day, title)
 
 		return Episode(series = p['series'], season = p['season'], daily = p['daily'], episode = p['episode'], 
-			year = p['year'], month = p['month'], day = p['day'], title = p['title'])
+			year = p['year'], month = p['month'], day = p['day'], title = p['title'], quality = quality)
 
 	@classmethod
 	def parse_string(cls, string, series = None, season = None, daily = None, 
@@ -247,6 +247,11 @@ class Episode(Download):
 			self._daily = bool(daily)
 		return self._daily
 
+	def _quality_prop(self, quality = None):
+		if quality is not None:
+			self._quality = quality
+		return self._quality
+
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	series = property(fget=_series_prop, fset=_series_prop, doc="episode series object")
@@ -259,13 +264,14 @@ class Episode(Download):
 	daily = property(fget=_daily_prop, fset=_daily_prop, doc="flag indicating episode type: series or daily")
 
 	def __init__(self, series, season, daily, episode = None, 
-		year = None, month = None, day = None, title = ""):
+		year = None, month = None, day = None, title = "", quality = None):
 
 		# initialize a few fields
 		self._year = None
 		self._month = None
 		self._day = None
 		self._episode = None
+		self._quality = quality
 
 		if series is None:
 			raise MissingParameterError("missing episode series name")
@@ -309,6 +315,73 @@ class MultiEpisode(Download):
 	episode_regex_2 = re.compile("[a-zA-Z]?(\d{1,2})[a-zA-Z](\d{1,2})-(?:[a-zA-Z]?(\d{1,2}))?[a-zA-Z]?(\d{1,2})")
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	@classmethod
+	def handle(cls, string):
+
+		if MultiEpisode.episode_regex_1.search(string):
+			return True
+
+		if MultiEpisode.episode_regex_2.search(string):
+			return True
+
+		return False
+
+	@classmethod
+	def new_from_string(cls, string, series = None, season = None, quality = None):
+		""" parse given string and create new MultiEpisode object from extracted values """
+
+		# get a dict containing all values provided (by caller) or successfully 
+		# extracted from given string
+		p = MultiEpisode.parse_string(string, series, season, title = "")
+
+		if p['startSeason'] != p['endSeason']:
+			raise InvalidMultiEpisodeData("MultiEpisode parts must be from the same season")
+
+		if None in (p['startEpisode'], p['endEpisode']):
+			raise InvalidMultiEpisodeData("Unable to determine start and end of multiepisde")
+
+		episodes = []
+		for i in range(int(p['startEpisode']), int(p['endEpisode'])+1):
+			episodes.append(Episode(series=p['series'], season=p['startSeason'], daily=False, episode=i))
+
+		return MultiEpisode(episodes, title = p['title'], quality = quality)
+
+	@classmethod
+	def parse_string(cls, string, series = None, season = None, title = None):
+		""" parse given string and attempt to extract multiepisode values """
+		params = {
+			'series': None,
+			'startSeason': None,
+			'endSeason': None,
+			'startEpisode': None,
+			'endEpisode': None,
+			'title': None,
+		}
+
+		match = MultiEpisode.episode_regex_1.search(string) or MultiEpisode.episode_regex_2.search(string)
+		if match:
+			params['startSeason'] = season or match.group(1)
+			params['startEpisode'] = match.group(2)
+			params['endSeason'] = season or match.group(3)
+			params['endEpisode'] = match.group(4)
+
+		# if we've got a match object, try and set series and
+		# episode title
+		if match:
+			start = 0
+			end = match.start()
+			params['series'] = series or match.string[start:end]
+
+			start = match.end() + 1
+			params['title'] = title or match.string[start:]
+		else:
+			params['series'] = series
+			params['title'] = title
+
+		return params
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -394,6 +467,11 @@ class MultiEpisode(Download):
 
 		return self._episodes	
 
+	def _quality_prop(self, quality = None):
+		if quality is not None:
+			self._quality = quality
+		return self._quality
+
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	series = property(fget=_series_prop, fset=_series_prop, doc="multiepisode series object")
@@ -402,75 +480,9 @@ class MultiEpisode(Download):
 	title = property(fget=_title_prop, fset=_title_prop, doc="multiepisode title")
 	episodes = property(fget=_episodes_prop, fset=_episodes_prop, doc="multiepisode episode list")
 
-	def __init__(self, episodes = [], title = ""):
+	def __init__(self, episodes = [], title = "", quality = None):
 		
 		self.episodes = episodes
 		self.title = title
-
-	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	@classmethod
-	def handle(cls, string):
-
-		if MultiEpisode.episode_regex_1.search(string):
-			return True
-
-		if MultiEpisode.episode_regex_2.search(string):
-			return True
-
-		return False
-
-	@classmethod
-	def new_from_string(cls, string, series = None, season = None):
-		""" parse given string and create new MultiEpisode object from extracted values """
-
-		# get a dict containing all values provided (by caller) or successfully 
-		# extracted from given string
-		p = MultiEpisode.parse_string(string, series, season, title = "")
-
-		if p['startSeason'] != p['endSeason']:
-			raise InvalidMultiEpisodeData("MultiEpisode parts must be from the same season")
-
-		if None in (p['startEpisode'], p['endEpisode']):
-			raise InvalidMultiEpisodeData("Unable to determine start and end of multiepisde")
-
-		episodes = []
-		for i in range(int(p['startEpisode']), int(p['endEpisode'])+1):
-			episodes.append(Episode(series=p['series'], season=p['startSeason'], daily=False, episode=i))
-
-		return MultiEpisode(episodes, title = p['title'])
-
-	@classmethod
-	def parse_string(cls, string, series = None, season = None, title = None):
-		""" parse given string and attempt to extract multiepisode values """
-		params = {
-			'series': None,
-			'startSeason': None,
-			'endSeason': None,
-			'startEpisode': None,
-			'endEpisode': None,
-			'title': None,
-		}
-
-		match = MultiEpisode.episode_regex_1.search(string) or MultiEpisode.episode_regex_2.search(string)
-		if match:
-			params['startSeason'] = season or match.group(1)
-			params['startEpisode'] = match.group(2)
-			params['endSeason'] = season or match.group(3)
-			params['endEpisode'] = match.group(4)
-
-		# if we've got a match object, try and set series and
-		# episode title
-		if match:
-			start = 0
-			end = match.start()
-			params['series'] = series or match.string[start:end]
-
-			start = match.end() + 1
-			params['title'] = title or match.string[start:]
-		else:
-			params['series'] = series
-			params['title'] = title
-
-		return params
+		self._quality = quality
 

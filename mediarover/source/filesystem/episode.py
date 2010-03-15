@@ -248,9 +248,9 @@ class FilesystemEpisode(Episode):
 	filename = property(fget=_filename_prop, doc="filename")
 
 	def __init__(self, series, season, daily, episode = None, year = None, month = None, day = None, title = "", 
-		filename = None, extension = None):
+		filename = None, extension = None, quality = None):
 
-		super(FilesystemEpisode, self).__init__(series, season, daily, episode, year, month, day, title)
+		super(FilesystemEpisode, self).__init__(series, season, daily, episode, year, month, day, title, quality)
 
 		if filename is None:
 			raise MissingParameterError("missing filename")
@@ -452,9 +452,9 @@ class FilesystemMultiEpisode(MultiEpisode):
 	extension = property(fget=_extension_prop, doc="multiepisode file extension")
 	filename = property(fget=_filename_prop, doc="multiepisode filename")
 
-	def __init__(self, episodes, title, filename = None, extension = None):
+	def __init__(self, episodes, title, filename = None, extension = None, quality = None):
 		
-		super(FilesystemMultiEpisode, self).__init__(episodes, title)
+		super(FilesystemMultiEpisode, self).__init__(episodes, title, quality = None)
 
 		if filename is None:
 			raise MissingParameterError("missing filename")

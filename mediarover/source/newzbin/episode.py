@@ -28,7 +28,7 @@ class NewzbinEpisode(Episode):
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	@classmethod
-	def new_from_string(cls, string):
+	def new_from_string(cls, string, quality):
 		""" parse given string and create new Episode object from extracted values """
 
 		logger = logging.getLogger("mediarover.source.newzbin.episode")
@@ -44,7 +44,7 @@ class NewzbinEpisode(Episode):
 		p = NewzbinEpisode.parse_string(other, series=series, title=title)
 
 		return NewzbinEpisode(series = p['series'], season = p['season'], daily = p['daily'], episode = p['episode'], 
-			year = p['year'], month = p['month'], day = p['day'], title = p['title'])
+			year = p['year'], month = p['month'], day = p['day'], title = p['title'], quality = quality)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -54,7 +54,7 @@ class NewzbinMultiEpisode(MultiEpisode):
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	@classmethod
-	def new_from_string(cls, string):
+	def new_from_string(cls, string, quality):
 		""" parse given string and create new MultiEpisode object from extracted values """
 
 		# grab the series name
@@ -63,7 +63,7 @@ class NewzbinMultiEpisode(MultiEpisode):
 		# grab the episode title (if provided)
 		(other, sep, title) = other.partition(" - ")
 
-		multi = MultiEpisode.new_from_string(other, series=series)
+		multi = MultiEpisode.new_from_string(other, series=series, quality=quality)
 		multi.title = title
 
 		return multi

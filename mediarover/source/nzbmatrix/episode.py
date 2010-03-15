@@ -44,7 +44,7 @@ class NzbmatrixEpisode(Episode):
 		return False
 
 	@classmethod
-	def new_from_string(cls, string):
+	def new_from_string(cls, string, quality):
 		""" parse given string and create new Episode object from extracted values """
 
 		logger = logging.getLogger("mediarover.source.nzbmatrix.episode")
@@ -54,7 +54,7 @@ class NzbmatrixEpisode(Episode):
 		p = NzbmatrixEpisode.parse_string(string)
 
 		return NzbmatrixEpisode(series = p['series'], season = p['season'], daily = p['daily'], episode = p['episode'], 
-			year = p['year'], month = p['month'], day = p['day'])
+			year = p['year'], month = p['month'], day = p['day'], quality = quality)
 
 	@classmethod
 	def parse_string(cls, string, series = None, season = None, daily = None, 

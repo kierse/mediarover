@@ -43,3 +43,12 @@ class Download(object):
 	def __str__(self):
 		raise NotImplementedError
 
+	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	def _quality_prop(self, quality=None):
+		raise NotImplementedError
+
+	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	quality = property(fget=_quality_prop, doc="download quality")
+
