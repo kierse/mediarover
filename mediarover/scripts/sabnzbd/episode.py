@@ -163,6 +163,7 @@ def _process_download(config, options, args):
 	if path is None or path == "":
 		raise InvalidArgument("path to completed job is missing or null")
 	elif os.path.basename(path).startswith("_FAILED_"):
+		logger.warning("download is marked as failed, moving to trash...")
 		try:
 			args[0] = _move_to_trash(tv_root[0], path)
 		except OSError, (num, message):
@@ -170,9 +171,14 @@ def _process_download(config, options, args):
 				logger.error("unable to move download directory to '%s', permission denied", args[0])
 		finally:
 			raise FailedDownload("unable to sort failed download")
-
-	if job is None or job == "":
+	elif job is None or job == "":
 		raise InvalidArgument("job name is missing or null")
+	elif status == 1:
+		raise FailedDownload("download failed verification")
+	elif status == 2:
+		raise FailedDownload("download failed unpack")
+	elif status == 3:
+		raise FailedDownload("download failed verification and unpack")
 
 	shows = {}
 	alias_map = {}
