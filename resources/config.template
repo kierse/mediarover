@@ -48,6 +48,39 @@
 	# NOTE: defaults to: nfo,txt,sfv,srt,nzb,idx,log,par,par2,exe,bat,com,tbn,jpg,png,gif,info
 	#ignored_extensions = nfo,txt,sfv,srt,nzb,idx,log,par,par2,exe,bat,com,tbn,jpg,png,gif,info
 
+	[[quality]]
+
+		# allow Media Rover to manage episodes on disk and manage quality levels
+		# according to user defined preferences
+		# WARNING: SETTING THIS OPTION TO TRUE MAY RESULT IN EPISODES BEING DELETED
+		#
+		# Note: defaults to False
+		#managed = False
+
+		# list of acceptable quality levels that can be be scheduled for download
+		# Note: you may specify one or more options (separated by a comma)
+		#
+		# options:
+		#  all - any quality level for a missing episode is acceptable
+		#  low - episodes from sources marked as low quality
+		#  medium - episodes from sources marked as medium quality
+		#  high - episodes from sources marked as high quality
+		#
+		# Note: defaults to 'all'
+		#acceptable = all
+
+		# default desired quality level for all downloaded episodes.  Media Rover
+		# will schedule episodes for download that already exist on disk in order
+		# to achieve the desired quality setting.
+		#
+		# options:
+		#  low - episodes from sources marked as low quality
+		#  medium - episodes from sources marked as medium quality
+		#  high - episodes from sources marked as high quality
+		#
+		# Note: only set if managed is True
+		#desired = 
+
 	[[multiepisode]]
 
 		# allow multiepisode downloads
@@ -134,7 +167,7 @@
 	#  description: comma separated list of aliases that will be used to match nzb titles 
 	#               when downloading new episodes. For example:
 	#
-   #               [[ filter ]]
+	#               [[ filter ]]
 	#                  [[[ The Show Name ]]]
 	#                    alias = "Show Name", "Show Name, The"
 	#
@@ -257,7 +290,7 @@
 #        [[[ user_label_2 ]]]
 #        	url = http://path/to/rss/feed/...
 #        	timeout = 60 # in seconds
-#           quality = high
+#        	quality = high
 #
 #     [[ plugin_2 ]]
 #        ...
