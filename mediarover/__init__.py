@@ -17,6 +17,7 @@ import logging
 import logging.config
 import os
 import os.path
+import random
 import re
 import sys
 from urllib2 import URLError
@@ -477,4 +478,23 @@ def _process(config, options, args):
 				queue.add_to_queue(item)
 			except (IOError, QueueInsertionError):
 				logger.warning("unable to download '%s'", item.title())
+
+def _generate_random_id(size = 10):
+	""" generate random-ish number of given size """
+
+	base = (
+		'0','1','2','3','4','5','6','7','8','9',
+		'a','b','c','d','e','f','g','h','i','j','k','l','m','n','l','o','p','q','r','s','t','u','v','w','x','y','z',
+		'A','B','C','D','E','F','G','H','I','J','K','L','M','N','L','O','P','Q','R','S','T','U','V','W','X','Y','Z'
+	)
+
+	# seed the random number generator.  
+	# NOTE: The default is to use the current system time
+	random.seed()
+
+	generated = ""
+	for i in range(size):
+		generated += str(random.choice(base))
+
+	return generated
 
