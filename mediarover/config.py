@@ -205,23 +205,28 @@ def check_options_list(selections, **kargs):
 		make sure given list of options are valid.  If given a string,
 		return as list
 	"""
-	if not isinstance(selections, list):
-		if len(selections):
-			selections = [selections]
-		elif None not in kargs['options']:
-			raise VdtValueException("missing required value!")
-		else:
+	if selections is None:
+		if None in kargs['options']:
 			if 'default' in kargs:
 				selections = kargs['default']
 			else:
 				selections = []
+		else:
+			raise VdtValueException("missing required value!")
 
-	options = frozenset(kargs['options'])
-	for val in selections:
-		if val in options:
-			if val == 'all':
-				selections = ['all']
-				break
+	# make sure selection is is a list
+	if not isinstance(selections, list):
+		selections = [selections]
+
+	options = set(kargs['options'])
+	if 'all' in selections:
+		options.discard('all')
+		options.discard(None)
+		selections = list(options)
+	else:
+		selected = set(selections)
+		if selected.issubset(options):
+			selections = list(selected)
 		else:
 			raise VdtValueException("unknown option!")
 
