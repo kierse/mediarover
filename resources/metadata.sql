@@ -33,3 +33,10 @@ CREATE TABLE IF NOT EXISTS daily_episode
 	FOREIGN KEY (series) REFERENCES series (id)
 	UNIQUE(series, year, month, day)
 );
+
+CREATE TABLE IF NOT EXISTS in_progress
+(
+	uid TEXT PRIMARY KEY NOT NULL,
+	title TEXT NOT NULL,
+	quality TEXT NOT NULL
+);
