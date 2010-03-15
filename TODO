@@ -3,7 +3,7 @@ mediarover TODO
 - update/rewrite all unittests to reflect recent changes
    - write test for mediarover.util.filesystem to verify that it is correctly
 	caching episodes when they are retrieved
-- add filtering ability, ie. don't want to download nzb's that are labelled
+x add filtering ability, ie. don't want to download nzb's that are labelled
 as password protected => "Lost (2004) - 5x05 - blah (password protected)"
 - handle tv directory with no season folders, ie all episodes are in one 
 folder.
