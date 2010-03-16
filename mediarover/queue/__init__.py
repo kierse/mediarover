@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import random
 import re
 
 from mediarover.error import *
@@ -37,6 +38,27 @@ class Queue(object):
 	def processed(self, item):
 		""" check if given item has already been processed by queue """
 		raise NotImplementedError
+
+	# private methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+	def _generate_random_id(size = 10):
+		""" generate random-ish number of given size """
+
+		base = (
+			'0','1','2','3','4','5','6','7','8','9',
+			'a','b','c','d','e','f','g','h','i','j','k','l','m','n','l','o','p','q','r','s','t','u','v','w','x','y','z',
+			'A','B','C','D','E','F','G','H','I','J','K','L','M','N','L','O','P','Q','R','S','T','U','V','W','X','Y','Z'
+		)
+
+		# seed the random number generator.  
+		# NOTE: The default is to use the current system time
+		random.seed()
+
+		generated = ""
+		for i in range(size):
+			generated += str(random.choice(base))
+
+		return generated
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
