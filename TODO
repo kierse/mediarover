@@ -24,3 +24,4 @@ files
 - standardize category types that are supported by application
 	- each source should return one of supported categories when queried
 - update mediarover.error so that it doesn't accept arguments to apply to the error message
+  - update to accept a logging level
