@@ -153,23 +153,13 @@ class SabnzbdQueue(Queue):
 				args['ma_username'] = self._params['username']
 				args['ma_password'] = self._params['password']
 
-		# check if user is running version of sabnzbd that requires
-		# an apikey for all api calls
-		url = "%s/api?mode=version" % self.root
-		logger.debug("checking verison of SABnzbd+")
-
-		response = urllib.urlopen(url)
-		data = response.read()
-
-		if re.search("not implemented", data):
-			pass
-
-		# all version after 0.4.9 require an apikey for all api calls
+		# even though using the api_key is recommended, it's not required.
+		# if the user hasn't provided a key, print a warning message and 
+		# move on
+		if 'api_key' in self._params:
+			args['apikey'] = self._params['api_key']
 		else:
-			if 'api_key' in self._params:
-				args['apikey'] = self._params['api_key']
-			else:
-				raise MissingParameterError("SABnzbd+ version >= 0.4.9.  Must specify api_key in config file.")
+			logger.warning("API key missing! The API key is needed in order to check the queue and schedule nzb's for download. Unless you disabled this feature (in the SABnzbd configuration), this is something you need to provide!")
 
 		url = "%s/api?%s" % (self.root, urllib.urlencode(args))
 		logger.debug("retrieving queue from '%s'", url)
@@ -212,4 +202,24 @@ class SabnzbdQueue(Queue):
 			del self.__document
 		except AttributeError:
 			pass
+
+	def __version_check(self):
+		""" verify that the running version of SABnzbd is at least 0.5.0 """
+
+		logger = logging.getLogger('mediarover.queue.sabnzbd')
+
+		# check that user is running sabnzbd version 0.5.0 or greater
+		url = "%s/api?mode=version" % self.root
+		logger.debug("checking queue version: %s" % url)
+
+		response = urllib.urlopen(url)
+		if not re.match("0.5.\d+", response.read()):
+			raise UnknownQueue("SABnzbd 0.5.0 or greater required!")
+
+	def __init__(self, root, supported_categories, meta_dbh, params):
+		
+		super(SabnzbdQueue, self).__init__(root, supported_categories, meta_dbh, params)
+
+		# try to determine sabnzbd version
+		self.__version_check()
 
