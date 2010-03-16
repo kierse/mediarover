@@ -32,7 +32,7 @@ class SabnzbdQueue(Queue):
 	def jobs(self):
 		""" return list of Job items """
 		
-		logger = logging.getLogger("mediarover.queue.sabnzbd.queue")
+		logger = logging.getLogger("mediarover.queue.sabnzbd")
 
 		# if jobs list hasn't been constructed yet, parse document tree
 		# and build list of current jobs
@@ -61,7 +61,7 @@ class SabnzbdQueue(Queue):
 			  a) if newzbin item, grab report ID and pass to SABnzbd
 			  b) otherwise, grab url where nzb can be found and pass to SABnzbd
 		"""
-		logger = logging.getLogger("mediarover.queue.sabnzbd.queue")
+		logger = logging.getLogger("mediarover.queue.sabnzbd")
 
 		priority = {
 			'low': -1,
@@ -108,7 +108,7 @@ class SabnzbdQueue(Queue):
 	def in_queue(self, download):
 		""" return boolean indicating whether or not the given source item is in queue """
 
-		logger = logging.getLogger("mediarover.queue.sabnzbd.queue")
+		logger = logging.getLogger("mediarover.queue.sabnzbd")
 
 		for job in self.jobs():
 			try:
@@ -123,7 +123,7 @@ class SabnzbdQueue(Queue):
 
 	def processed(self, item):
 		""" return boolean indicating whether or not the given source item has already been processed by queue """
-		logger = logging.getLogger("mediarover.queue.sabnzbd.queue")
+		logger = logging.getLogger("mediarover.queue.sabnzbd")
 
 		backup_dir = self._params['backup_dir']
 		if backup_dir:
@@ -141,7 +141,7 @@ class SabnzbdQueue(Queue):
 	# private methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def __get_document(self):
-		logger = logging.getLogger('mediarover.queue.sabnzbd.queue')
+		logger = logging.getLogger('mediarover.queue.sabnzbd')
 
 		args = {
 			'mode': 'queue',
