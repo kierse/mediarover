@@ -15,10 +15,12 @@
 
 from __future__ import with_statement
 
-import sqlite3
 import os.path
+import sqlite3
 
 from mediarover.series import Series
+from mediarover.utils.configobj import ConfigObj
+from mediarover.utils.injection import is_instance_of, Dependency
 
 # package constants - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -26,18 +28,25 @@ LOW = 'low'
 MEDIUM = 'medium'
 HIGH = 'high'
 
+class QualityDescriptor(object):
+	def __get__(self, instance, owner=None):
+		return dict(zip(self.quality_by_integer, range(1, len(self.quality_by_integer)+1)))
+
 class Metadata(object):
 	""" object interface to series metadata data store """
 
-	quality_by_label = {
-		LOW: 0,
-		MEDIUM: 1,
-		HIGH: 2,
-	}
+	quality_by_integer = [LOW, MEDIUM, HIGH]
+
+	quality_by_label = QualityDescriptor()
+
+	# declare module dependencies
+	config = Dependency('config', is_instance_of(ConfigObj))
+	config_dir = Dependency('config_dir', is_instance_of(str))
+	resources = Dependency("resources_dir", is_instance_of(str))
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def compare(self, episode, test):
+	def compare_episodes(self, episode):
 		""" 
 			for a given episode and quality, compare with quality of episode on disk 
 		
@@ -49,25 +58,47 @@ class Metadata(object):
 		# first, determine if episode series is in db
 		series = self.__fetch_series_data(episode.series)
 		if series is not None:
+			given = episode.quality
 			try:
 				episodes = episode.episodes
 			except AttributeError:
-				current = self.__fetch_episode(episode, series['id'])
-				if current is not None:
-					quality = current['quality']
-					return cmp(quality_by_label[test], quality_by_label[quality])
+				current = self.__fetch_episode_data(episode, series['id'])
+				if current is None:
+					return 1
+				else:
+					return cmp(Metadata.quality_by_label[given], Metadata.quality_by_label[current['quality']])
 			else:
 				quality = None
 				for ep in episodes:
-					current = self.__fetch_episode_data(ep, series[0])
-					quality += cmp(quality_by_label[test], quality_by_label[current['quality']])
+					current = self.__fetch_episode_data(ep, series['id'])
+					if current is None:
+						quality += 1
+					else:
+						quality += cmp(Metadata.quality_by_label[given], Metadata.quality_by_label[current['quality']])
 
-				return quality
+				if quality < 0:   return -1
+				elif quality > 0: return  1
+				else:             return  0
 
-		# given quality is superior to what is currently on disk
+		# given episode series doesn't exist on disk, therefore given quality
+		# is greater than current.  Return 1
 		return 1
 
-	def register(self, episode, quality):
+	def add_in_progress(self, uid, title, category, quality):
+		""" record given nzb title in progress table with given uid, category, and quality """
+		self.dbh.execute("INSERT INTO in_progress (uid, title, category, quality) VALUES (?,?,?)", (uid, title, category, self.quality_by_label[quality]))
+
+	def get_in_progress(self, uid):
+		""" retrieve tuple from the in_progress table for a given session id.  If given id doesn't exist, return None """
+		self.dbh.execute("SELECT title, category, quality FROM in_progress WHERE uid=?", (uid,))
+		return self.dbh.fetchone()
+
+	def delete_in_progress(self, uid):
+		""" delete tuple from the in_progress table for a given session id.  Return 1 for success, 0 if given session id is not found """
+		self.dbh.execute("DELETE FROM in_progress where uid=?", (uid,))
+		return self.dbh.rowcount
+
+	def register_episode(self, episode, quality):
 		""" record given episode and quality in database """
 
 		# first, determine if episode series is in db
@@ -76,8 +107,8 @@ class Metadata(object):
 		# if series doesn't exist, register it
 		if series is None:
 			args = (episode.series.name, sanitized, episode.daily)
-			self._dbh.execute("INSERT INTO series VALUES (?)", args)
-			series = self._dbh.lastrowid
+			self.dbh.execute("INSERT INTO series VALUES (?)", args)
+			series = self.dbh.lastrowid
 		else:
 			series = series['id']
 
@@ -94,7 +125,7 @@ class Metadata(object):
 				sql += "series_episode VALUES (?)"
 
 			# insert episode
-			self._dbh.execute(sql, (args))
+			self.dbh.execute(sql, (args))
 		
 		# update existing episode
 		else:
@@ -105,11 +136,11 @@ class Metadata(object):
 				sql = "UPDATE series_episode SET quality=? WHERE id=?"
 
 			# update episode data
-			self._dbh.execute(sql, args)
-			self._dbh.commit()
+			self.dbh.execute(sql, args)
+			self.dbh.commit()
 
 	def cleanup(self):
-		self._dbh.close()
+		self.dbh.close()
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -118,8 +149,8 @@ class Metadata(object):
 		details = None
 
 		args = (Series.sanitize_series_name(series, False),)
-		self._dbh.execute("SELECT id, name, sanitized_name, daily FROM series WHERE sanitized_name=?", args)
-		row = self._dbh.fetchone()
+		self.dbh.execute("SELECT id, name, sanitized_name, daily FROM series WHERE sanitized_name=?", args)
+		row = self.dbh.fetchone()
 		if row is not None:
 			details = row
 
@@ -132,8 +163,8 @@ class Metadata(object):
 		# series id wasn't given, try and find it
 		if series is None:
 			args = (Series.sanitize_series_name(episode.series, False),)
-			self._dbh.execute("SELECT id FROM series WHERE sanitized_name=?", args)
-			row = self._dbh.fetchone()
+			self.dbh.execute("SELECT id FROM series WHERE sanitized_name=?", args)
+			row = self.dbh.fetchone()
 			if row is not None:
 				series = row['id']
 
@@ -147,35 +178,41 @@ class Metadata(object):
 				args.extend(episode.season, episode.episode)
 				sql += "series_episode WHERE series=? AND season=? AND episode=?"
 				
-			self._dbh.execute(sql, (args))
-			row = self._dbh.fetchone()
+			self.dbh.execute(sql, (args))
+			row = self.dbh.fetchone()
 			if row is not None:
 				details = row
 
 		return details
 
-	def _build_schema(self, resources):
+	def _build_schema(self):
 		""" invoked the first time an instance is created, or when the database file cannot be found """
 		
 		# read the sql commands from disk
-		with open(os.path.join(resources, "metadata.sql"), "r") as fh:
+		with open(os.path.join(self.resources, "metadata.sql"), "r") as fh:
 			sql = fh.readlines()
 
 		# and create the schema
-		self._dbh.executescript("\n".join(sql))
-		self._dbh.commit()
+		self.dbh.executescript("\n".join(sql))
+		self.dbh.commit()
 
-	def __init__(self, config_dir, config, resources):
+	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-		self._config_dir = config_dir
-		self._config = config
+	def _dbh_prop(self):
+		return self.__dbh
 
-		db = os.path.join(config_dir, "ds", "metadata.mr")
+	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	dbh = property(fget=_dbh_prop, doc="database handler")
+
+	def __init__(self):
+
+		db = os.path.join(self.config_dir, "ds", "metadata.mr")
 		exists = True if os.path.exists(db) else False
 
 		# establish connection to 
-		self._dbh = sqlite3.connect(db)
+		self.__dbh = sqlite3.connect(db)
 
 		if exists == False:
-			self._build_schema(resources)
+			self._build_schema(self.resources)
 
