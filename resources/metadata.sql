@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS series;
 DROP TABLE IF EXISTS series_episode;
 DROP TABLE IF EXISTS daily_episode;
+DROP TABLE IF EXISTS in_progress;
 
 CREATE TABLE IF NOT EXISTS series
 (
@@ -38,5 +39,6 @@ CREATE TABLE IF NOT EXISTS in_progress
 (
 	uid TEXT PRIMARY KEY NOT NULL,
 	title TEXT NOT NULL,
+	category TEXT NOT NULL,
 	quality TEXT NOT NULL
 );
