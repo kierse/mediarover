@@ -77,18 +77,21 @@ class Metadata(object):
 		# is greater than current.  Return 1
 		return 1
 
-	def add_in_progress(self, uid, title, category, quality):
-		""" record given nzb title in progress table with given uid, category, and quality """
-		self.dbh.execute("INSERT INTO in_progress (uid, title, category, quality) VALUES (?,?,?,?)", (uid, title, category, quality))
+	def add_in_progress(self, title, type, quality):
+		""" record given nzb in progress table with type, and quality """
+		self.dbh.execute("INSERT INTO in_progress (title, type, quality) VALUES (?,?,?)", (title, type, quality))
+		self.dbh.commit()
 
-	def get_in_progress(self, uid):
+	def get_in_progress(self, title):
 		""" retrieve tuple from the in_progress table for a given session id.  If given id doesn't exist, return None """
-		self.dbh.execute("SELECT title, category, quality FROM in_progress WHERE uid=?", (uid,))
+		self.dbh.execute("SELECT type, quality FROM in_progress WHERE title=?", (title,))
 		return self.dbh.fetchone()
 
-	def delete_in_progress(self, uid):
+	def delete_in_progress(self, title):
 		""" delete tuple from the in_progress table for a given session id.  Return 1 for success, 0 if given session id is not found """
-		self.dbh.execute("DELETE FROM in_progress where uid=?", (uid,))
+		self.dbh.execute("DELETE FROM in_progress where title=?", (title,))
+		self.dbh.commit()
+
 		return self.dbh.rowcount
 
 	def register_episode(self, episode, quality):

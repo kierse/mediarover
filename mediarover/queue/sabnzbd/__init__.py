@@ -25,7 +25,6 @@ from mediarover.error import *
 from mediarover.queue import Queue
 from mediarover.queue.sabnzbd.job import SabnzbdJob
 from mediarover.utils.injection import Dependency, is_instance_of
-from mediarover.utils.session import generate_uid, add_session_to_string
 
 class SabnzbdQueue(Queue):
 	""" Sabnzbd queue class """
@@ -76,12 +75,9 @@ class SabnzbdQueue(Queue):
 			'force': 2,
 		}
 
-		uid = generate_uid()
-		new_title = add_session_to_string(item.title(), uid)
 		args = {
 			'cat': item.category,
 			'priority': priority[item.priority().lower()],
-			'nzbname': new_title
 		}
 
 		try:
@@ -108,7 +104,7 @@ class SabnzbdQueue(Queue):
 		# check response for status of request
 		response = handle.readline()
 		if response == "ok\n":
-			self.meta_ds.add_in_progress(uid, item.title(), item.category(), item.quality())
+			self.meta_ds.add_in_progress(item.title(), item.category(), item.quality())
 			logger.info("item '%s' successfully queued for download", item.title())
 		elif response.startswith("error"):
 			raise QueueInsertionError("unable to queue item '%s' for download: %s", args=(item.title(), response))

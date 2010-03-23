@@ -19,7 +19,6 @@ from mediarover.error import *
 from mediarover.queue.job import Job
 from mediarover.source.episode import Episode, MultiEpisode
 from mediarover.utils.injection import is_instance_of, Dependency
-from mediarover.utils.session import get_session_from_string, strip_session_from_string
 
 class SabnzbdJob(Job):
 	""" SABnzbd Job object """
@@ -47,35 +46,27 @@ class SabnzbdJob(Job):
 
 		download = None
 
-		# grab the desired quality level from the config file and use it as the 
-		# default value.  This will be overriden if session data has been kept
-		# for the current job.
-		quality = self.config['tv']['quality']['desired']
-
-		# use job id to determine session id, job title, and quality
-		uid = get_session_from_string(self.title())
-		if uid is not None:
-			record = self.meta_ds.get_in_progress(uid)
-			if record is None:
-				title = strip_session_from_string(self.title())
-			else:
-				title = record['title']
-				quality = record['quality']
+		# use job title to locate session information and determine quality
+		# if session information does not exist (meaning the user manually added
+		# the nzb, default quality to desired level found in config
+		record = self.meta_ds.get_in_progress(self.title())
+		if record is None:
+			quality = self.config['tv']['quality']['desired']
 		else:
-			title = self.title()
+			quality = record['quality']
 
 		# if we have a newzbin message id, create a NewzbinEpisode object
 		if self.__job.getElementsByTagName("msgid")[0].hasChildNodes():
 			from mediarover.source.newzbin.episode import NewzbinEpisode, NewzbinMultiEpisode
 
-			if NewzbinMultiEpisode.handle(title):
+			if NewzbinMultiEpisode.handle(self.title()):
 				try:
-					download = NewzbinMultiEpisode.new_from_string(title, quality)
+					download = NewzbinMultiEpisode.new_from_string(self.title(), quality)
 				except InvalidMultiEpisodeData:
 					raise InvalidItemTitle("unable to parse job title and create MultiEpisode object")
-			elif NewzbinEpisode.handle(title):
+			elif NewzbinEpisode.handle(self.title()):
 				try:
-					download = NewzbinEpisode.new_from_string(title, quality)
+					download = NewzbinEpisode.new_from_string(self.title(), quality)
 				except MissingParameterError:
 					raise InvalidItemTitle("unable to parse job title and create episode object")
 			else:
@@ -83,14 +74,14 @@ class SabnzbdJob(Job):
 
 		# otherwise, attempt to create a regular Episode object
 		else:
-			if MultiEpisode.handle(title):
+			if MultiEpisode.handle(self.title()):
 				try:
-					download = MultiEpisode.new_from_string(title, quality)
+					download = MultiEpisode.new_from_string(self.title(), quality)
 				except InvalidMultiEpisodeData:
 					raise InvalidItemTitle("unable to parse job title and create MultiEpisode object")
-			elif Episode.handle(title):
+			elif Episode.handle(self.title()):
 				try:
-					download = Episode.new_from_string(title, quality)
+					download = Episode.new_from_string(self.title(), quality)
 				except MissingParameterError:
 					raise InvalidItemTitle("unable to parse job title and create episode object")
 			else:
