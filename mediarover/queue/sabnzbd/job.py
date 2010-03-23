@@ -13,58 +13,69 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from mediarover.source.episode import Episode, MultiEpisode
+from mediarover.config import ConfigObj
+from mediarover.ds.metadata import Metadata
 from mediarover.error import *
 from mediarover.queue.job import Job
+from mediarover.source.episode import Episode, MultiEpisode
+from mediarover.utils.injection import is_instance_of, Dependency
+from mediarover.utils.session import get_session_from_string, strip_session_from_string
 
 class SabnzbdJob(Job):
 	""" SABnzbd Job object """
 
-	def __init__(self, job):
-
-		self.__job = job
-
-	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	# declare the metadata_data_source as a dependency
+	meta_ds = Dependency("metadata_data_store", is_instance_of(Metadata))
+	config = Dependency("config", is_instance_of(ConfigObj))
 
 	def title(self):
-		""" job title from queue"""
-
-		try:
-			self.__jobTitle
-		except AttributeError:
-			self.__jobTitle = self.__job.getElementsByTagName("filename")[0].childNodes[0].data
-
-		return self.__jobTitle
+		""" job title from queue """
+		return self.__title
 
 	def download(self):
-		""" return downoad object """
-
-		try:
-			self.__download
-		except AttributeError:
-			self.__parseJob()
-
+		""" download object """
 		return self.__download
+
+	def quality(self):
+		""" job quality (if known) """
+		return self.__quality
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def __parseJob(self):
 		""" parse job data and build appropriate download object """
 
-		title = self.title()
+		download = None
+
+		# grab the desired quality level from the config file and use it as the 
+		# default value.  This will be overriden if session data has been kept
+		# for the current job.
+		quality = self.config['tv']['quality']['desired']
+
+		# use job id to determine session id, job title, and quality
+		uid = get_session_from_string(self.title())
+		if uid is not None:
+			record = self.meta_ds.get_in_progress(uid)
+			if record is None:
+				title = strip_session_from_string(self.title())
+			else:
+				title = record['title']
+				quality = record['quality']
+		else:
+			title = self.title()
 
 		# if we have a newzbin message id, create a NewzbinEpisode object
 		if self.__job.getElementsByTagName("msgid")[0].hasChildNodes():
-			from mediarover.sources.newzbin.episode import NewzbinEpisode, NewzbinMultiEpisode
+			from mediarover.source.newzbin.episode import NewzbinEpisode, NewzbinMultiEpisode
 
 			if NewzbinMultiEpisode.handle(title):
 				try:
-					self.__download = NewzbinMultiEpisode.new_from_string(title)
+					download = NewzbinMultiEpisode.new_from_string(title, quality)
 				except InvalidMultiEpisodeData:
 					raise InvalidItemTitle("unable to parse job title and create MultiEpisode object")
 			elif NewzbinEpisode.handle(title):
 				try:
-					self.__download = NewzbinEpisode.new_from_string(title)
+					download = NewzbinEpisode.new_from_string(title, quality)
 				except MissingParameterError:
 					raise InvalidItemTitle("unable to parse job title and create episode object")
 			else:
@@ -74,14 +85,24 @@ class SabnzbdJob(Job):
 		else:
 			if MultiEpisode.handle(title):
 				try:
-					self.__download = MultiEpisode.new_from_string(title)
+					download = MultiEpisode.new_from_string(title, quality)
 				except InvalidMultiEpisodeData:
 					raise InvalidItemTitle("unable to parse job title and create MultiEpisode object")
 			elif Episode.handle(title):
 				try:
-					self.__download = Episode.new_from_string(title)
+					download = Episode.new_from_string(title, quality)
 				except MissingParameterError:
 					raise InvalidItemTitle("unable to parse job title and create episode object")
 			else:
 				raise InvalidItemTitle("unsupported job title format: '%s'", self.title())
+
+		return download
+
+	def __init__(self, job, quality=None):
+
+		self.__job = job
+
+		self.__title = self.__job.getElementsByTagName("filename")[0].childNodes[0].data
+		self.__quality = quality
+		self.__download = self.__parseJob()
 

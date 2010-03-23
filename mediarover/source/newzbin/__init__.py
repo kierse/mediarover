@@ -19,6 +19,7 @@ import urllib2
 import xml.dom.minidom
 
 from item import NewzbinItem
+from mediarover.error import *
 from mediarover.source import Source
 
 class NewzbinSource(Source):
@@ -41,7 +42,12 @@ class NewzbinSource(Source):
 
 			self.__items = []
 			for rawItem in self.__document.getElementsByTagName("item"):
-				self.__items.append(NewzbinItem(rawItem, self.category, self.priority))
+				try:
+					item = NewzbinItem(rawItem, self.category, self.priority, self.quality)
+				except InvalidItemTitle:
+					pass
+				else:
+					self.__items.append(item)
 
 		# return item list to caller
 		return self.__items
@@ -56,3 +62,4 @@ class NewzbinSource(Source):
 		self.__document = xml.dom.minidom.parse(url)
 
 		socket.setdefaulttimeout(current_timeout)
+

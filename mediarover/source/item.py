@@ -17,29 +17,26 @@ class Item(object):
 	""" Source item interface class """
 
 	def category(self):
-		""" return category of current report """
-		raise NotImplementedError
-
-	def priority(self):
-		""" return download priority of current report """
 		raise NotImplementedError
 
 	def download(self):
-		""" return Download object representing current source Item """
+		raise NotImplementedError
+
+	def priority(self):
+		raise NotImplementedError
+
+	def quality(self):
 		raise NotImplementedError
 
 	def title(self):
-		""" return name of current report """
 		raise NotImplementedError
 
 	def url(self):
-		""" return url where current item's nzb can be downloaded """
 		return NotImplementedError
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def __eq__(self, other):
 		""" compare two item objects and check if they are equal or not """
-
 		return self.download() == other.download()
 

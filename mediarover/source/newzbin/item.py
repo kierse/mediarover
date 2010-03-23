@@ -24,42 +24,32 @@ class NewzbinItem(Item):
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def category(self):
+		""" category of current report """
+		return self.__category
+
+	def priority(self):
+		""" download priority of current report """
+		return self.__priority
+
+	def quality(self):
+		""" quality (if known) of current report """
+		return self.__quality
+
 	def download(self):
-		""" return download object """
-
-		try:
-			self.__download
-		except AttributeError:
-			self.__parseItem()
-
+		""" return download object representing current report """
 		return self.__download
 
 	def title(self):
-		""" report title from source item """
-
-		try:
-			self.__reportTitle
-		except AttributeError:
-			self.__reportTitle = self.__item.getElementsByTagName("title")[0].childNodes[0].data
-
-		return self.__reportTitle
+		""" title of current report """
+		return self.__title
 
 	def url(self):
-		""" return newzbin report url """
-		try:
-			self.__url		
-		except AttributeError:
-			self.__url = self.__item.getElementsByTagName("report:nzb")[0].childNodes[0].data
-
+		""" url of current report """
 		return self.__url
 
 	def id(self):
 		""" return newzbin report id """
-		try:
-			self.__id
-		except AttributeError:
-			self.__id = self.__item.getElementsByTagName("report:id")[0].childNodes[0].data
-	
 		return self.__id
 	
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -67,23 +57,27 @@ class NewzbinItem(Item):
 	def __parseItem(self):
 		""" parse item data and build appropriate download object """
 
+		title = self.title()
+		quality = self.quality()
+		download = None
+
 		if self._report_category() == "TV":
 			from mediarover.source.newzbin.episode import NewzbinEpisode, NewzbinMultiEpisode
-			
-			# first, check and see if current item is a multiepisode
-			title = self.title()
+
 			if NewzbinMultiEpisode.handle(title):
 				try:
-					self.__download = NewzbinMultiEpisode.new_from_string(title)
+					download = NewzbinMultiEpisode.new_from_string(title, quality)
 				except InvalidMultiEpisodeData:
-					raise InvalidItemTitle("unable to parse item title and create MultiEpisode object")
+					raise InvalidItemTitle("unable to parse item title and create MultiEpisode object: %s" % title)
 			elif NewzbinEpisode.handle(title):
 				try:
-					self.__download = NewzbinEpisode.new_from_string(title)
+					download = NewzbinEpisode.new_from_string(title, quality)
 				except MissingParameterError:
-					raise InvalidItemTitle("unable to parse item title and create Episode object")
+					raise InvalidItemTitle("unable to parse item title and create Episode object: %s" % title)
 			else:
-				raise InvalidItemTitle("unsupported item title format")
+				raise InvalidItemTitle("unsupported item title format: %s" % title)
+
+		return download
 
 	def _report_category(self):
 		""" report category from source item """
@@ -95,23 +89,17 @@ class NewzbinItem(Item):
 
 		return self.__reportCategory
 
-	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	def _category_prop(self):
-		return self._category
-
-	def _priority_prop(self):
-		return self._priority
-
-	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	category = property(fget=_category_prop, doc="item category")
-	priority = property(fget=_priority_prop, doc="item priority")
-
-	def __init__(self, item, category, priority):
+	def __init__(self, item, category, priority, quality):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
 		self.__item = item
-		self._category = category
-		self._priority = priority
+		self.__category = category
+		self.__priority = priority
+		self.__quality = quality
+
+		self.__id = self.__item.getElementsByTagName("report:id")[0].childNodes[0].data
+		self.__title = self.__item.getElementsByTagName("title")[0].childNodes[0].data
+		self.__url = self.__item.getElementsByTagName("report:nzb")[0].childNodes[0].data
+
+		self.__download = self.__parseItem()
 

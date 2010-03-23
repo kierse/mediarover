@@ -17,10 +17,11 @@ class Job:
 	""" Queue job interface class """
 
 	def title(self):
-		""" return name of current job """
+		raise NotImplementedError
+
+	def quality(self):
 		raise NotImplementedError
 
 	def download(self):
-		""" return Download object representing current queue Job """
 		raise NotImplementedError
 

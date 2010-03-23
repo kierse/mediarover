@@ -15,6 +15,7 @@
 
 from __future__ import with_statement
 
+import logging
 import os.path
 import sqlite3
 
@@ -28,16 +29,8 @@ LOW = 'low'
 MEDIUM = 'medium'
 HIGH = 'high'
 
-class QualityDescriptor(object):
-	def __get__(self, instance, owner=None):
-		return dict(zip(self.quality_by_integer, range(1, len(self.quality_by_integer)+1)))
-
 class Metadata(object):
 	""" object interface to series metadata data store """
-
-	quality_by_integer = [LOW, MEDIUM, HIGH]
-
-	quality_by_label = QualityDescriptor()
 
 	# declare module dependencies
 	config = Dependency('config', is_instance_of(ConfigObj))
@@ -66,7 +59,7 @@ class Metadata(object):
 				if current is None:
 					return 1
 				else:
-					return cmp(Metadata.quality_by_label[given], Metadata.quality_by_label[current['quality']])
+					return cmp(given, current['quality'])
 			else:
 				quality = None
 				for ep in episodes:
@@ -74,7 +67,7 @@ class Metadata(object):
 					if current is None:
 						quality += 1
 					else:
-						quality += cmp(Metadata.quality_by_label[given], Metadata.quality_by_label[current['quality']])
+						quality += cmp(given, current['quality'])
 
 				if quality < 0:   return -1
 				elif quality > 0: return  1
@@ -86,7 +79,7 @@ class Metadata(object):
 
 	def add_in_progress(self, uid, title, category, quality):
 		""" record given nzb title in progress table with given uid, category, and quality """
-		self.dbh.execute("INSERT INTO in_progress (uid, title, category, quality) VALUES (?,?,?)", (uid, title, category, self.quality_by_label[quality]))
+		self.dbh.execute("INSERT INTO in_progress (uid, title, category, quality) VALUES (?,?,?,?)", (uid, title, category, quality))
 
 	def get_in_progress(self, uid):
 		""" retrieve tuple from the in_progress table for a given session id.  If given id doesn't exist, return None """
@@ -187,6 +180,7 @@ class Metadata(object):
 
 	def _build_schema(self):
 		""" invoked the first time an instance is created, or when the database file cannot be found """
+		logger = logging.getLogger("mediarover.ds.metadata")
 		
 		# read the sql commands from disk
 		with open(os.path.join(self.resources, "metadata.sql"), "r") as fh:
@@ -195,6 +189,8 @@ class Metadata(object):
 		# and create the schema
 		self.dbh.executescript("\n".join(sql))
 		self.dbh.commit()
+
+		logger.info("created metadata datastore")
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -214,5 +210,5 @@ class Metadata(object):
 		self.__dbh = sqlite3.connect(db)
 
 		if exists == False:
-			self._build_schema(self.resources)
+			self._build_schema()
 

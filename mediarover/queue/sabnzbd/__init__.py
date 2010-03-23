@@ -20,12 +20,18 @@ import time
 import urllib
 import xml.dom.minidom
 
+from mediarover.ds.metadata import Metadata
 from mediarover.error import *
 from mediarover.queue import Queue
 from mediarover.queue.sabnzbd.job import SabnzbdJob
+from mediarover.utils.injection import Dependency, is_instance_of
+from mediarover.utils.session import generate_uid, add_session_to_string
 
 class SabnzbdQueue(Queue):
 	""" Sabnzbd queue class """
+
+	# declare the metadata_data_source as a dependency
+	meta_ds = Dependency("metadata_data_store", is_instance_of(Metadata))
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -99,6 +105,7 @@ class SabnzbdQueue(Queue):
 		# check response for status of request
 		response = handle.readline()
 		if response == "ok\n":
+			self.meta_ds.add_in_progress(uid, item.title(), item.category(), item.quality())
 			logger.info("item '%s' successfully queued for download", item.title())
 		elif response.startswith("error"):
 			raise QueueInsertionError("unable to queue item '%s' for download: %s", args=(item.title(), response))
@@ -216,9 +223,9 @@ class SabnzbdQueue(Queue):
 		if not re.match("0.5.\d+", response.read()):
 			raise UnknownQueue("SABnzbd 0.5.0 or greater required!")
 
-	def __init__(self, root, supported_categories, meta_dbh, params):
+	def __init__(self, root, supported_categories, params):
 		
-		super(SabnzbdQueue, self).__init__(root, supported_categories, meta_dbh, params)
+		super(SabnzbdQueue, self).__init__(root, supported_categories, params)
 
 		# try to determine sabnzbd version
 		self.__version_check()

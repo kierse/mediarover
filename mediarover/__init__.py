@@ -28,19 +28,20 @@ from mediarover.error import *
 from mediarover.series import Series
 from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.filesystem import *
+from mediarover.utils.injection import initialize_broker
 from mediarover.version import __app_version__
 
 # package variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 CONFIG_DIR = None
 RESOURCES_DIR = None
-QUALITY_DS = None
+METADATA_DS = None
 
 # public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def main():
 
-	global CONFIG_DIR, RESOURCES_DIR, QUALITY_DS
+	global CONFIG_DIR, RESOURCES_DIR, METADATA_DS
 	
 	""" parse command line options """
 
@@ -94,6 +95,12 @@ def main():
 
 	""" post configuration setup """
 
+	# initialize dependency broker and register common features
+	broker = initialize_broker()
+	broker.register('config', config)
+	broker.register('config_dir', CONFIG_DIR)
+	broker.register('resources_dir', RESOURCES_DIR)
+
 	# sanitize tv series filter subsection names for 
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
@@ -106,14 +113,14 @@ def main():
 	logger.debug("using config directory: %s", CONFIG_DIR)
 
 	try:
-		_process(config, options, args)
+		_process(config, broker, options, args)
 	except Exception, e:
 		logger.exception(e)
 		raise
 	finally:
 		# close db handler
-		if QUALITY_DS is not None:
-			QUALITY_DS.cleanup()
+		if METADATA_DS is not None:
+			METADATA_DS.cleanup()
 
 def locate_config_files(path):
 	
@@ -131,9 +138,9 @@ def locate_config_files(path):
 
 # private methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def _process(config, options, args):
+def _process(config, broker, options, args):
 
-	global CONFIG_DIR, RESOURCES_DIR, QUALITY_DS
+	global CONFIG_DIR, RESOURCES_DIR, METADATA_DS
 	
 	logger = logging.getLogger("mediarover")
 
@@ -280,7 +287,10 @@ def _process(config, options, args):
 	logger.debug("finished processing sources")
 
 	logger.debug("preparing metadata store...")
-	QUALITY_DS = Metadata(CONFIG_DIR, config, RESOURCES_DIR)
+	METADATA_DS = Metadata()
+
+	# register quality db handler with dependency broker
+	broker.register('metadata_data_store', METADATA_DS)
 
 	logger.debug("begin queue configuration")
 
@@ -315,7 +325,7 @@ def _process(config, options, args):
 					logger.info("error retrieving queue init method")
 					raise 
 				else:
-					queue = init(params['root'], supported_categories, QUALITY_DS, params)
+					queue = init(params['root'], supported_categories, params)
 					break
 	else:
 		logger.warning("No queue found!")

@@ -35,42 +35,37 @@ class Source:
 	def _name_prop(self, name = None):
 		if name is not None:
 			self._name = name
-
-		if self._name: 
-			return self._name
-		else: 
-			return self._url
+		return self._name
 
 	def _url_prop(self, url = None):
 		if url is not None:
 
 			# NEED MORE TESTS!!!
-			if url is None: raise InvalidURL("empty url")
-			if not re.match("^\w+://", url): raise InvalidURL("invalid URL structure: %s", url)
-
-			self._url = url
+			if url == "":
+				raise InvalidURL("empty url")
+			elif not re.match("^\w+://", url): 
+				raise InvalidURL("invalid URL structure: %s", url)
+			else:
+				self._url = url
 
 		return self._url
 
 	def _category_prop(self, category = None):
 		if category is not None:
 			self._category = category
-
 		return self._category
 
-	def _type_prop(self):
-		return self._type
+#	def _type_prop(self):
+#		return self._type
 
 	def _priority_prop(self, priority = None):
 		if priority is not None:
 			self._priority = priority
-
 		return self._priority
 
 	def _timeout_prop(self, timeout = None):
 		if timeout is not None:
 			self._timeout = timeout
-
 		return self._timeout
 
 	def _quality_prop(self):
@@ -82,10 +77,11 @@ class Source:
 	url = property(fget=_url_prop, fset=_url_prop, doc="source url")
 	category = property(fget=_category_prop, fset=_category_prop, doc="source item category label (ie. SABnzbd category type)")
 	priority = property(fget=_priority_prop, fset=_priority_prop, doc="source item download priority")
-	type = property(fget=_type_prop, doc="source type (ie. tv, movies, music, etc)")
+	#type = property(fget=_type_prop, doc="source type (ie. tv, movies, music, etc)")
 	quality = property(fget=_quality_prop, doc="declared source quality")
 
-	def __init__(self, url, name, category, priority, type, timeout, quality):
+	#def __init__(self, url, name, category, priority, type, timeout, quality):
+	def __init__(self, url, name, category, priority, timeout, quality):
 		""" validate given url and verify that it is a valid url (syntactically) """
 
 		self.name = name
@@ -94,6 +90,6 @@ class Source:
 		self.priority = priority
 		self.timeout = timeout
 
-		self._type = type
+		#self._type = type
 		self._quality = quality
 
