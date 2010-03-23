@@ -76,9 +76,12 @@ class SabnzbdQueue(Queue):
 			'force': 2,
 		}
 
+		uid = generate_uid()
+		new_title = add_session_to_string(item.title(), uid)
 		args = {
 			'cat': item.category,
-			'priority': priority[item.priority.lower()]
+			'priority': priority[item.priority().lower()],
+			'nzbname': new_title
 		}
 
 		try:
