@@ -271,7 +271,23 @@ def _process(config, broker, options, args):
 				else:
 					for feed in feeds:
 						logger.debug("creating source for feed '%s'", feed['label'])
-						sources.append(getattr(module, "%sSource" % available.capitalize())(feed['url'], feed['label'], feed['category'], feed['priority'], feed['type'], feed['timeout'], feed['quality']))
+						try:
+							sources.append(
+								getattr(module, "%sSource" % available.capitalize())(
+									feed['url'], 
+									feed['label'], 
+									feed['category'],
+									feed['priority'], 
+									feed['timeout'], 
+									feed['quality']
+								)
+							)
+						except URLError, (msg):
+							logger.error("skipping source '%s', %s", source.name, msg)
+							continue
+						except Exception, (msg):
+							logger.error("skipping source '%s', unknown error: %s", source.name, msg)
+							continue
 
 			else:
 				logger.debug("skipping source '%s', no feeds", available)
@@ -294,6 +310,9 @@ def _process(config, broker, options, args):
 
 	logger.debug("begin queue configuration")
 
+	# build list of supported categories
+	supported_categories = set([config['tv']['category'].lower()])
+
 	# loop through list of available queues and find one that the user
 	# has configured
 	queue = None
@@ -314,9 +333,6 @@ def _process(config, broker, options, args):
 				# grab list of config options for current queue
 				params = dict(config['queue'][client])
 				logger.debug("queue source: %s", params["root"])
-
-				# build list of supported categories
-				supported_categories = set([config['tv']['category'].lower()])
 
 				# grab constructor and create new queue object
 				try:
@@ -349,18 +365,8 @@ def _process(config, broker, options, args):
 	"""
 	scheduled = []
 	for source in sources:
-
 		logger.info("processing '%s' items", source.name)
-		try:
-			items = source.items()
-		except URLError, (msg):
-			logger.error("skipping source '%s', %s", source.name, msg)
-			continue
-		except Exception, (msg):
-			logger.error("skipping source '%s', unknown error: %s", source.name, msg)
-			continue
-
-		for item in items:
+		for item in source.items():
 
 			logger.debug("begin processing item '%s'", item.title())
 			try:
