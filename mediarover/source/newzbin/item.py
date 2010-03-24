@@ -24,9 +24,9 @@ class NewzbinItem(Item):
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def category(self):
-		""" category of current report """
-		return self.__category
+	def type(self):
+		""" type of current report """
+		return self.__type
 
 	def priority(self):
 		""" download priority of current report """
@@ -89,11 +89,11 @@ class NewzbinItem(Item):
 
 		return self.__reportCategory
 
-	def __init__(self, item, category, priority, quality):
+	def __init__(self, item, type, priority, quality):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
 		self.__item = item
-		self.__category = category
+		self.__type = type
 		self.__priority = priority
 		self.__quality = quality
 

@@ -16,7 +16,7 @@
 class Item(object):
 	""" Source item interface class """
 
-	def category(self):
+	def type(self):
 		raise NotImplementedError
 
 	def download(self):

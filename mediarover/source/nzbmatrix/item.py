@@ -28,30 +28,27 @@ class NzbmatrixItem(Item):
 
 	def download(self):
 		""" return a download object """
-		try:
-			self.__download
-		except AttributeError:
-			self.__parseItem()
-
 		return self.__download
 
 	def title(self):
 		""" report title from source item """
-		try:
-			self.__reportTitle
-		except AttributeError:
-			self.__reportTitle = self.__item.getElementsByTagName("title")[0].childNodes[0].data
-
-		return self.__reportTitle
+		return self.__title
 
 	def url(self):
 		""" return tvnzb nzb url """
-		try:
-			self.__url
-		except AttributeError:
-			self.__url = self.__item.getElementsByTagName("link")[0].childNodes[0].data
-
 		return self.__url
+
+	def type(self):
+		""" type of current report """
+		return self.__type
+
+	def priority(self):
+		""" download priority of current report """
+		return self.__priority
+
+	def quality(self):
+		""" quality (if known) of current report """
+		return self.__quality
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -59,36 +56,34 @@ class NzbmatrixItem(Item):
 		""" parse item data and build appropriate download object """
 
 		title = self.title()
+		quality = self.quality()
+		download = None
+
 		if MultiEpisode.handle(title):
 			try:
-				self.__download = MultiEpisode.new_from_string(title)
+				download = MultiEpisode.new_from_string(title, quality)
 			except (InvalidMultiEpisodeData, MissingParameterError):
 				raise InvalidItemTitle("unable to parse item title and create MultiEpisode object")
 		elif NzbmatrixEpisode.handle(title):
 			try:
-				self.__download = NzbmatrixEpisode.new_from_string(title)
+				download = NzbmatrixEpisode.new_from_string(title, quality)
 			except MissingParameterError:
 				raise InvalidItemTitle("unable to parse item title and create NzbmatrixEpisode object")
 		else:
 			raise InvalidItemTitle("unsupported item title format")
 
-	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+		return download
 
-	def _category_prop(self):
-		return self._category
-
-	def _priority_prop(self):
-		return self._priority
-
-	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	category = property(fget=_category_prop, doc="item category")
-	priority = property(fget=_priority_prop, doc="item priority")
-
-	def __init__(self, item, category, priority):
+	def __init__(self, item, type, priority, quality):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
 		self.__item = item
-		self._category = category
-		self._priority = priority
+		self.__type = type
+		self.__priority = priority
+		self.__quality = quality
+
+		self.__title = self.__item.getElementsByTagName("title")[0].childNodes[0].data
+		self.__url = self.__item.getElementsByTagName("link")[0].childNodes[0].data
+
+		self.__download = self.__parseItem()
 

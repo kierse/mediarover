@@ -247,7 +247,7 @@ def _process(config, broker, options, args):
 				if 'url' in params:
 					logger.info("found feed '%s'", label)
 					params['label'] = label
-					params['category'] = config[params['type']]['category']
+					#params['category'] = config[params['type']]['category']
 					params['priority'] = config[params['type']]['priority']
 					if params['timeout'] is None:
 						params['timeout'] = config['source']['default_timeout']
@@ -276,7 +276,7 @@ def _process(config, broker, options, args):
 								getattr(module, "%sSource" % available.capitalize())(
 									feed['url'], 
 									feed['label'], 
-									feed['category'],
+									feed['type'],
 									feed['priority'], 
 									feed['timeout'], 
 									feed['quality']

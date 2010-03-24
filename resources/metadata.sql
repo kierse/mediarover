@@ -38,6 +38,6 @@ CREATE TABLE IF NOT EXISTS daily_episode
 CREATE TABLE IF NOT EXISTS in_progress
 (
 	title TEXT PRIMARY KEY NOT NULL,
-	category TEXT NOT NULL,
+	type TEXT NOT NULL,
 	quality TEXT NOT NULL
 );

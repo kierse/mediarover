@@ -20,6 +20,7 @@ import time
 import urllib
 import xml.dom.minidom
 
+from mediarover.config import ConfigObj
 from mediarover.ds.metadata import Metadata
 from mediarover.error import *
 from mediarover.queue import Queue
@@ -31,6 +32,7 @@ class SabnzbdQueue(Queue):
 
 	# declare the metadata_data_source as a dependency
 	meta_ds = Dependency("metadata_data_store", is_instance_of(Metadata))
+	config = Dependency("config", is_instance_of(ConfigObj))
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -76,7 +78,7 @@ class SabnzbdQueue(Queue):
 		}
 
 		args = {
-			'cat': item.category,
+			'cat': self.config[item.type()]['category'],
 			'priority': priority[item.priority().lower()],
 		}
 
@@ -104,7 +106,7 @@ class SabnzbdQueue(Queue):
 		# check response for status of request
 		response = handle.readline()
 		if response == "ok\n":
-			self.meta_ds.add_in_progress(item.title(), item.category(), item.quality())
+			self.meta_ds.add_in_progress(item.title(), item.type(), item.quality())
 			logger.info("item '%s' successfully queued for download", item.title())
 		elif response.startswith("error"):
 			raise QueueInsertionError("unable to queue item '%s' for download: %s", args=(item.title(), response))

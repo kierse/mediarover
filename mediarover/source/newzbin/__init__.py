@@ -43,7 +43,7 @@ class NewzbinSource(Source):
 			self.__items = []
 			for rawItem in self.__document.getElementsByTagName("item"):
 				try:
-					item = NewzbinItem(rawItem, self.category, self.priority, self.quality)
+					item = NewzbinItem(rawItem, self.type, self.priority, self.quality)
 				except InvalidItemTitle:
 					pass
 				else:

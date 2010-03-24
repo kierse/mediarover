@@ -50,13 +50,13 @@ class Source:
 
 		return self._url
 
-	def _category_prop(self, category = None):
-		if category is not None:
-			self._category = category
-		return self._category
+#	def _category_prop(self, category = None):
+#		if category is not None:
+#			self._category = category
+#		return self._category
 
-#	def _type_prop(self):
-#		return self._type
+	def _type_prop(self):
+		return self._type
 
 	def _priority_prop(self, priority = None):
 		if priority is not None:
@@ -75,21 +75,21 @@ class Source:
 
 	name = property(fget=_name_prop, fset=_name_prop, doc="source name")
 	url = property(fget=_url_prop, fset=_url_prop, doc="source url")
-	category = property(fget=_category_prop, fset=_category_prop, doc="source item category label (ie. SABnzbd category type)")
+	#category = property(fget=_category_prop, fset=_category_prop, doc="source item category label (ie. SABnzbd category type)")
 	priority = property(fget=_priority_prop, fset=_priority_prop, doc="source item download priority")
-	#type = property(fget=_type_prop, doc="source type (ie. tv, movies, music, etc)")
+	type = property(fget=_type_prop, doc="source type (ie. tv, movies, music, etc)")
 	quality = property(fget=_quality_prop, doc="declared source quality")
 
 	#def __init__(self, url, name, category, priority, type, timeout, quality):
-	def __init__(self, url, name, category, priority, timeout, quality):
+	def __init__(self, url, name, type, priority, timeout, quality):
 		""" validate given url and verify that it is a valid url (syntactically) """
 
 		self.name = name
 		self.url = url
-		self.category = category
+		#self.category = category
 		self.priority = priority
 		self.timeout = timeout
 
-		#self._type = type
+		self._type = type
 		self._quality = quality
 
