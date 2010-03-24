@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import socket
 import urllib2
 import xml.dom.minidom
@@ -27,6 +28,7 @@ class TvnzbSource(Source):
 
 	def items(self):
 		""" return list of Item objects """
+		logger = logging.getLogger("mediarover.source.tvnzb")
 
 		# if item list hasn't been constructed yet, parse document tree 
 		# and build list of available items.
@@ -40,7 +42,13 @@ class TvnzbSource(Source):
 
 			self.__items = []
 			for rawItem in self.__document.getElementsByTagName("item"):
-				self.__items.append(TvnzbItem(rawItem, self.type, self.priority, self.quality))
+				try:
+					item = TvnzbItem(rawItem, self.type, self.priority, self.quality)
+				except InvalidItemTitle:
+					title = rawItem.getElementsByTagName("title")[0].childNodes[0].data
+					logger.debug("skipping '%s', unknown format", title)
+				else:
+					self.__items.append(item)
 
 		# return item list to caller
 		return self.__items

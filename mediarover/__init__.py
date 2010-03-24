@@ -369,11 +369,9 @@ def _process(config, broker, options, args):
 		for item in source.items():
 
 			logger.debug("begin processing item '%s'", item.title())
-			try:
-				episode = item.download()
-			except InvalidItemTitle:
-				logger.info("skipping '%s', unknown format", item.title())
-				continue
+
+			# grab the download object
+			episode = item.download()
 
 			# make sure episode series object is correctly handling metadata
 			episode.series.ignore_metadata = config['tv']['ignore_series_metadata']

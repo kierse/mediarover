@@ -71,6 +71,8 @@ class TvnzbItem(Item):
 		else:
 			raise InvalidItemTitle("unsupported item title format")
 
+		return downoad
+
 	def __init__(self, item, type, priority, quality):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
