@@ -26,14 +26,6 @@ class Download(object):
 		"""
 		raise NotImplementedError
 
-	def __ne__(self, other):
-		""" 
-			compare two Download objects and check if they are not equal
-			
-			Note: this method must be implemented by all sub-classes
-		"""
-		raise NotImplementedError
-
 	def __hash__(self):
 		raise NotImplementedError
 
@@ -42,13 +34,4 @@ class Download(object):
 
 	def __str__(self):
 		raise NotImplementedError
-
-	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	def _quality_prop(self, quality=None):
-		raise NotImplementedError
-
-	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	quality = property(fget=_quality_prop, doc="download quality")
 
