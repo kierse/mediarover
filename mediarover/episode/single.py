@@ -19,17 +19,20 @@ import re
 
 from mediarover.error import *
 from mediarover.series import Series
-from mediarover.source.episode import Episode
+from mediarover.episode import Episode
 from mediarover.utils.injection import is_instance_of, Dependency
 
-class DailyEpisode(Episode):
-	""" represent a daily episode of tv """
+class SingleEpisode(Episode):
+	""" represents an episode of tv """
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	supported_patterns = (
-		# daily regex: <year>-<month>-<day>
-		re.compile("(\d{4})[\.\-\/\_]?(\d{2})[\.\-\/\_]?(\d{2})")
+		# episode 1 regex, ie. s03e10
+		re.compile("[a-zA-Z]{1}(\d{1,2})[a-zA-Z]{1}(\d{1,2})"),
+
+		# episode 2 regex, ie. 3x10
+		re.compile("(\d{1,2})[a-zA-Z]{1}(\d{1,2})")
 	)
 
 	# declare module dependencies
@@ -40,7 +43,7 @@ class DailyEpisode(Episode):
 	@classmethod
 	def handle(cls, string):
 
-		for pattern in DailyEpisode.supported_patterns:
+		for pattern in SingleEpisode.supported_patterns:
 			if pattern.search(string):
 				return True
 
@@ -51,8 +54,8 @@ class DailyEpisode(Episode):
 		""" parse given string and create new Episode object from extracted values """
 
 		# get a dict containing all values successfully extracted from given string
-		params = DailyEpisode._parse_string(string, **kwargs)
-		return DailyEpisode(**params)
+		params = cls._parse_string(string, **kwargs)
+		return cls(**params)
 
 	@classmethod
 	def _parse_string(cls, string, **kwargs):
@@ -66,26 +69,26 @@ class DailyEpisode(Episode):
 		"""
 		params = {
 			'series':None,
-			'year':None,
-			'month':None,
-			'day':None,
+			'season':None,
+			'episode':None,
 			'title':None,
 			'quality':None,
 		}
 
-		# daily shows
-		for pattern in DailyEpisode.supported_patterns:
+		# check if given string contains season and episode numbers
+		for pattern in cls.supported_patterns:
 			match = pattern.search(string)
 			if match:
 				params['season'] = kwargs['season'] if 'season' in kwargs else match.group(1)
-				params['year'] = kwargs['year'] if 'year' in kwargs else match.group(1)
-				params['month'] = kwargs['month'] if 'month' in kwargs else match.group(2)
-				params['day'] = kwargs['day'] if 'day' in kwargs else match.group(3)
+				params['episode'] = kwargs['episode'] if 'episode' in kwargs else match.group(2)
+				break
 
 		# if we've got a match object, try to set series 
 		if 'series' in kwargs:
 			params['series'] = kwargs['series']
 
+		# grab series name and see if it's in the watched list.  If not,
+		# create a new series object
 		elif match:
 			start = 0 
 			end = match.start()
@@ -101,7 +104,8 @@ class DailyEpisode(Episode):
 		# NOTE: title will only be set if it was specifically provided, meaning
 		# that it was provided by the source.  Since we are unable to accurately
 		# determine the title from the filename, the default is to not set it.
-		params['title'] = title
+		if 'title' in kwargs:
+			params['title'] = kwargs['title']
 
 		if 'quality' in kwargs:
 			params['quality'] = kwargs['quality']
@@ -110,13 +114,13 @@ class DailyEpisode(Episode):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-#	def broadcast(self):
-#		""" broadcast date (for internal use only) """
+#	def season_episode(self):
+#		""" return number representing season episode combination (for internal use only) """
 #
 #		if self.daily:
-#			return "%04d%02d%02d" % (self.year, self.month, self.day)
-#		else:
 #			return None
+#		else:
+#			return "%02d03%d" % (self.season, self.episode)
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -141,37 +145,33 @@ class DailyEpisode(Episode):
 		"""
 		try:
 			if self.series != other.series: return False
-			if self.year != other.year: return False
-			if self.month != other.month: return False
-			if self.day != other.day : return False
+			if self.season != other.season: return False
+			if self.episode != other.episode: return False
 		except AttributeError:
 			return False
 
 		return True
 
 	def __hash__(self):
-		hash = "%s %04d-%02d-%02d" % (Series.sanitize_series_name(series=self.series), self.year, self.month, self.day)
+		hash = "%s %dx%02d" % (self.series.sanitize_series_name(series=self.series), self.season, self.episode)
 		return hash.__hash__()
 
 	def __repr__(self):
-		return "DailyEpisode(series='%s',year='%s',month='%s',day='%s',title='%s')" % (self.series,self.year,self.month,self.day,self.title)
+		return "Episode(series='%s',season=%d,episode=%s,title='%s')" % (self.series,self.season,self.episode,self.title)
 
 	def __str__(self):
-		return "%s %04d-%02d-%02d" % (self.series.name, self.year, self.month, self.day)
+		return "%s %dx%02d" % (self.series.name, self.season, self.episode)
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def _series_prop(self):
 		return self._series
 
-	def _year_prop(self):
-		return self._year
+	def _season_prop(self):
+		return self._season
 
-	def _month_prop(self):
-		return self._month
-
-	def _day_prop(self):
-		return self._day
+	def _episode_prop(self):
+		return self._episode
 
 	def _title_prop(self):
 		return self._title
@@ -182,25 +182,26 @@ class DailyEpisode(Episode):
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	series = property(fget=_series_prop, doc="episode series object")
-	year = property(fget=_year_prop, doc="episode year")
-	month = property(fget=_month_prop, doc="episode month")
-	day = property(fget=_day_prop, doc="episode day")
+	season = property(fget=_season_prop, doc="episode season number")
+	episode = property(fget=_episode_prop, doc="episode number")
 	title = property(fget=_title_prop, doc="episode title")
 	quality = property(fget=_quality_prop, doc="episode quality")
 
-	def __init__(self, series, year, month, day, title = "", quality = None):
+	def __init__(self, series, season, episode, title = "", quality = None):
 
 		if series is None:
 			raise MissingParameterError("missing episode series name")
 
-		# daily show checks
-		if None in (year, month, day):
-			raise MissingParameterError("missing daily episode values")
+		if season is None:
+			raise MissingParameterError("missing episode season number")
 
+		if episode is None:
+			raise MissingParameterError("missing episode number")
+
+		# initialize a few fields
 		self._series = series
-		self._year = year
-		self._month = month
-		self._day = day
+		self._season = season
+		self._episode = episode
 		self._title = title
 		self._quality = quality
 

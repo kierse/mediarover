@@ -16,7 +16,7 @@
 import re
 import logging
 
-from mediarover.source.episode import Episode, MultiEpisode
+from mediarover.episode import Episode, MultiEpisode
 
 class NewzbinEpisode(Episode):
 	""" newzbin episode """

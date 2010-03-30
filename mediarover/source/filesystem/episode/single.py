@@ -18,7 +18,7 @@ import os.path
 import re
 
 from mediarover.error import *
-from mediarover.source.episode.single import SingleEpisode
+from mediarover.episode.single import SingleEpisode
 
 class FilesystemSingleEpisode(SingleEpisode):
 	""" filesystem episode """

@@ -19,7 +19,7 @@ import re
 
 from mediarover.error import *
 from mediarover.series import Series
-from mediarover.source.episode import Episode
+from mediarover.episode import Episode
 from mediarover.utils.injection import is_instance_of, Dependency
 
 class MultiEpisode(Episode):

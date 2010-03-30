@@ -284,7 +284,7 @@ def _process_download(config, options, args):
 
 	# other download
 	else:
-		from mediarover.source.episode import Episode, MultiEpisode
+		from mediarover.episode import Episode, MultiEpisode
 
 		try:
 			if MultiEpisode.handle(job):

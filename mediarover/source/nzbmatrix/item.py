@@ -17,7 +17,7 @@ import logging
 import re
 
 from mediarover.error import *
-from mediarover.source.episode import MultiEpisode
+from mediarover.episode import MultiEpisode
 from mediarover.source.item import Item
 from mediarover.source.nzbmatrix.episode import NzbmatrixEpisode
 

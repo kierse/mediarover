@@ -19,7 +19,7 @@ import re
 from datetime import date
 
 from mediarover.error import *
-from mediarover.source.episode.single import DailyEpisode
+from mediarover.episode.daily import DailyEpisode
 
 class FilesystemDailyEpisode(DailyEpisode):
 	""" filesystem episode """

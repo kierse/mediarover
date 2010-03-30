@@ -16,7 +16,7 @@
 import logging
 import re
 
-from mediarover.source.episode import Episode
+from mediarover.episode import Episode
 
 class NzbmatrixEpisode(Episode):
 	""" nzbmatrix episode """

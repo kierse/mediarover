@@ -17,7 +17,7 @@ import os.path
 import re
 
 from mediarover.error import *
-from mediarover.source.episode.multi import MultiEpisode
+from mediarover.episode.multi import MultiEpisode
 
 class FilesystemMultiEpisode(MultiEpisode):
 	""" filesystem multiepisode """

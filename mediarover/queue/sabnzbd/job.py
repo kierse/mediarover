@@ -17,7 +17,8 @@ from mediarover.config import ConfigObj
 from mediarover.ds.metadata import Metadata
 from mediarover.error import *
 from mediarover.queue.job import Job
-from mediarover.source.episode import Episode, MultiEpisode
+from mediarover.episode.single import SingleEpisode
+from mediarover.episode.multi import MultiEpisode
 from mediarover.utils.injection import is_instance_of, Dependency
 
 class SabnzbdJob(Job):
@@ -79,9 +80,9 @@ class SabnzbdJob(Job):
 					download = MultiEpisode.new_from_string(self.title(), quality)
 				except InvalidMultiEpisodeData:
 					raise InvalidItemTitle("unable to parse job title and create MultiEpisode object")
-			elif Episode.handle(self.title()):
+			elif SingleEpisode.handle(self.title()):
 				try:
-					download = Episode.new_from_string(self.title(), quality)
+					download = SingleEpisode.new_from_string(self.title(), quality)
 				except MissingParameterError:
 					raise InvalidItemTitle("unable to parse job title and create episode object")
 			else:
