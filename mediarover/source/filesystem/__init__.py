@@ -13,3 +13,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from mediarover.source.filesystem.episode.single import FilesystemSingleEpisode
+from mediarover.source.filesystem.episode.daily import FilesystemDailyEpisode
+from mediarover.source.filesystem.episode.multi import FilesystemMultiEpisode
+
+def create_episode(series, path):
+	
+	if FilesystemMultiEpisode.handle(path):
+		return FilesystemMultiEpisode.new_from_string(path, series=series)
+	elif FilesystemSingleEpisode.handle(path):
+		return FilesystemSingleEpisode.new_from_string(path, series=series)
+	elif FilesystemDailyEpisode.handle(path):
+		return FilesystemDailyEpisode.new_from_string(path, series=series)
+	else:
+		raise ""
+
