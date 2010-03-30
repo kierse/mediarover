@@ -23,14 +23,10 @@ from mediarover.series import Series
 from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.injection import is_instance_of, Dependency
 
-# package constants - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-LOW = 'low'
-MEDIUM = 'medium'
-HIGH = 'high'
-
 class Metadata(object):
 	""" object interface to series metadata data store """
+
+	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
 	config = Dependency('config', is_instance_of(ConfigObj))
