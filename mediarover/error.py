@@ -54,5 +54,6 @@ class InvalidURL(Error): pass
 class MissingParameterError(Error): pass
 class QueueInsertionError(Error): pass
 class QueueRetrievalError(Error): pass
+class TooManyParametersError(Error): pass
 class UnknownQueue(Error): pass
 
