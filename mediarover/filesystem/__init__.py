@@ -13,9 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from mediarover.source.filesystem.episode.single import FilesystemSingleEpisode
-from mediarover.source.filesystem.episode.daily import FilesystemDailyEpisode
-from mediarover.source.filesystem.episode.multi import FilesystemMultiEpisode
+from mediarover.filesystem.episode.single import FilesystemSingleEpisode
+from mediarover.filesystem.episode.daily import FilesystemDailyEpisode
+from mediarover.filesystem.episode.multi import FilesystemMultiEpisode
 
 def create_episode(series, path):
 	

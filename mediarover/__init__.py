@@ -26,6 +26,7 @@ from mediarover.config import read_config, generate_config_files, build_series_f
 from mediarover.ds.metadata import Metadata
 from mediarover.error import *
 from mediarover.series import Series
+from mediarover.filesystem import create_episode
 from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.filesystem import *
 from mediarover.utils.injection import initialize_broker

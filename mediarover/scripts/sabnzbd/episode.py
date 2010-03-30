@@ -28,7 +28,7 @@ from mediarover.config import read_config
 from mediarover.error import *
 from mediarover.scripts.error import *
 from mediarover.series import Series
-from mediarover.source.filesystem.episode import FilesystemEpisode, FilesystemMultiEpisode
+from mediarover.filesystem.episode import FilesystemEpisode, FilesystemMultiEpisode
 from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.filesystem import series_episode_exists, series_episode_path, series_season_path, series_season_multiepisodes, clean_path
 from mediarover.version import __app_version__
