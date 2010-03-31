@@ -81,7 +81,7 @@ class Source:
 	quality = property(fget=_quality_prop, doc="declared source quality")
 
 	#def __init__(self, url, name, category, priority, type, timeout, quality):
-	def __init__(self, url, name, type, priority, timeout, quality):
+	def __init__(self, name, url, type, priority, timeout, quality):
 		""" validate given url and verify that it is a valid url (syntactically) """
 
 		self.name = name
