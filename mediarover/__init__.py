@@ -118,7 +118,7 @@ def main():
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name, ignore_metadata=config['tv'].as_bool('ignore_series_metadata'))] = filters
+		config['tv']['filter'][Series.sanitize_series_name(name=name)] = filters
 
 	""" main """
 
@@ -166,8 +166,8 @@ def _process(config, broker, options, args):
 	if not len(tv_root):
 		raise ConfigurationError("You must declare at least one tv_root directory!")
 
-	shows = {}
-	alias_map = {}
+	watched_list = {}
+	skip_list = {}
 	for root in tv_root:
 
 		# first things first, check that tv root directory exists and that we
@@ -180,7 +180,6 @@ def _process(config, broker, options, args):
 		logger.info("begin processing tv directory: %s", root)
 	
 		# grab list of shows
-		ignore_metadata = config['tv'].as_bool('ignore_series_metadata')
 		dir_list = os.listdir(root)
 		dir_list.sort()
 		for name in dir_list:
@@ -192,42 +191,61 @@ def _process(config, broker, options, args):
 			dir = os.path.join(root, name)
 			if os.path.isdir(dir):
 				
-				series = Series(name, path=dir, ignore_metadata=ignore_metadata)
-				sanitized_name = Series.sanitize_series_name(series)
+				sanitized_name = Series.sanitize_series_name(name=name)
 
-				if sanitized_name in shows:
-					logger.warning("duplicate series directory found for '%s'! Multiple directories for the same series can/will result in duplicate downloads!  You've been warned..." % series)
-
-				if sanitized_name in config['tv']['filter']:
-					config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['filter'][sanitized_name])
-				else:
-					config['tv']['filter'][sanitized_name] = build_series_filters(dir)
-
-				# check filters to see if user wants this series skipped...
-				if config['tv']['filter'][sanitized_name]["skip"]:
-					logger.info("found skip filter, ignoring series: %s", dir)
+				# already seen this series and have determined that user wants to skip it
+				if sanitized_name in skip_list:
 					continue
 
-				if len(config['tv']['filter'][sanitized_name]['ignore']):
-					logger.debug("ignoring the following seasons of %s: %s", sanitized_name, config['tv']['filter'][sanitized_name]['ignore'])
-					series.ignores = config['tv']['filter'][sanitized_name]['ignore']
+				# we've already seen this series.  Append new directory to list of series paths
+				elif sanitized_name in watched_list:
+					series = watched_list[sanitized_name]
+					series.path.append(dir)
 
-				# process series aliases
-				if config['tv']['filter'][sanitized_name]['alias']:
-					series.aliases = config['tv']['filter'][sanitized_name]['alias'];
-					count = 0
-					for alias in series.aliases:
-						sanitized_alias = Series.sanitize_series_name(alias, series.ignore_metadata)
-						if sanitized_alias in alias_map:
-							logger.warning("duplicate series alias found for '%s'! Duplicate aliases (when part of two different series filters) can/will result in incorrect downloads and improper sorting! You've been warned..." % series)
-						alias_map[sanitized_alias] = sanitized_name
-						count += 1
-					logger.debug("%d alias(es) identified for series '%s'" % (count, series))
+				# new series, create new Series object and add to the watched list
+				else:
+					series = Series(name, path=dir)
+					additions = dict({sanitized_name: series})
 
-				shows[sanitized_name] = series
-				logger.debug("watching series: %s => %s", sanitized_name, dir)
+					# locate and process any filters for current series.  If no user defined filters for 
+					# current series exist, build dict using default values
+					if sanitized_name in config['tv']['filter']:
+						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['filter'][sanitized_name])
+					else:
+						config['tv']['filter'][sanitized_name] = build_series_filters(dir)
 
-	logger.info("watching %d tv show(s)", len(shows))
+					# check filters to see if user wants this series skipped...
+					if config['tv']['filter'][sanitized_name]["skip"]:
+						skip_list[sanitized_name] = series
+						logger.debug("found skip filter, ignoring series: %s", series.name)
+						continue
+
+					# set season ignore list for current series
+					if len(config['tv']['filter'][sanitized_name]['ignore']):
+						logger.debug("ignoring the following seasons of %s: %s", series.name, config['tv']['filter'][sanitized_name]['ignore'])
+						series.ignores = config['tv']['filter'][sanitized_name]['ignore']
+
+					# process series aliases.  For each new alias, register series in watched_list
+					if config['tv']['filter'][sanitized_name]['alias']:
+						series.aliases = config['tv']['filter'][sanitized_name]['alias'];
+						count = 0
+						for alias in series.aliases:
+							sanitized_alias = Series.sanitize_series_name(name=alias)
+							if sanitized_alias in watched_list:
+								logger.warning("duplicate series alias found for '%s'! Duplicate aliases can/will result in incorrect downloads and improper sorting! You've been warned..." % series)
+							additions[sanitized_alias] = series
+							count += 1
+						logger.debug("%d alias(es) identified for series '%s'" % (count, series))
+
+					# finally, add additions to watched list
+					logger.info("watching series: %s", series)
+					watched_list.update(additions)
+
+	logger.info("watching %d tv show(s)", len(watched_list))
+
+	# register series dictionary with dependency broker
+	broker.register('watched_series', watched_list)
+
 	logger.debug("finished processing watched tv")
 
 	# grab quality management flag.  This will determine if Media Rover
@@ -260,7 +278,6 @@ def _process(config, broker, options, args):
 				if 'url' in params:
 					logger.info("found feed '%s'", label)
 					params['label'] = label
-					#params['category'] = config[params['type']]['category']
 					params['priority'] = config[params['type']]['priority']
 					if params['timeout'] is None:
 						params['timeout'] = config['source']['default_timeout']
@@ -313,7 +330,7 @@ def _process(config, broker, options, args):
 	# register quality db handler with dependency broker
 	broker.register('metadata_data_store', METADATA_DS)
 
-	logger.debug("begin queue configuration")
+	logger.info("begin queue configuration")
 
 	# build list of supported categories
 	supported_categories = set([config['tv']['category'].lower()])
@@ -332,7 +349,7 @@ def _process(config, broker, options, args):
 				try:
 					module = __import__("mediarover.queue.%s" % client, globals(), locals(), [client.capitalize() + "Queue"], -1)
 				except ImportError:
-					logger.info("error loading queue module %sQueue", client)
+					logger.error("error loading queue module %sQueue", client)
 					raise
 
 				# grab list of config options for current queue
@@ -343,7 +360,7 @@ def _process(config, broker, options, args):
 				try:
 					init = getattr(module, "%sQueue" % client.capitalize())
 				except AttributeError:
-					logger.info("error retrieving queue init method")
+					logger.error("error retrieving queue init method")
 					raise 
 				else:
 					queue = init(params['root'], supported_categories, params)
@@ -375,132 +392,82 @@ def _process(config, broker, options, args):
 
 			logger.debug("begin processing item '%s'", item.title())
 
-			# grab the download object
+			# grab the episode and series object
 			episode = item.download()
+			series = episode.series
 
-			# make sure episode series object is correctly handling metadata
-			episode.series.ignore_metadata = config['tv']['ignore_series_metadata']
-
-			# grab real series object
-			sanitized = Series.sanitize_series_name(episode.series)
-			if sanitized in alias_map:
-				sanitized = alias_map[sanitized]
-
-			# check if episode series is in watch list.  If it is, grab complete
-			# series object and update episode.  Otherwise, skip to next item
-			try:
-				series = shows[sanitized]
-			except KeyError:
+			# check that episode series has at least one path value.  If not, we aren't watching
+			# for its series so it can be skipped
+			if len(series.path) == 0:
 				logger.info("skipping '%s', not watching series", item.title())
 				continue
-			else:
-				episode.series = series
-
-			# if multiepisode job: check if user will accept, otherwise 
-			# continue to next job
-			multi = False
-			try:
-				episode.episodes
-			except AttributeError:
-				pass
-			else:
-				if not config['tv']['multiepisode']['allow']:
-					continue
-				multi = True
 
 			# check if season of current episode is being ignored...
 			if series.ignore(episode.season): 
 				logger.info("skipping '%s', ignoring season", item.title())
 				continue
 
-			# first things first, check if exact episode (single or multi) already
-			# exists on disk.  If found, skip current job
-			if series_episode_exists(series, episode, config['tv']['ignored_extensions']): 
-				logger.info("skipping '%s', already on disk", item.title())
-				continue
-
-			# make sure current item isn't already in queue
-			if queue.in_queue(episode): 
-				logger.info("skipping '%s', in download queue", item.title())
-				continue
-
-			# make sure current item hasn't already been scheduled for download
-			if item in scheduled:
-				logger.info("skipping '%s', already scheduled for download", item.title())
-				continue
+			# if multiepisode job: check if user will accept, otherwise 
+			# continue to next job
+			if not config['tv']['multiepisode']['allow']:
+				try:
+					episode.episodes
+				except AttributeError:
+					pass
+				else:
+					continue
 
 			# make sure current item hasn't already been downloaded before
 			if queue.processed(item):
 				logger.info("skipping '%s', already processed by queue", item.title())
 				continue
 
-			# if job is a multiepisode, check the following:
-			#
-			#  all parts are on disk (or in queue) 
-			#     1) if aggressive flag IS set and user prefers multiepisodes, schedule episode for download
-			#     2) if aggressive flag IS NOT set, skip
-			if multi:
-				for ep in episode.episodes:
-					if not series_episode_exists(series, ep, config['tv']['ignored_extensions']): 
-						if not queue.in_queue(ep):
-							break
+			# check if episode is represented on disk (single or multi). If yes, determine whether 
+			# or not it should be scheduled for download.
+			# ATTENTION: this call takes into account users preferences regarding single vs multi-part 
+			# episodes as well as desired quality level
+			if not series.should_episode_be_downloaded(episode):
+				logger.info("skipping %r", item.title())
+				continue
+
+			# check if episode is already in the queue.  If yes, determine whether or not it should
+			# replace queued item and be scheduled for download
+			# ATTENTION: this call takes into account users preferences regarding single vs multi-part 
+			# episodes as well as desired quality level
+			if queue.in_queue(episode):
+				queued = queue.get_download_from_queue(episode)
+				if series.should_episode_be_downloaded(episode, queued):
+					drop_from_queue = queued
 				else:
-					# if the aggressive flag is true, then we only want to proceed if the 
-					# prefer flag is also true.  Otherwise, the user prefers single episodes
-					if config['tv']['multiepisode']['aggressive']:
-						if not config['tv']['multiepisode']['prefer']:
-							logger.info("skipping '%s', prefer single over multiepisodes", item.title())
-							continue
-					else:
-						logger.info("skipping '%s', all parts are already on disk and/or in the download queue", item.title())
-						continue
+					logger.info("skipping '%s', in download queue", item.title())
+					continue
 
-			# job is a single episode, check the following
-			#
-			#  a multiepisode containing current download exists on disk (or in queue)
-			#     1) if aggressive flag IS set and user prefers single episodes, schedule episode for download
-			#     2) if aggressive flag IS NOT set, skip
-			#
-			# NOTE: only need to check multiepisodes on disk and in queue if user allows multiepisodes to
-			#       be downloaded, and that they prefer single episodes over multiepisodes
-			elif config['tv']['multiepisode']['allow']:
-				found = 0
-				for multi in series_season_multiepisodes(series, episode.season, config['tv']['ignored_extensions']):
-					if episode in multi.episodes:
-						found = 1
-						break
+			# check if episode has already been scheduled for download.  If yes, determine whether or not it
+			# should replace the currently scheduled item.
+			# ATTENTION: this call takes into account users preferences regarding single vs multi-part 
+			# episodes as well as desired quality level
+			if item in scheduled:
+				old_item = scheduled[scheduled.index(old_item)]
+				if series.should_episode_be_downloaded(episode, old_item.download()):
+					drop_from_scheduled = old_item
 				else:
-					for job in queue.jobs():
-						
-						# grab download object from current job.  Skip to next job on error
-						try:
-							download = job.download()
-						except InvalidItemTitle:
-							continue
-
-						try:
-							if episode in download.episodes:
-								found = 2
-								break
-						except AttributeError:
-							continue
-
-				if config['tv']['multiepisode']['aggressive']:
-					if config['tv']['multiepisode']['prefer']:
-						logger.info("skipping '%s', prefer multi over single episodes", item.title())
-						continue
-				elif found > 0:
-					if found == 1:
-						logger.info("skipping '%s', part of multiepisode found on disk", item.title())
-					else:
-						logger.info("skipping '%s', part of multiepisode found in queue", item.title())
+					logger.info("skipping '%s', already scheduled for download", item.title())
 					continue
 
 			# we made it this far, schedule the current item for download!
 			logger.info("adding '%s' to download list", item.title())
 			scheduled.append(item)
 
-	logger.info("finished processing source items")
+			# remove existing item from scheduled list
+			if drop_from_scheduled is not None:
+				scheduled.remove(drop_from_scheduled)
+
+			# remove existing job from queue
+			if drop_from_queue is not None and not options.dry_run:
+				queue.remove_from_queue(drop_from_queue)
+
+	logger.debug("finished processing source items")
+	logger.info("scheduling items for download")
 
 	# now that we've fully parsed all source items
 	# lets add the collected downloads to the queue...
@@ -509,5 +476,5 @@ def _process(config, broker, options, args):
 			try:
 				queue.add_to_queue(item)
 			except (IOError, QueueInsertionError):
-				logger.warning("unable to download '%s'", item.title())
+				logger.warning("unable to schedule item %r for download", item.title())
 
