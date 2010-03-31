@@ -25,3 +25,16 @@ files
 	- each source should return one of supported categories when queried
 - update mediarover.error so that it doesn't accept arguments to apply to the error message
   - update to accept a logging level
+x add all watched series to dict
+x register as a dependency
+- all code that creates episodes uses dict of series objects to find series
+- update series interface to include methods that
+  a) say whether episode exists on disk or not, and
+  b) say whether given episode is of better quality than existing episode on disk
+x update series so that it can exist across multiple tv_roots
+- create a FilesystemSeries that subclasses Series.  This object will contain all filesystem related method and checks
+  - will also contain list of episodes for that series
+
+- for each source subclass, create an abstract factor.  All implementing subclasses will need to be able to handle daily, regular, and 
+multi-part episodes.
+  - have one handle method, and one new_from_string method which returns the appropriate object
