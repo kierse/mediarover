@@ -34,6 +34,10 @@ class Queue(object):
 		""" check if given download is already in queue """
 		raise NotImplementedError
 
+	def get_download_from_queue(self, download):
+		""" return equivalent download object from queue, None if not found """
+		raise NotImplementedError
+
 	def processed(self, item):
 		""" check if given item has already been processed by queue """
 		raise NotImplementedError

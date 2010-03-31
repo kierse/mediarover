@@ -116,18 +116,22 @@ class SabnzbdQueue(Queue):
 	def in_queue(self, download):
 		""" return boolean indicating whether or not the given source item is in queue """
 
-		logger = logging.getLogger("mediarover.queue.sabnzbd")
+		if self.get_download_from_queue(download) is None:
+			return False
+		else:
+			return True
+
+	def get_download_from_queue(self, download):
+		""" return equivalent download object if found in queue.  Return None if not found """
 
 		for job in self.jobs():
-			try:
-				if download == job.download():
-					logger.debug("download '%s' FOUND in queue", download)
-					return True
-			except InvalidItemTitle:
-				continue
+			queued = job.download()
+			if queued == download:
+				break
+		else:
+			queued = None
 
-		logger.debug("download '%s' NOT FOUND in queue", download)
-		return False
+		return queued
 
 	def processed(self, item):
 		""" return boolean indicating whether or not the given source item has already been processed by queue """
