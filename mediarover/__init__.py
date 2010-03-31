@@ -27,6 +27,11 @@ from mediarover.ds.metadata import Metadata
 from mediarover.error import *
 from mediarover.series import Series
 from mediarover.filesystem import create_episode
+from mediarover.source.mytvnzb import MytvnzbSource
+from mediarover.source.newzbin import NewzbinSource
+from mediarover.source.nzbmatrix import NzbmatrixSource
+from mediarover.source.nzbs import NzbsSource
+from mediarover.source.tvnzb import TvnzbSource
 from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.filesystem import *
 from mediarover.utils.injection import initialize_broker
@@ -101,6 +106,13 @@ def main():
 	broker.register('config', config)
 	broker.register('config_dir', CONFIG_DIR)
 	broker.register('resources_dir', RESOURCES_DIR)
+
+	# register the source objects
+	broker.register('newzbin', NewzbinSource)
+	broker.register('tvnzb', TvnzbSource)
+	broker.register('mytvnzb', MytvnzbSource)
+	broker.register('nzbs', NzbsSource)
+	broker.register('nzbmatrix', NzbmatrixSource)
 
 	# sanitize tv series filter subsection names for 
 	# consistent lookups
@@ -259,37 +271,29 @@ def _process(config, broker, options, args):
 			if len(feeds):
 				logger.debug("found %d feed(s) for source '%s'" % (len(feeds), available))
 
-				# since we actually have one or more feeds for this nzb source,
-				# attempt to load the required Source module 
-				module = None
-				try:
-					logger.debug("attempting to load module: 'mediarover.source.%s", available)
-					module = __import__("mediarover.source.%s" % available, globals(), locals(), [available.capitalize() + "Source"], -1)
-				except ImportError:
-					logger.warning("error loading source module 'mediarover.source.%s, moving on...", available)
+				# grab source object
+				source = broker[available]
 
 				# loop through list of available feeds and create Source object
-				else:
-					for feed in feeds:
-						logger.debug("creating source for feed '%s'", feed['label'])
-						try:
-							sources.append(
-								getattr(module, "%sSource" % available.capitalize())(
-									feed['url'], 
-									feed['label'], 
-									feed['type'],
-									feed['priority'], 
-									feed['timeout'], 
-									feed['quality']
-								)
+				for feed in feeds:
+					logger.debug("creating source for feed '%s'", feed['label'])
+					try:
+						sources.append(
+							source(
+								feed['label'], 
+								feed['url'], 
+								feed['type'],
+								feed['priority'], 
+								feed['timeout'], 
+								feed['quality']
 							)
-						except URLError, (msg):
-							logger.error("skipping source '%s', %s", source.name, msg)
-							continue
-						except Exception, (msg):
-							logger.error("skipping source '%s', unknown error: %s", source.name, msg)
-							continue
-
+						)
+					except URLError, (msg):
+						logger.error("skipping source '%s', %s", source.name, msg)
+						continue
+					except Exception, (msg):
+						logger.error("skipping source '%s', unknown error: %s", source.name, msg)
+						continue
 			else:
 				logger.debug("skipping source '%s', no feeds", available)
 
