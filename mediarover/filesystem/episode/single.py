@@ -42,7 +42,7 @@ class FilesystemSingleEpisode(SingleEpisode):
 			if pattern.search(string):
 				return True
 		
-		return SingleEpisode.handle(string):
+		return SingleEpisode.handle(string)
 
 	@classmethod
 	def new_from_episode(cls, episode, path):
@@ -95,7 +95,6 @@ class FilesystemSingleEpisode(SingleEpisode):
 			if 'quality' in kwargs:
 				params['quality'] = kwargs['quality']
 		else:
-			kwargs['series'] = series
 			params = SingleEpisode._parse_string(string, **kwargs)
 
 		return params
