@@ -19,7 +19,6 @@ import logging
 import os.path
 import sqlite3
 
-from mediarover.series import Series
 from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.injection import is_instance_of, Dependency
 
@@ -140,7 +139,7 @@ class Metadata(object):
 		""" query the database and return row data for the given series (if exists) """
 		details = None
 
-		args = (Series.sanitize_series_name(series, False),)
+		args = (series.sanitize_series_name(series=series),)
 		self.dbh.execute("SELECT id, name, sanitized_name, daily FROM series WHERE sanitized_name=?", args)
 		row = self.dbh.fetchone()
 		if row is not None:
@@ -154,7 +153,7 @@ class Metadata(object):
 
 		# series id wasn't given, try and find it
 		if series is None:
-			args = (Series.sanitize_series_name(episode.series, False),)
+			args = (episode.series.sanitize_series_name(series=episode.series),)
 			self.dbh.execute("SELECT id FROM series WHERE sanitized_name=?", args)
 			row = self.dbh.fetchone()
 			if row is not None:
