@@ -41,3 +41,5 @@ multi-part episodes.
 
 - update source.py to be an interface rather than an implementation
 - look at creating a RssSource object
+
+- stop logging from within error objects.  Add logging call before each raise error.  Fatal errors will print stack trace
