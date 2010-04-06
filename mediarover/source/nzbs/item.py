@@ -69,8 +69,6 @@ class NzbsItem(Item):
 				raise InvalidItemTitle("unable to parse item title and create MultiEpisode object: %r" % title)
 			except MissingParameterError:
 				raise InvalidItemTitle("unable to parse item title and create SingleEpisode object: %r" % title)
-			except:
-				raise InvalidItemTitle("unsupported item title format: %r" % self.title())
 
 		return download
 

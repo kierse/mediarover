@@ -72,8 +72,6 @@ class NewzbinItem(Item):
 				raise InvalidItemTitle("unable to parse item title and create MultiEpisode object: %s" % title)
 			except MissingParameterError:
 				raise InvalidItemTitle("unable to parse item title and create SingleEpisode object: %s" % title)
-			except:
-				raise InvalidItemTitle("unsupported item title format: %s" % self.title())
 
 		return download
 

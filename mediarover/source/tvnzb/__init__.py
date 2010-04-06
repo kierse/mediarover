@@ -42,13 +42,16 @@ class TvnzbSource(Source):
 
 			self.__items = []
 			for rawItem in self.__document.getElementsByTagName("item"):
+				title = rawItem.getElementsByTagName("title")[0].childNodes[0].data
 				try:
 					item = TvnzbItem(rawItem, self.type, self.priority, self.quality)
 				except InvalidItemTitle:
-					title = rawItem.getElementsByTagName("title")[0].childNodes[0].data
 					logger.debug("skipping '%s', unknown format", title)
 				else:
-					self.__items.append(item)
+					if item is None:
+						logger.warning("unsupported item title format: %s" % title)
+					else:
+						self.__items.append(item)
 
 		# return item list to caller
 		return self.__items

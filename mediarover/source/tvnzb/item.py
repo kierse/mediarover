@@ -67,8 +67,6 @@ class TvnzbItem(Item):
 			raise InvalidItemTitle("unable to parse item title and create MultiEpisode object")
 		except MissingParameterError:
 			raise InvalidItemTitle("unable to parse item title and create SingleEpisode object")
-		except:
-			raise InvalidItemTitle("unsupported item title format: %s" % self.title())
 
 		return downoad
 

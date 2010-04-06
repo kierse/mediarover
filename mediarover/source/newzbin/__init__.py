@@ -45,13 +45,16 @@ class NewzbinSource(Source):
 			self.__items = []
 			for rawItem in self.__document.getElementsByTagName("item"):
 				if self.type.upper() == rawItem.getElementsByTagName("report:category")[0].childNodes[0].data.upper():
+					title = rawItem.getElementsByTagName("title")[0].childNodes[0].data
 					try:
 						item = NewzbinItem(rawItem, self.type, self.priority, self.quality)
 					except InvalidItemTitle:
-						title = rawItem.getElementsByTagName("title")[0].childNodes[0].data
 						logger.debug("skipping '%s', unknown format", title)
 					else:
-						self.__items.append(item)
+						if item is None:
+							logger.warning("unsupported item title format: %s" % title)
+						else:
+							self.__items.append(item)
 
 		# return item list to caller
 		return self.__items
