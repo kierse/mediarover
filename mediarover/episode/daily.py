@@ -27,7 +27,7 @@ class DailyEpisode(Episode):
 
 	supported_patterns = (
 		# daily regex: <year>-<month>-<day>
-		re.compile("(\d{4})[\.\-\/\_]?(\d{2})[\.\-\/\_]?(\d{2})")
+		re.compile("(\d{4})[\.\-\/\_]?(\d{2})[\.\-\/\_]?(\d{2})"),
 	)
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -82,7 +82,8 @@ class DailyEpisode(Episode):
 		# NOTE: title will only be set if it was specifically provided, meaning
 		# that it was provided by the source.  Since we are unable to accurately
 		# determine the title from the filename, the default is to not set it.
-		params['title'] = title
+		if 'title' in kwargs:
+			params['title'] = kwargs['title']
 
 		if 'quality' in kwargs:
 			params['quality'] = kwargs['quality']
