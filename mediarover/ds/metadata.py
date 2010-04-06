@@ -74,23 +74,33 @@ class Metadata(object):
 
 	def add_in_progress(self, title, type, quality):
 		""" record given nzb in progress table with type, and quality """
-		self.dbh.execute("INSERT INTO in_progress (title, type, quality) VALUES (?,?,?)", (title, type, quality))
-		self.dbh.commit()
+		cur = self.__dbh.cursor()
+		cur.execute("INSERT INTO in_progress (title, type, quality) VALUES (?,?,?)", (title, type, quality))
+		self.__dbh.commit()
+		cur.close()
 
 	def get_in_progress(self, title):
 		""" retrieve tuple from the in_progress table for a given session id.  If given id doesn't exist, return None """
-		self.dbh.execute("SELECT type, quality FROM in_progress WHERE title=?", (title,))
-		return self.dbh.fetchone()
+		cur = self.__dbh.cursor()
+		cur.execute("SELECT type, quality FROM in_progress WHERE title=?", (title,))
+		row = self.__cursor.fetchone()
+		cur.close()
+
+		return row
 
 	def delete_in_progress(self, title):
 		""" delete tuple from the in_progress table for a given session id.  Return 1 for success, 0 if given session id is not found """
-		self.dbh.execute("DELETE FROM in_progress where title=?", (title,))
-		self.dbh.commit()
+		cur = self.__dbh.cursor()
+		cur.execute("DELETE FROM in_progress where title=?", (title,))
+		self.__dbh.commit()
+		count = cur.rowcount()
+		cur.close()
 
-		return self.dbh.rowcount
+		return count
 
 	def register_episode(self, episode, quality):
 		""" record given episode and quality in database """
+		cur = self.__dbh.cursor()
 
 		# first, determine if episode series is in db
 		series = self.__fetch_series_data(episode.series)
@@ -98,8 +108,8 @@ class Metadata(object):
 		# if series doesn't exist, register it
 		if series is None:
 			args = (episode.series.name, sanitized, episode.daily)
-			self.dbh.execute("INSERT INTO series VALUES (?)", args)
-			series = self.dbh.lastrowid
+			cur.execute("INSERT INTO series VALUES (?)", args)
+			series = cur.lastrowid
 		else:
 			series = series['id']
 
@@ -116,7 +126,7 @@ class Metadata(object):
 				sql += "series_episode VALUES (?)"
 
 			# insert episode
-			self.dbh.execute(sql, (args))
+			cur.execute(sql, (args))
 		
 		# update existing episode
 		else:
@@ -127,35 +137,39 @@ class Metadata(object):
 				sql = "UPDATE series_episode SET quality=? WHERE id=?"
 
 			# update episode data
-			self.dbh.execute(sql, args)
-			self.dbh.commit()
+			cur.execute(sql, args)
+			self.__dbh.commit()
+			cur.close()
 
 	def cleanup(self):
-		self.dbh.close()
+		self.__dbh.close()
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def __fetch_series_data(self, series):
 		""" query the database and return row data for the given series (if exists) """
+		cur = self.__dbh.cursor()
 		details = None
 
 		args = (series.sanitize_series_name(series=series),)
-		self.dbh.execute("SELECT id, name, sanitized_name, daily FROM series WHERE sanitized_name=?", args)
-		row = self.dbh.fetchone()
+		cur.execute("SELECT id, name, sanitized_name, daily FROM series WHERE sanitized_name=?", args)
+		row = cur.fetchone()
 		if row is not None:
 			details = row
 
+		cur.close()
 		return details
 
 	def __fetch_episode_data(self, episode, series=None):
 		""" query the database and return row data for the given episode (if exists) """
+		cur = self.__dbh.cursor()
 		details = None
 
 		# series id wasn't given, try and find it
 		if series is None:
 			args = (episode.series.sanitize_series_name(series=episode.series),)
-			self.dbh.execute("SELECT id FROM series WHERE sanitized_name=?", args)
-			row = self.dbh.fetchone()
+			cur.execute("SELECT id FROM series WHERE sanitized_name=?", args)
+			row = cur.fetchone()
 			if row is not None:
 				series = row['id']
 
@@ -169,42 +183,37 @@ class Metadata(object):
 				args.extend(episode.season, episode.episode)
 				sql += "series_episode WHERE series=? AND season=? AND episode=?"
 				
-			self.dbh.execute(sql, (args))
-			row = self.dbh.fetchone()
+			cur.execute(sql, (args))
+			row = cur.fetchone()
 			if row is not None:
 				details = row
 
+		cur.close()
 		return details
 
 	def _build_schema(self):
 		""" invoked the first time an instance is created, or when the database file cannot be found """
 		logger = logging.getLogger("mediarover.ds.metadata")
+
+		cur = self.__dbh.cursor()
 		
 		# read the sql commands from disk
 		with open(os.path.join(self.resources, "metadata.sql"), "r") as fh:
 			sql = fh.readlines()
 
 		# and create the schema
-		self.dbh.executescript("\n".join(sql))
-		self.dbh.commit()
+		cur.executescript("\n".join(sql))
+		self.__dbh.commit()
+		cur.close()
 
 		logger.info("created metadata datastore")
-
-	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	def _dbh_prop(self):
-		return self.__dbh
-
-	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	dbh = property(fget=_dbh_prop, doc="database handler")
 
 	def __init__(self):
 
 		db = os.path.join(self.config_dir, "ds", "metadata.mr")
 		exists = True if os.path.exists(db) else False
 
-		# establish connection to 
+		# establish connection to database
 		self.__dbh = sqlite3.connect(db)
 
 		if exists == False:

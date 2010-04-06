@@ -432,6 +432,7 @@ def _process(config, broker, options, args):
 			# replace queued item and be scheduled for download
 			# ATTENTION: this call takes into account users preferences regarding single vs multi-part 
 			# episodes as well as desired quality level
+			drop_from_queue = None
 			if queue.in_queue(episode):
 				queued = queue.get_download_from_queue(episode)
 				if series.should_episode_be_downloaded(episode, queued):
@@ -444,6 +445,7 @@ def _process(config, broker, options, args):
 			# should replace the currently scheduled item.
 			# ATTENTION: this call takes into account users preferences regarding single vs multi-part 
 			# episodes as well as desired quality level
+			drop_from_scheduled = None
 			if item in scheduled:
 				old_item = scheduled[scheduled.index(old_item)]
 				if series.should_episode_be_downloaded(episode, old_item.download()):

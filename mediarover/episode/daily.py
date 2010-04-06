@@ -138,6 +138,9 @@ class DailyEpisode(Episode):
 	def _series_prop(self):
 		return self._series
 
+	def _season_prop(self):
+		return self._year
+
 	def _year_prop(self):
 		return self._year
 
@@ -156,6 +159,7 @@ class DailyEpisode(Episode):
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	series = property(fget=_series_prop, doc="episode series object")
+	season = property(fget=_season_prop, doc="episode season")
 	year = property(fget=_year_prop, doc="episode year")
 	month = property(fget=_month_prop, doc="episode month")
 	day = property(fget=_day_prop, doc="episode day")
