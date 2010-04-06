@@ -26,7 +26,7 @@ class FilesystemMultiEpisode(MultiEpisode):
 
 	supported_patterns = (
 		# multiepisode 1 regex, 01-02
-		re.compile("^(\d{1,2})-(\d{1,2})")
+		re.compile("^(\d{1,2})-(\d{1,2})"),
 	)
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -55,74 +55,78 @@ class FilesystemMultiEpisode(MultiEpisode):
 			path = path
 		)
 
+#	@classmethod
+#	def new_from_string(cls, series, path **kwargs):
+#		""" parse given string and create new FilesystemMultiEpisode object from extracted values """
+#
+#		# strip path and extension to get filename
+#		(filename, ext) = os.path.splitext(path)
+#		filename = os.path.basename(filename)
+#
+#		# get a dict containing all values provided (by caller) or successfully 
+#		# extracted from given string
+#		params = cls._parse_string(filename, series=series, **kwargs)
+#
+#		# grab start and end episodes
+#		start = params['start_episode']
+#		end = params['end_episode']
+#		del params['start_episode']
+#		del params['end_episode']
+#
+#		title = params['title']
+#		del params['title']
+#
+#		episodes = []
+#		for num in range(int(start), int(end)+1):
+#			episodes.append(FilesystemSingleEpisode(episode=num, **params))
+#
+#		return cls(episodes, path, title, params['quality'])
+
 	@classmethod
-	def new_from_string(cls, series, path **kwargs):
-		""" parse given string and create new FilesystemMultiEpisode object from extracted values """
-
-		# strip path and extension to get filename
-		(filename, ext) = os.path.splitext(path)
-		filename = os.path.basename(filename)
-
-		# get a dict containing all values provided (by caller) or successfully 
-		# extracted from given string
-		params = cls._parse_string(filename, series=series, **kwargs)
-
-		# grab start and end episodes
-		start = params['start_episode']
-		end = params['end_episode']
-		del params['start_episode']
-		del params['end_episode']
-
-		title = params['title']
-		del params['title']
-
-		episodes = []
-		for num in range(int(start), int(end)+1):
-			episodes.append(FilesystemSingleEpisode(episode=num, **params))
-
-		return cls(episodes, path, title, params['quality'])
-
-	@classmethod
-	def _parse_string(cls, string, **kwargs):
+	def extract_from_string(cls, path, **kwargs):
 		""" parse given string and attempt to extract multiepisode values """
 		params = {
 			'series': None,
 			'season': None,
 			'start_episode': None,
 			'end_episode': None,
+			'path': None,
 			'title': None,
 			'quality':None,
 		}
 
+		# strip path and extension to get filename
+		(filename, ext) = os.path.splitext(path)
+		filename = os.path.basename(filename)
+
 		for pattern in cls.supported_patterns:
-			match = pathern.search(string)
+			match = pattern.search(filename)
 			if match:
 				params['start_season'] = kwargs['season'] if 'season' in kwargs else match.group(1)
 				params['start_episode'] = match.group(2)
 				params['end_season'] = kwargs['season'] if 'season' in kwargs else match.group(3)
 				params['end_episode'] = match.group(4)
+				params['series'] = kwargs['series']
+				if 'title' in kwargs:
+					params['title'] = kwargs['title']
+				if 'quality' in kwargs:
+					params['quality'] = kwargs['quality']
+
+				if params['start_season'] == params['end_season']:
+					params['season'] = params['start_season']
+					del params['start_season']
+					del params['end_season']
+				else:
+					raise InvalidMultiEpisodeData("FilesystemMultiEpisode parts must be from the same season")
+					
+				if None in (params['start_episode'], params['end_episode']):
+					raise InvalidMultiEpisodeData("Unable to determine start and end of multiepisde")
+
 				break
 		else:
-			params = MultiEpisode._parse_string(string, **kwargs)
+			params = MultiEpisode._parse_string(filename, **kwargs)
 
-		if params['start_season'] == params['end_season']:
-			params['season'] = params['start_season']
-			del params['start_season']
-			del params['end_season']
-		else:
-			raise InvalidMultiEpisodeData("FilesystemMultiEpisode parts must be from the same season")
-			
-		if None in (params['start_episode'], params['end_episode']):
-			raise InvalidMultiEpisodeData("Unable to determine start and end of multiepisde")
-
-		if 'series' in kwargs:
-			params['series'] = kwargs['series']
-
-		if 'title' in kwargs:
-			params['title'] = kwargs['title']
-
-		if 'quality' in kwargs:
-			params['quality'] = kwargs['quality']
+		params['path'] = path
 
 		return params
 
@@ -225,12 +229,12 @@ class FilesystemMultiEpisode(MultiEpisode):
 
 	path = property(fget=_path_prop, doc="filesystem path to episode file")
 
-	def __init__(self, episodes, path, title = "", quality = None):
+	def __init__(self, series, season, start_episode, end_episode, path, title = "", quality = None):
 		
 		if path is None:
 			raise MissingParameterError("missing filesystem path")
 
-		super(FilesystemMultiEpisode, self).__init__(episodes, title, quality = None)
+		super(FilesystemMultiEpisode, self).__init__(series, season, start_episode, end_episode, title, quality)
 
 		self.__path = path
 

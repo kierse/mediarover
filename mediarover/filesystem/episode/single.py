@@ -57,20 +57,20 @@ class FilesystemSingleEpisode(SingleEpisode):
 			path = path
 		)
 
+#	@classmethod
+#	def new_from_string(cls, series, path, **kwargs):
+#		""" parse given string and create new FilesystemSingleEpisode object from extracted values """
+#
+#		# strip path and extension to get filename
+#		(filename, ext) = os.path.splitext(path)
+#		filename = os.path.basename(filename)
+#
+#		# get a dict containing all values successfully extracted from given string
+#		params = cls._parse_string(filename, series=series, **kwargs)
+#		return cls(path=path, **params)
+
 	@classmethod
-	def new_from_string(cls, series, path, **kwargs):
-		""" parse given string and create new FilesystemSingleEpisode object from extracted values """
-
-		# strip path and extension to get filename
-		(filename, ext) = os.path.splitext(path)
-		filename = os.path.basename(filename)
-
-		# get a dict containing all values successfully extracted from given string
-		params = cls._parse_string(filename, series=series, **kwargs)
-		return cls(path=path, **params)
-
-	@classmethod
-	def _parse_string(cls, string, **kwargs):
+	def extract_from_string(cls, path, **kwargs):
 		""" parse given string and attempt to extract episode values """
 
 		params = {
@@ -80,22 +80,26 @@ class FilesystemSingleEpisode(SingleEpisode):
 			'title':None,
 			'quality':None,
 		}
+
+		# strip path and extension to get filename
+		(filename, ext) = os.path.splitext(path)
+		filename = os.path.basename(filename)
 		
 		for pattern in cls.supported_patterns:
-			match = pattern.search(string)
+			match = pattern.search(filename)
 			if match:
 				params['season'] = kwargs['season'] if 'season' in kwargs else match.group(1)
 				params['episode'] = kwargs['episode'] if 'episode' in kwargs else match.group(2)
+				params['series'] = kwargs['series']
+				if 'title' in kwargs:
+					params['title'] = kwargs['title']
+				if 'quality' in kwargs:
+					params['quality'] = kwargs['quality']
 				break
-
-		if match:
-			params['series'] = kwargs['series']
-			if 'title' in kwargs:
-				params['title'] = kwargs['title']
-			if 'quality' in kwargs:
-				params['quality'] = kwargs['quality']
 		else:
-			params = SingleEpisode._parse_string(string, **kwargs)
+			params = SingleEpisode.extract_from_string(filename, **kwargs)
+
+		params['path'] = path
 
 		return params
 
