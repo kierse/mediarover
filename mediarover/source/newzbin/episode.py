@@ -13,13 +13,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
-import logging
+from mediarover.episode.single import SingleEpisode
+from mediarover.episode.daily import DailyEpisode
+from mediarover.episode.multi import MultiEpisode
 
-from mediarover.episode import Episode, MultiEpisode
-
-class NewzbinEpisode(Episode):
-	""" newzbin episode """
+class NewzbinSingleEpisode(SingleEpisode):
+	""" newzbin single episode """
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -28,23 +27,16 @@ class NewzbinEpisode(Episode):
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	@classmethod
-	def new_from_string(cls, string, quality):
-		""" parse given string and create new Episode object from extracted values """
-
-		logger = logging.getLogger("mediarover.source.newzbin.episode")
-		logger.debug("parsing '%s'", string)
+	def extract_from_string(cls, string, **kwargs):
+		""" parse given string and extract values necessary to create a new SingleEpisode object """
 
 		# grab the series name
-		(series, sep, other) = string.partition(" - ")
+		(kwargs['series'], sep, other) = string.partition(" - ")
 
 		# grab the episode title (if provided)
-		(other, sep, title) = other.partition(" - ")
+		(other, sep, kwargs['title']) = other.partition(" - ")
 
-		# get a dict containing all values successfully extracted from given string
-		p = NewzbinEpisode.parse_string(other, series=series, title=title)
-
-		return NewzbinEpisode(series = p['series'], season = p['season'], daily = p['daily'], episode = p['episode'], 
-			year = p['year'], month = p['month'], day = p['day'], title = p['title'], quality = quality)
+		return SingleEpisode.extract_from_string(other, **kwargs)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -53,18 +45,40 @@ class NewzbinMultiEpisode(MultiEpisode):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 	@classmethod
-	def new_from_string(cls, string, quality):
-		""" parse given string and create new MultiEpisode object from extracted values """
+	def extract_from_string(cls, string, **kwargs):
+		""" parse given string and extract values necessary to create a new MultiEpisode object """
 
 		# grab the series name
-		(series, sep, other) = string.partition(" - ")
+		(kwargs['series'], sep, other) = string.partition(" - ")
 
 		# grab the episode title (if provided)
-		(other, sep, title) = other.partition(" - ")
+		(other, sep, kwargs['title']) = other.partition(" - ")
 
-		multi = MultiEpisode.new_from_string(other, series=series, quality=quality)
-		multi.title = title
+		return MultiEpisode.extract_from_string(other, **kwargs)
 
-		return multi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+class NewzbinDailyEpisode(DailyEpisode):
+	""" newzbin daily episode """
+
+	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	@classmethod
+	def extract_from_string(cls, string, **kwargs):
+		""" parse given string and extract values necessary to create a new DailyEpisode object """
+
+		# grab the series name
+		(kwargs['series'], sep, other) = string.partition(" - ")
+
+		# grab the episode title (if provided)
+		(other, sep, kwargs['title']) = other.partition(" - ")
+
+		return DailyEpisode.extract_from_string(other, **kwargs)
 

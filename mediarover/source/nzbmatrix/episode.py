@@ -16,49 +16,31 @@
 import logging
 import re
 
-from mediarover.episode import Episode
+from mediarover.episode.daily import DailyEpisode
 
-class NzbmatrixEpisode(Episode):
-	""" nzbmatrix episode """
+class NzbmatrixDailyEpisode(DailyEpisode):
+	""" nzbmatrix daily episode """
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	# daily regex: <year> <month> <day>
-	date_regex = re.compile("(\d{4})\s+(\d{2})\s+(\d{2})")
-
-	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	supported_patterns = (
+		# daily regex: <year> <month> <day>
+		re.compile("(\d{4})\s+(\d{2})\s+(\d{2})"),
+	)
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	@classmethod
 	def handle(cls, string):
 
-		if NzbmatrixEpisode.date_regex.search(string):
-			return True
+		for pattern in cls.supported_patterns:
+			if pattern.search(string):
+				return True
 
-		if Episode.handle(string):
-			return True
-
-		return False
+		return DailyEpisode.handle(string)
 
 	@classmethod
-	def new_from_string(cls, string, quality):
-		""" parse given string and create new Episode object from extracted values """
-
-		logger = logging.getLogger("mediarover.source.nzbmatrix.episode")
-		logger.debug("parsing '%s'", string)
-
-		# get a dict containing all values successfully extracted from given string
-		p = NzbmatrixEpisode.parse_string(string)
-
-		return NzbmatrixEpisode(series = p['series'], season = p['season'], daily = p['daily'], episode = p['episode'], 
-			year = p['year'], month = p['month'], day = p['day'], quality = quality)
-
-	@classmethod
-	def parse_string(cls, string, series = None, season = None, daily = None, 
-		episode = None, year = None, month = None, day = None, title = None):
+	def extract_from_string(cls, string, **kwargs):
 		"""
 			parse given string and attempt to extract episode values
 
@@ -67,40 +49,42 @@ class NzbmatrixEpisode(Episode):
 				<series>.<season>[xX]<episode>
 				<series>.<year>.<day>.<month>
 		"""
-		# daily shows
-		match = NzbmatrixEpisode.date_regex.search(string)
-		if match:
-			params = {
-				'series':None,
-				'daily':None,
-				'season':None,
-				'episode':None,
-				'year':None,
-				'month':None,
-				'day':None,
-				'title':None,
-			}
+		params = {
+			'series':None,
+			'year':None,
+			'month':None,
+			'day':None,
+			'title':None,
+			'quality':None,
+		}
 
-			params['daily'] = daily or True
-			params['season'] = season or match.group(1)
-			params['year'] = year or match.group(1)
-			params['month'] = month or match.group(2)
-			params['day'] = day or match.group(3)
+		for pattern in cls.supported_patterns:
+			match = pattern.search(string)
+			if match:
+				params['year'] = kwargs['year'] if 'year' in kwargs else match.group(1)
+				params['month'] = kwargs['month'] if 'month' in kwargs else match.group(2)
+				params['day'] = kwargs['day'] if 'day' in kwargs else match.group(3)
 
-			# try to set series 
-			start = 0 
-			end = match.start()
-			params['series'] = series or match.string[start:end]
+				if 'series' in kwargs:
+					params['series'] = kwargs['series']
+				else:
+					start = 0 
+					end = match.start()
+					params['series'] = match.string[start:end]
 
-			# finally, set the episode title
-			# NOTE: title will only be set if it was specifically provided, meaning
-			# that it was provided by the source.  Since we are unable to accurately
-			# determine the title from the filename, the default is to not set it.
-			params['title'] = title
+				if 'title' in kwargs:
+					params['title'] = title
 
+				if 'quality' in kwargs:
+					params['quality'] = kwargs['quality']
+
+				break
 		else:
-			params = Episode.parse_string(string, series, season, daily, episode, 
-				year, month, day, title)
+			params = DailyEpisode.extract_from_string(string, **kwargs)
 
 		return params
+
+	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
