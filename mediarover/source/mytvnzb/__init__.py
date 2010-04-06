@@ -63,3 +63,4 @@ class MytvnzbSource(Source):
 		self.__document = xml.dom.minidom.parse(url)
 
 		socket.setdefaulttimeout(current_timeout)
+

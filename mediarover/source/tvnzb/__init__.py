@@ -18,8 +18,8 @@ import socket
 import urllib2
 import xml.dom.minidom
 
-from item import TvnzbItem
 from mediarover.source import Source
+from mediarover.source.tvnzb.item import TvnzbItem
 
 class TvnzbSource(Source):
 	""" tvnzb source class """
