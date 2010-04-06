@@ -26,14 +26,12 @@ from mediarover.config import read_config, generate_config_files, build_series_f
 from mediarover.ds.metadata import Metadata
 from mediarover.error import *
 from mediarover.series import Series
-from mediarover.filesystem import create_episode
-from mediarover.source.mytvnzb import MytvnzbSource
-from mediarover.source.newzbin import NewzbinSource
-from mediarover.source.nzbmatrix import NzbmatrixSource
-from mediarover.source.nzbs import NzbsSource
-from mediarover.source.tvnzb import TvnzbSource
+from mediarover.source.tvnzb.factory import TvnzbFactory
+from mediarover.source.mytvnzb.factory import MytvnzbFactory
+from mediarover.source.newzbin.factory import NewzbinFactory
+from mediarover.source.nzbmatrix.factory import NzbmatrixFactory
+from mediarover.source.nzbs.factory import NzbsFactory
 from mediarover.utils.configobj import ConfigObj
-from mediarover.utils.filesystem import *
 from mediarover.utils.injection import initialize_broker
 from mediarover.version import __app_version__
 
@@ -101,18 +99,18 @@ def main():
 
 	""" post configuration setup """
 
-	# initialize dependency broker and register common features
+	# initialize dependency broker and register resources
 	broker = initialize_broker()
 	broker.register('config', config)
 	broker.register('config_dir', CONFIG_DIR)
 	broker.register('resources_dir', RESOURCES_DIR)
 
 	# register the source objects
-	broker.register('newzbin', NewzbinSource)
-	broker.register('tvnzb', TvnzbSource)
-	broker.register('mytvnzb', MytvnzbSource)
-	broker.register('nzbs', NzbsSource)
-	broker.register('nzbmatrix', NzbmatrixSource)
+	broker.register('newzbin', NewzbinFactory())
+	broker.register('tvnzb', TvnzbFactory())
+	broker.register('mytvnzb', MytvnzbFactory())
+	broker.register('nzbs', NzbsFactory())
+	broker.register('nzbmatrix', NzbmatrixFactory())
 
 	# sanitize tv series filter subsection names for 
 	# consistent lookups
@@ -289,14 +287,14 @@ def _process(config, broker, options, args):
 				logger.debug("found %d feed(s) for source '%s'" % (len(feeds), available))
 
 				# grab source object
-				source = broker[available]
+				factory = broker[available]
 
 				# loop through list of available feeds and create Source object
 				for feed in feeds:
 					logger.debug("creating source for feed '%s'", feed['label'])
 					try:
 						sources.append(
-							source(
+							factory.create_source(
 								feed['label'], 
 								feed['url'], 
 								feed['type'],

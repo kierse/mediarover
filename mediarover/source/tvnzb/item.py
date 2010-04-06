@@ -17,11 +17,17 @@ import logging
 import re
 
 from mediarover.error import *
-from mediarover.episode import Episode, MultiEpisode
+from mediarover.source.factory import Factory
 from mediarover.source.item import Item
+from mediarover.utils.injection import is_instance_of, Dependency
 
 class TvnzbItem(Item):
 	""" wrapper object representing an unparsed report object """
+
+	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	# declare module dependencies
+	factory = Dependency('tvnzb', is_instance_of(Factory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -54,22 +60,15 @@ class TvnzbItem(Item):
 	def __parseItem(self):
 		""" parse item data and build appropriate download object """
 
-		title = self.title()
-		quality = self.quality()
 		download = None
-
-		if MultiEpisode.handle(title):
-			try:
-				download = MultiEpisode.new_from_string(title, quality)
-			except (InvalidMultiEpisodeData, MissingParameterError):
-				raise InvalidItemTitle("unable to parse item title and create MultiEpisode object")
-		elif Episode.handle(title):
-			try:
-				download = Episode.new_from_string(title, quality)
-			except MissingParameterError:
-				raise InvalidItemTitle("unable to parse item title and create Episode object")
-		else:
-			raise InvalidItemTitle("unsupported item title format")
+		try:
+			download = self.factory.create_episode(self.title(), quality=self.quality())
+		except InvalidMultiEpisodeData:
+			raise InvalidItemTitle("unable to parse item title and create MultiEpisode object")
+		except MissingParameterError:
+			raise InvalidItemTitle("unable to parse item title and create SingleEpisode object")
+		except:
+			raise InvalidItemTitle("unsupported item title format: %s" % self.title())
 
 		return downoad
 

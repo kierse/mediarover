@@ -55,22 +55,16 @@ class NzbmatrixItem(Item):
 	def __parseItem(self):
 		""" parse item data and build appropriate download object """
 
-		title = self.title()
-		quality = self.quality()
 		download = None
-
-		if MultiEpisode.handle(title):
+		if int(self._report_category_id()) in list(6, 41):
 			try:
-				download = MultiEpisode.new_from_string(title, quality)
-			except (InvalidMultiEpisodeData, MissingParameterError):
-				raise InvalidItemTitle("unable to parse item title and create MultiEpisode object")
-		elif NzbmatrixEpisode.handle(title):
-			try:
-				download = NzbmatrixEpisode.new_from_string(title, quality)
+				download = self.factory.create_episode(self.title(), quality=self.quality())
+			except InvalidMultiEpisodeData:
+				raise InvalidItemTitle("unable to parse item title and create MultiEpisode object: %s" % title)
 			except MissingParameterError:
-				raise InvalidItemTitle("unable to parse item title and create NzbmatrixEpisode object")
-		else:
-			raise InvalidItemTitle("unsupported item title format")
+				raise InvalidItemTitle("unable to parse item title and create SingleEpisode object: %s" % title)
+			except:
+				raise InvalidItemTitle("unsupported item title format: %s" % self.title())
 
 		return download
 
