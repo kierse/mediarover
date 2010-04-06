@@ -22,5 +22,6 @@ class Episode(Download):
 		raise NotImplementedError
 
 	@classmethod
-	def new_from_string(cls, string, **kwargs):
+	def extract_from_string(cls, string, **kwargs):
 		raise NotImplementedError
+

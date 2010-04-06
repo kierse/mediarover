@@ -18,9 +18,7 @@ import os.path
 import re
 
 from mediarover.error import *
-from mediarover.series import Series
 from mediarover.episode import Episode
-from mediarover.utils.injection import is_instance_of, Dependency
 
 class DailyEpisode(Episode):
 	""" represent a daily episode of tv """
@@ -31,9 +29,6 @@ class DailyEpisode(Episode):
 		# daily regex: <year>-<month>-<day>
 		re.compile("(\d{4})[\.\-\/\_]?(\d{2})[\.\-\/\_]?(\d{2})")
 	)
-
-	# declare module dependencies
-	watched_series = Dependency('watched_series', is_instance_of(dict))
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -47,15 +42,7 @@ class DailyEpisode(Episode):
 		return False
 
 	@classmethod
-	def new_from_string(cls, string, **kwargs):
-		""" parse given string and create new Episode object from extracted values """
-
-		# get a dict containing all values successfully extracted from given string
-		params = DailyEpisode._parse_string(string, **kwargs)
-		return DailyEpisode(**params)
-
-	@classmethod
-	def _parse_string(cls, string, **kwargs):
+	def extract_from_string(cls, string, **kwargs):
 		"""
 			parse given string and attempt to extract episode values
 
@@ -77,10 +64,10 @@ class DailyEpisode(Episode):
 		for pattern in DailyEpisode.supported_patterns:
 			match = pattern.search(string)
 			if match:
-				params['season'] = kwargs['season'] if 'season' in kwargs else match.group(1)
 				params['year'] = kwargs['year'] if 'year' in kwargs else match.group(1)
 				params['month'] = kwargs['month'] if 'month' in kwargs else match.group(2)
 				params['day'] = kwargs['day'] if 'day' in kwargs else match.group(3)
+				break
 
 		# if we've got a match object, try to set series 
 		if 'series' in kwargs:
@@ -89,13 +76,7 @@ class DailyEpisode(Episode):
 		elif match:
 			start = 0 
 			end = match.start()
-
-			series_name = series or match.string[start:end]
-			sanitized_name = Series.sanitized_series_name(name=series_name)
-			if sanitized_name in self.watched_series:
-				params['series'] = self.watched_series[sanitized_name]
-			else:
-				params['series'] = Series(name)
+			params['series'] = match.string[start:end]
 
 		# finally, set the episode title
 		# NOTE: title will only be set if it was specifically provided, meaning
@@ -109,14 +90,6 @@ class DailyEpisode(Episode):
 		return params
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-#	def broadcast(self):
-#		""" broadcast date (for internal use only) """
-#
-#		if self.daily:
-#			return "%04d%02d%02d" % (self.year, self.month, self.day)
-#		else:
-#			return None
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

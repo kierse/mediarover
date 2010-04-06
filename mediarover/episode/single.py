@@ -18,9 +18,7 @@ import os.path
 import re
 
 from mediarover.error import *
-from mediarover.series import Series
 from mediarover.episode import Episode
-from mediarover.utils.injection import is_instance_of, Dependency
 
 class SingleEpisode(Episode):
 	""" represents an episode of tv """
@@ -35,30 +33,19 @@ class SingleEpisode(Episode):
 		re.compile("(\d{1,2})[a-zA-Z]{1}(\d{1,2})")
 	)
 
-	# declare module dependencies
-	watched_series = Dependency('watched_series', is_instance_of(dict))
-
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	@classmethod
 	def handle(cls, string):
 
-		for pattern in SingleEpisode.supported_patterns:
+		for pattern in cls.supported_patterns:
 			if pattern.search(string):
 				return True
 
 		return False
 
 	@classmethod
-	def new_from_string(cls, string, **kwargs):
-		""" parse given string and create new Episode object from extracted values """
-
-		# get a dict containing all values successfully extracted from given string
-		params = cls._parse_string(string, **kwargs)
-		return cls(**params)
-
-	@classmethod
-	def _parse_string(cls, string, **kwargs):
+	def extract_from_string(cls, string, **kwargs):
 		"""
 			parse given string and attempt to extract episode values
 
@@ -92,13 +79,7 @@ class SingleEpisode(Episode):
 		elif match:
 			start = 0 
 			end = match.start()
-
-			series_name = series or match.string[start:end]
-			sanitized_name = Series.sanitized_series_name(name=series_name)
-			if sanitized_name in self.watched_series:
-				params['series'] = self.watched_series[sanitized_name]
-			else:
-				params['series'] = Series(name)
+			params['series'] = match.string[start:end]
 
 		# finally, set the episode title
 		# NOTE: title will only be set if it was specifically provided, meaning
@@ -113,14 +94,6 @@ class SingleEpisode(Episode):
 		return params
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-#	def season_episode(self):
-#		""" return number representing season episode combination (for internal use only) """
-#
-#		if self.daily:
-#			return None
-#		else:
-#			return "%02d03%d" % (self.season, self.episode)
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
