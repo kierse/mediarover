@@ -38,3 +38,6 @@ x update series so that it can exist across multiple tv_roots
 - for each source subclass, create an abstract factor.  All implementing subclasses will need to be able to handle daily, regular, and 
 multi-part episodes.
   - have one handle method, and one new_from_string method which returns the appropriate object
+
+- update source.py to be an interface rather than an implementation
+- look at creating a RssSource object
