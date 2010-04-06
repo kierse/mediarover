@@ -19,6 +19,7 @@ import re
 
 from mediarover.config import ConfigObj
 from mediarover.error import *
+from mediarover.filesystem import create_filesystem_episode
 from mediarover.utils.injection import is_instance_of, Dependency
 from mediarover.utils.quality import QUALITY_LEVELS, compare_quality
 
@@ -29,7 +30,6 @@ class Series(object):
 
 	# declare module dependencies
 	config = Dependency('config', is_instance_of(ConfigObj))
-	create_episode = Dependency('create_filesystem_episode')
 
 	metadata_regex = re.compile("\s*\(.+?\)")
 
@@ -105,7 +105,7 @@ class Series(object):
 
 	def _find_series_episodes(self):
 		""" return list of episode objects for current series """
-		logger = logging.getLogger("mediarover.utils.filesystem")
+		logger = logging.getLogger("mediarover.series")
 
 		# duplicate episodes are appended with the date and time that 
 		# they were detected.
@@ -131,7 +131,7 @@ class Series(object):
 		if len(files):
 			for filename, params in files.items():
 				try:
-					episode = create_episode(self, params['path'])
+					episode = create_filesystem_episode(self, params['path'])
 				except (InvalidData, MissingParameterError):
 					logger.warning("unable to determine episode specifics, encountered error while parsing filename. Skipping '%s'" % filename)
 					pass
@@ -280,7 +280,7 @@ class Series(object):
 		self.aliases = aliases
 		self.path = path
 
-		self.__episodes = None
+		self.__episodes = self._find_series_episodes()
 
 		# sanitize ignores list
 		self.__ignores = set([int(re.sub("[^\d]", "", str(i))) for i in ignores if i])

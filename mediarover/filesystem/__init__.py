@@ -17,14 +17,20 @@ from mediarover.filesystem.episode.single import FilesystemSingleEpisode
 from mediarover.filesystem.episode.daily import FilesystemDailyEpisode
 from mediarover.filesystem.episode.multi import FilesystemMultiEpisode
 
-def create_episode(series, path):
+def create_filesystem_episode(series, path):
 	
 	if FilesystemMultiEpisode.handle(path):
-		return FilesystemMultiEpisode.new_from_string(path, series=series)
+		params = FilesystemMultiEpisode.extract_from_string(path, series=series)
+		return FilesystemMultiEpisode(**params)
+
 	elif FilesystemSingleEpisode.handle(path):
-		return FilesystemSingleEpisode.new_from_string(path, series=series)
+		params = FilesystemSingleEpisode.extract_from_string(path, series=series)
+		return FilesystemSingleEpisode(**params)
+
 	elif FilesystemDailyEpisode.handle(path):
-		return FilesystemDailyEpisode.new_from_string(path, series=series)
+		params = FilesystemDailyEpisode.extract_from_string(path, series=series)
+		return FilesystemDailyEpisode(**params)
+
 	else:
 		raise ""
 
