@@ -79,13 +79,7 @@ class NewzbinItem(Item):
 
 	def _report_category(self):
 		""" report category from source item """
-
-		try:
-			self.__reportCategory
-		except AttributeError:
-			self.__reportCategory = self.__item.getElementsByTagName("report:category")[0].childNodes[0].data
-
-		return self.__reportCategory
+		return self.__item.getElementsByTagName("report:category")[0].childNodes[0].data
 
 	def __init__(self, item, type, priority, quality):
 		""" init method expects a DOM Element object (xml.dom.Element) """

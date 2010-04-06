@@ -17,9 +17,8 @@ import logging
 import re
 
 from mediarover.error import *
-from mediarover.episode import MultiEpisode
+from mediarover.episode.multi import MultiEpisode
 from mediarover.source.item import Item
-from mediarover.source.nzbmatrix.episode import NzbmatrixEpisode
 
 class NzbmatrixItem(Item):
 	""" wrapper object representing an unparsed report object """
@@ -67,6 +66,10 @@ class NzbmatrixItem(Item):
 				raise InvalidItemTitle("unsupported item title format: %s" % self.title())
 
 		return download
+
+	def _report_category_id(self):
+		""" report category id from source item """
+		return self.__item.getElementsByTagName("categoryid")[0].childNodes[0].data
 
 	def __init__(self, item, type, priority, quality):
 		""" init method expects a DOM Element object (xml.dom.Element) """
