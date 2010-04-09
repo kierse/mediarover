@@ -246,17 +246,23 @@ def check_options_list(selections, **kargs):
 
 	return selections
 
-def build_series_filters(path, seed=None):
+def build_series_filters(path, quality_defaults, seed=None):
 	""" build a dict of filters for a given path and seed """
-
 	logger = logging.getLogger("mediarover.config")
 
 	if seed is None:
 		seed= {
 			'skip': False, 
 			'ignore': [],
-			'alias': []
+			'alias': [],
+			'quality': dict(acceptable=None, desired=None),
 		}
+
+	# determine quality values for current series
+	if seed['quality']['acceptable'] is None:
+		seed['quality']['acceptable'] = quality_defaults['acceptable']
+	if seed['quality']['desired'] is None:
+		seed['quality']['desired'] = quality_defaults['desired']
 
 	# avoid a little I/O overhead and only look for the
 	# ignore file if skip isn't True
