@@ -127,6 +127,20 @@ def generate_config_files(resources, path):
 
 			_write_new_config_file(os.path.join(path, config), data)
 
+def locate_config_files(path):
+	
+	if os.path.exists(path):
+		for file in ("mediarover.conf", "logging.conf", "sabnzbd_episode_sort_logging.conf", "ui_logging.conf"):
+			if not os.path.exists(os.path.join(path, file)):
+				print "ERROR: missing config file '%s'.  Run `python mediarover.py --config=%s --write-configs`" % (os.path.join(path, file), path)
+				exit(1)
+			if not os.access(os.path.join(path, file), os.R_OK):
+				print "ERROR: unable to read config file '%s' - check file permissions!" % os.path.join(path, file)
+				exit(1)
+	else:
+		print "ERROR: configuration directory (%s) does not exist.  Do you need to run `python mediarover.py --write-configs`?" % path
+		exit(1)
+
 def check_filesystem_path(path):
 	""" make sure given path is a valid, filesystem path """
 

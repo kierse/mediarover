@@ -19,10 +19,9 @@ import os
 import os.path
 import re
 import sys
-from urllib2 import URLError
 from optparse import OptionParser
 
-from mediarover.config import read_config, generate_config_files, build_series_filters
+from mediarover.config import read_config, generate_config_files, build_series_filters, locate_config_files
 from mediarover.ds.metadata import Metadata
 from mediarover.error import *
 from mediarover.series import Series
@@ -133,19 +132,6 @@ def main():
 		if METADATA_DS is not None:
 			METADATA_DS.cleanup()
 
-def locate_config_files(path):
-	
-	if os.path.exists(path):
-		for file in ("mediarover.conf", "logging.conf", "sabnzbd_episode_sort_logging.conf", "ui_logging.conf"):
-			if not os.path.exists(os.path.join(path, file)):
-				print "ERROR: missing config file '%s'.  Run `python mediarover.py --config=%s --write-configs`" % (os.path.join(path, file), path)
-				exit(1)
-			if not os.access(os.path.join(path, file), os.R_OK):
-				print "ERROR: unable to read config file '%s' - check file permissions!" % os.path.join(path, file)
-				exit(1)
-	else:
-		print "ERROR: configuration directory (%s) does not exist.  Do you need to run `python mediarover.py --write-configs`?" % path
-		exit(1)
 
 # private methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
