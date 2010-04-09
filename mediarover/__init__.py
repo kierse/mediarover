@@ -34,28 +34,20 @@ from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.injection import initialize_broker
 from mediarover.version import __app_version__
 
-# package variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-CONFIG_DIR = None
-RESOURCES_DIR = None
-METADATA_DS = None
-
 # public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def main():
 
-	global CONFIG_DIR, RESOURCES_DIR, METADATA_DS
-	
 	""" parse command line options """
 
 	# determine default config path
 	if os.name == "nt":
 		if "LOCALAPPDATA" in os.environ: # Vista or better default path
-			CONFIG_DIR = os.path.expandvars("$LOCALAPPDATA\Mediarover")
+			config_dir = os.path.expandvars("$LOCALAPPDATA\Mediarover")
 		else: # XP default path
-			CONFIG_DIR = os.path.expandvars("$APPDATA\Mediarover")
+			config_dir = os.path.expandvars("$APPDATA\Mediarover")
 	else: # os.name == "posix":
-		CONFIG_DIR = os.path.expanduser("~/.mediarover")
+		config_dir = os.path.expanduser("~/.mediarover")
 
 	parser = OptionParser(version=__app_version__)
 
@@ -66,34 +58,34 @@ def main():
 	parser.add_option("-d", "--dry-run", action="store_true", default=False, help="simulate downloading nzb's from configured sources")
 
 	# write configs to disk
-	parser.add_option("--write-configs", action="store_true", default=False, help="write default application and logging config files to disk.  If -c|--config is not specified, will default to %s" % CONFIG_DIR)
+	parser.add_option("--write-configs", action="store_true", default=False, help="write default application and logging config files to disk.  If -c|--config is not specified, will default to %s" % config_dir)
 
 	(options, args) = parser.parse_args()
 
 	""" config setup """
 
 	# grab location of resources folder
-	RESOURCES_DIR = os.path.join(sys.path[0], "resources")
+	resources_dir = os.path.join(sys.path[0], "resources")
 
 	# if user has provided a config path, override default value
 	if options.config:
-		CONFIG_DIR = options.config
+		config_dir = options.config
 
 	# if user has requested that app or log config files be generated
 	if options.write_configs:
-		generate_config_files(RESOURCES_DIR, CONFIG_DIR)
+		generate_config_files(resources_dir, config_dir)
 		exit(0)
 
 	# make sure application config file exists and is readable
-	locate_config_files(CONFIG_DIR)
+	locate_config_files(config_dir)
 
 	# create config object using user config values
-	config = read_config(RESOURCES_DIR, CONFIG_DIR)
+	config = read_config(resources_dir, config_dir)
 
 	""" logging setup """
 
 	# initialize and retrieve logger for later use
-	logging.config.fileConfig(open(os.path.join(CONFIG_DIR, "logging.conf")))
+	logging.config.fileConfig(open(os.path.join(config_dir, "logging.conf")))
 	logger = logging.getLogger("mediarover")
 
 	""" post configuration setup """
@@ -101,8 +93,8 @@ def main():
 	# initialize dependency broker and register resources
 	broker = initialize_broker()
 	broker.register('config', config)
-	broker.register('config_dir', CONFIG_DIR)
-	broker.register('resources_dir', RESOURCES_DIR)
+	broker.register('config_dir', config_dir)
+	broker.register('resources_dir', resources_dir)
 
 	# register the source objects
 	broker.register('newzbin', NewzbinFactory())
@@ -120,7 +112,7 @@ def main():
 	""" main """
 
 	logger.info("--- STARTING ---")
-	logger.debug("using config directory: %s", CONFIG_DIR)
+	logger.debug("using config directory: %s", config_dir)
 
 	try:
 		_process(config, broker, options, args)
@@ -129,16 +121,17 @@ def main():
 		raise
 	finally:
 		# close db handler
-		if METADATA_DS is not None:
-			METADATA_DS.cleanup()
-
+		try:
+			broker['metadata_data_store']
+		except KeyError:
+			pass
+		else:
+			broker['metadata_data_store'].cleanup()
 
 # private methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def _process(config, broker, options, args):
 
-	global CONFIG_DIR, RESOURCES_DIR, METADATA_DS
-	
 	logger = logging.getLogger("mediarover")
 
 	# check if user has requested a dry-run
@@ -235,8 +228,6 @@ def _process(config, broker, options, args):
 	# grab quality management flag.  This will determine if Media Rover
 	# will actively manage the quality of filesystem episodes or not
 	manage_quality = config['tv']['quality']['managed']
-	if manage_quality and config['tv']['quality']['desired'] is None:
-		raise ConfigurationError("must specify a desired quality level when Media Rover manages episode quality!")
 
 	logger.info("begin processing sources")
 
@@ -308,11 +299,9 @@ def _process(config, broker, options, args):
 	logger.info("watching %d source(s)", len(sources))
 	logger.debug("finished processing sources")
 
-	logger.debug("preparing metadata store...")
-	METADATA_DS = Metadata()
-
 	# register quality db handler with dependency broker
-	broker.register('metadata_data_store', METADATA_DS)
+	logger.debug("preparing metadata store...")
+	broker.register('metadata_data_store', Metadata())
 
 	logger.info("begin queue configuration")
 
