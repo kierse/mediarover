@@ -17,8 +17,10 @@ import logging
 import os.path
 import re
 
+from mediarover.config import ConfigObj
 from mediarover.error import *
 from mediarover.episode.single import SingleEpisode
+from mediarover.utils.injection import is_instance_of, Dependency
 
 class FilesystemSingleEpisode(SingleEpisode):
 	""" filesystem episode """
@@ -32,6 +34,8 @@ class FilesystemSingleEpisode(SingleEpisode):
 		# episode 2 regex, ie 10
 		re.compile("^(\d{1,2})")
 	)
+
+	config = Dependency('config', is_instance_of(ConfigObj))
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

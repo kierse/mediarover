@@ -16,8 +16,10 @@
 import os.path
 import re
 
+from mediarover.config import ConfigObj
 from mediarover.error import *
 from mediarover.episode.multi import MultiEpisode
+from mediarover.utils.injection import is_instance_of, Dependency
 
 class FilesystemMultiEpisode(MultiEpisode):
 	""" filesystem multiepisode """
@@ -28,6 +30,8 @@ class FilesystemMultiEpisode(MultiEpisode):
 		# multiepisode 1 regex, 01-02
 		re.compile("^(\d{1,2})-(\d{1,2})"),
 	)
+
+	config = Dependency('config', is_instance_of(ConfigObj))
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	

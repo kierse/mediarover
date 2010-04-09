@@ -18,13 +18,17 @@ import os.path
 import re
 from datetime import date
 
+from mediarover.config import ConfigObj
 from mediarover.error import *
 from mediarover.episode.daily import DailyEpisode
+from mediarover.utils.injection import is_instance_of, Dependency
 
 class FilesystemDailyEpisode(DailyEpisode):
 	""" filesystem episode """
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	config = Dependency('config', is_instance_of(ConfigObj))
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
