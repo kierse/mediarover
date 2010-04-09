@@ -34,44 +34,6 @@ class Metadata(object):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def compare_episodes(self, episode):
-		""" 
-			for a given episode and quality, compare with quality of episode on disk 
-		
-			given < current  >> -1
-			given == current >>  0
-			given > current  >> +1
-		"""
-
-		# first, determine if episode series is in db
-		series = self.__fetch_series_data(episode.series)
-		if series is not None:
-			given = episode.quality
-			try:
-				episodes = episode.episodes
-			except AttributeError:
-				current = self.__fetch_episode_data(episode, series['id'])
-				if current is None:
-					return 1
-				else:
-					return cmp(given, current['quality'])
-			else:
-				quality = None
-				for ep in episodes:
-					current = self.__fetch_episode_data(ep, series['id'])
-					if current is None:
-						quality += 1
-					else:
-						quality += cmp(given, current['quality'])
-
-				if quality < 0:   return -1
-				elif quality > 0: return  1
-				else:             return  0
-
-		# given episode series doesn't exist on disk, therefore given quality
-		# is greater than current.  Return 1
-		return 1
-
 	def add_in_progress(self, title, type, quality):
 		""" record given nzb in progress table with type, and quality """
 		cur = self.__dbh.cursor()
@@ -83,7 +45,7 @@ class Metadata(object):
 		""" retrieve tuple from the in_progress table for a given session id.  If given id doesn't exist, return None """
 		cur = self.__dbh.cursor()
 		cur.execute("SELECT type, quality FROM in_progress WHERE title=?", (title,))
-		row = self.__cursor.fetchone()
+		row = cur.fetchone()
 		cur.close()
 
 		return row
