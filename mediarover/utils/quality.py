@@ -27,4 +27,4 @@ def compare_quality(a, b):
 			 0 for a == b,
 			+1 for a  > b
 	"""
-	return cmp(QUALITY_LEVELS[a], QUALITY_LEVELS[b])
+	return cmp(QUALITY_LEVELS[a.lower()], QUALITY_LEVELS[b.lower()])
