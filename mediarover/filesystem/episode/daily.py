@@ -51,7 +51,7 @@ class FilesystemDailyEpisode(DailyEpisode):
 	def format(self, additional=""):
 		""" return formatted pattern using episode data """
 
-		params = self._format_parameters(series=True, title=True)
+		params = self._format_parameters(series=True, season=True, title=True)
 		template = self.config['tv']['template']['daily_episode']
 
 		# replace '$(' with '%(' so that variable replacement
@@ -76,7 +76,7 @@ class FilesystemDailyEpisode(DailyEpisode):
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def _format_parameters(self, series=False, title=False):
+	def _format_parameters(self, series=False, season=False, title=False):
 		""" return dict containing supported format parameters.  For use by format_*() methods """
 
 		params = {}
@@ -84,6 +84,10 @@ class FilesystemDailyEpisode(DailyEpisode):
 		# fetch series parameters
 		if series:
 			params.update(self.series.format_parameters())
+
+		# prepare season parameters
+		if season:
+			params['season'] = params['SEASON'] = "%04d" % self.year
 
 		# prepare title parameters
 		if title:
@@ -101,12 +105,11 @@ class FilesystemDailyEpisode(DailyEpisode):
 				params['title.'] = params['TITLE.'] = ""
 				params['title_'] = params['TITLE_'] = ""
 
-		if daily:
-			broadcast = date(self.year, self.month, self.day)
-			params['daily'] = params['DAILY'] = broadcast.strftime("%Y%m%d")
-			params['daily.'] = params['DAILY.'] = broadcast.strftime("%Y.%m.%d")
-			params['daily-'] = params['DAILY-'] = broadcast.strftime("%Y-%m-%d")
-			params['daily_'] = params['DAILY_'] = broadcast.strftime("%Y_%m_%d")
+		broadcast = date(self.year, self.month, self.day)
+		params['daily'] = params['DAILY'] = broadcast.strftime("%Y%m%d")
+		params['daily.'] = params['DAILY.'] = broadcast.strftime("%Y.%m.%d")
+		params['daily-'] = params['DAILY-'] = broadcast.strftime("%Y-%m-%d")
+		params['daily_'] = params['DAILY_'] = broadcast.strftime("%Y_%m_%d")
 
 		return params
 

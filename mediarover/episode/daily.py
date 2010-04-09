@@ -153,7 +153,9 @@ class DailyEpisode(Episode):
 	def _title_prop(self):
 		return self._title
 
-	def _quality_prop(self):
+	def _quality_prop(self, quality=None):
+		if quality is not None:
+			self._quality = quality
 		return self._quality
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -164,7 +166,7 @@ class DailyEpisode(Episode):
 	month = property(fget=_month_prop, doc="episode month")
 	day = property(fget=_day_prop, doc="episode day")
 	title = property(fget=_title_prop, doc="episode title")
-	quality = property(fget=_quality_prop, doc="episode quality")
+	quality = property(fget=_quality_prop, fset=_quality_prop, doc="episode quality")
 
 	def __init__(self, series, year, month, day, title = "", quality = None):
 
@@ -176,9 +178,9 @@ class DailyEpisode(Episode):
 			raise MissingParameterError("missing daily episode values")
 
 		self._series = series
-		self._year = year
-		self._month = month
-		self._day = day
+		self._year = int(year)
+		self._month = int(month)
+		self._day = int(day)
 		self._title = title
 		self._quality = quality
 

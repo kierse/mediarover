@@ -147,7 +147,9 @@ class MultiEpisode(Episode):
 	def _episodes_prop(self):
 		return self._episodes	
 
-	def _quality_prop(self):
+	def _quality_prop(self, quality=None):
+		if quality is not None:
+			self._quality = quality
 		return self._quality
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -156,7 +158,7 @@ class MultiEpisode(Episode):
 	season = property(fget=_season_prop, doc = "multiepisode season number")
 	episodes = property(fget=_episodes_prop, fset=_episodes_prop, doc="multiepisode episode list")
 	title = property(fget=_title_prop, fset=_title_prop, doc="multiepisode title")
-	quality = property(fget=_quality_prop, doc="episode quality")
+	quality = property(fget=_quality_prop, fset=_quality_prop, doc="episode quality")
 
 	def __init__(self, series, season, start_episode, end_episode, title = "", quality = None):
 

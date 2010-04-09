@@ -149,7 +149,9 @@ class SingleEpisode(Episode):
 	def _title_prop(self):
 		return self._title
 
-	def _quality_prop(self):
+	def _quality_prop(self, quality=None):
+		if quality is not None:
+			self._quality = quality
 		return self._quality
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -158,7 +160,7 @@ class SingleEpisode(Episode):
 	season = property(fget=_season_prop, doc="episode season number")
 	episode = property(fget=_episode_prop, doc="episode number")
 	title = property(fget=_title_prop, doc="episode title")
-	quality = property(fget=_quality_prop, doc="episode quality")
+	quality = property(fget=_quality_prop, fset=_quality_prop, doc="episode quality")
 
 	def __init__(self, series, season, episode, title = "", quality = None):
 

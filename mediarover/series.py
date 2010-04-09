@@ -109,16 +109,6 @@ class Series(object):
 		pattern = pattern.replace("$(", "%(")
 		return pattern % self.format_parameters()
 
-	def format_season(self, pattern, episode):
-		""" return formatted pattern using episode season data """
-		try:
-			episode.daily
-		except AttributeError:
-			pattern = pattern.replace("$(", "%(")
-			return pattern % self.format_parameters(series=True, season=True)
-		else:
-			return "%04d" % self.year
-
 	def format_parameters(self):
 		""" return dict containing supported format parameters.  For use by forma_*() methods """
 
