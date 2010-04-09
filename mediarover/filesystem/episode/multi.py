@@ -59,33 +59,6 @@ class FilesystemMultiEpisode(MultiEpisode):
 			path = path
 		)
 
-#	@classmethod
-#	def new_from_string(cls, series, path **kwargs):
-#		""" parse given string and create new FilesystemMultiEpisode object from extracted values """
-#
-#		# strip path and extension to get filename
-#		(filename, ext) = os.path.splitext(path)
-#		filename = os.path.basename(filename)
-#
-#		# get a dict containing all values provided (by caller) or successfully 
-#		# extracted from given string
-#		params = cls._parse_string(filename, series=series, **kwargs)
-#
-#		# grab start and end episodes
-#		start = params['start_episode']
-#		end = params['end_episode']
-#		del params['start_episode']
-#		del params['end_episode']
-#
-#		title = params['title']
-#		del params['title']
-#
-#		episodes = []
-#		for num in range(int(start), int(end)+1):
-#			episodes.append(FilesystemSingleEpisode(episode=num, **params))
-#
-#		return cls(episodes, path, title, params['quality'])
-
 	@classmethod
 	def extract_from_string(cls, path, **kwargs):
 		""" parse given string and attempt to extract multiepisode values """
@@ -136,19 +109,11 @@ class FilesystemMultiEpisode(MultiEpisode):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def format_series(self, pattern):
-		""" return formatted pattern using episode series object """
-		return self.episodes[0].series.format(pattern)
-
-	def format_season(self, pattern):
-		""" return formatted pattern using episode season data """
-		pattern = pattern.replace("$(", "%(")
-		return pattern % self._format_parameters(season=True)
-
-	def format_episode(self, series_template=None, daily_template=None, smart_title_template=None, additional=""):
+	def format(self, additional=""):
 		""" return formatted pattern using episode data """
 
 		params = self._format_parameters(series=True, season=True, title=True)
+		template = self.config['tv']['template']['series_episode']
 
 		# modify episode template to reflect multiepisode nature of file...
 		first = self.episodes[0].format_parameters(episode=True)
@@ -159,7 +124,7 @@ class FilesystemMultiEpisode(MultiEpisode):
 		params['SEASON_EPISODE_2'] = "%s-%s" % (first['SEASON_EPISODE_2'],last['SEASON_EPISODE_2'])
 
 		padding = ""
-		match = re.search("^\$\(episode\)(\d+)d", series_template)
+		match = re.search("^\$\(episode\)(\d+)d", template)
 		if match:
 			padding = match.group(1)
 
@@ -168,16 +133,15 @@ class FilesystemMultiEpisode(MultiEpisode):
 		params['EPISODE'] = episode % (first['EPISODE'],last['EPISODE'])
 
 		# format smart_title pattern (if set)
-		if smart_title_template is not None and params['title'] != "":
-			smart_title_template = smart_title_template.replace("$(", "%(")
+		if self.config['tv']['template']['smart_title'] not in ("", None) and params['title'] != "":
+			smart_title_template = self.config['tv']['template']['smart_title'].replace("$(", "%(")
 			params['smart_title'] = params['SMART_TITLE'] = smart_title_template % params
 		else:
 			params['smart_title'] = params['SMART_TITLE'] = ""
 
 		# cleanup template a bit so that it can be
 		# processed...
-		template = series_template.replace("$(", "%(")
-		template = re.sub("\)(\d*)d", ")\\1s", template)
+		template = re.sub("\)(\d*)d", ")\\1s", template.replace("$(", "%("))
 
 		# if additional was provided, append to end of new filename
 		if additional is not None and additional != "":
@@ -186,8 +150,7 @@ class FilesystemMultiEpisode(MultiEpisode):
 		# finally, append extension onto end of new filename
 		template += ".%s" % self.extension
 
-		self._filename = template % params
-		return self._filename
+		return template % params
 
 	# private methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
@@ -229,9 +192,13 @@ class FilesystemMultiEpisode(MultiEpisode):
 	def _path_prop(self):
 		return self.__path
 
+	def _extension_prop(self):
+		return os.path.splitext(self.path)[1].lstrip(".")
+
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	path = property(fget=_path_prop, doc="filesystem path to episode file")
+	extension = property(fget=_extension_prop, doc="file extension")
 
 	def __init__(self, series, season, start_episode, end_episode, path, title = "", quality = None):
 		
