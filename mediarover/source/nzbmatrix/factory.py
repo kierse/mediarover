@@ -14,14 +14,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from mediarover.error import *
-from mediarover.series import Series
+from mediarover.factory import EpisodeFactory, SourceFactory
 from mediarover.episode.multi import MultiEpisode
 from mediarover.episode.single import SingleEpisode
-from mediarover.source.factory import Factory
+from mediarover.series import Series
 from mediarover.source.nzbmatrix import NzbmatrixSource
 from mediarover.source.nzbmatrix.episode import NzbmatrixDailyEpisode
+from mediarover.utils.injection import is_instance_of, Dependency
 
-class NzbmatrixFactory(Factory):
+class NzbmatrixFactory(EpisodeFactory, SourceFactory):
+
+	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	# declare module dependencies
+	watched_series = Dependency('watched_series', is_instance_of(dict))
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

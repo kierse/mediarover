@@ -19,7 +19,7 @@ import re
 from mediarover.error import *
 from mediarover.episode.single import SingleEpisode
 from mediarover.episode.multi import MultiEpisode
-from mediarover.source.factory import Factory
+from mediarover.factory import SourceFactory
 from mediarover.source.item import Item
 from mediarover.utils.injection import is_instance_of, Dependency
 
@@ -29,7 +29,7 @@ class NzbsItem(Item):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	factory = Dependency('nzbs', is_instance_of(Factory))
+	factory = Dependency('nzbs', is_instance_of(SourceFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

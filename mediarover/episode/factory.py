@@ -13,15 +13,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from mediarover.error import *
-from mediarover.factory import EpisodeFactory, SourceFactory
-from mediarover.series import Series
-from mediarover.source.newzbin import NewzbinSource
-from mediarover.source.newzbin.item import NewzbinItem
-from mediarover.source.newzbin.episode import NewzbinSingleEpisode, NewzbinMultiEpisode, NewzbinDailyEpisode
+from mediarover.error import InvalidEpisodeString
+from mediarover.episode.single import SingleEpisode
+from mediarover.episode.daily import DailyEpisode
+from mediarover.episode.multi import MultiEpisode
+from mediarover.factory import EpisodeFactory as Factory
 from mediarover.utils.injection import is_instance_of, Dependency
 
-class NewzbinFactory(EpisodeFactory, SourceFactory):
+class EpisodeFactory(Factory):
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -30,32 +29,29 @@ class NewzbinFactory(EpisodeFactory, SourceFactory):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def create_source(self, name, url, type, priority, timeout, quality):
-		return NewzbinSource(name, url, type, priority, timeout, quality) 	
-
 	def create_episode(self, string, **kwargs):
-		
+
 		# parse given string and extract episode attributes
-		if NewzbinMultiEpisode.handle(string):
-			params = NewzbinMultiEpisode.extract_from_string(string, **kwargs)
-		elif NewzbinSingleEpisode.handle(string):
-			params = NewzbinSingleEpisode.extract_from_string(string, **kwargs)
-		elif NewzbinDailyEpisode.handle(string):
-			params = NewzbinDailyEpisode.extract_from_string(string, **kwargs)
+		if MultiEpisode.handle(string):
+			params = MultiEpisode.extract_from_string(string, **kwargs)
+		elif SingleEpisode.handle(string):
+			params = SingleEpisode.extract_from_string(string, **kwargs)
+		elif DailyEpisode.handle(string):
+			params = DailyEpisode.extract_from_string(string, **kwargs)
 		else:
 			raise InvalidEpisodeString("unable to identify episode type: %r" % string)
-	
+
 		# locate series object.  If series is unknown, create new series
-		sanitized_series = Series.sanitize_series_name(name=params['series'])
+		sanitized_series = Series.sanitized_series_name(name=params['series'])
 		if sanitized_series in self.watched_series:
 			params['series'] = self.watched_series[sanitized_series]
 		else:
 			params['series'] = Series(params['series'])
 
 		if 'start_episode' in params:
-			return NewzbinMultiEpisode(**params)
+			return MultiEpisode(**params)
 		elif 'year' in params:
-			return NewzbinDailyEpisode(**params)
+			return DailyEpisode(**params)
 		else:
-			return NewzbinSingleEpisode(**params)
+			return SingleEpisode(**params)
 

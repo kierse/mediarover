@@ -17,11 +17,17 @@ import logging
 import re
 
 from mediarover.error import *
-from mediarover.episode.multi import MultiEpisode
 from mediarover.source.item import Item
+from mediarover.factory import SourceFactory
+from mediarover.utils.injection import is_instance_of, Dependency
 
 class NzbmatrixItem(Item):
 	""" wrapper object representing an unparsed report object """
+
+	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	# declare module dependencies
+	factory = Dependency('newzbin', is_instance_of(SourceFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

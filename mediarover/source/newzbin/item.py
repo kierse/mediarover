@@ -18,7 +18,7 @@ import re
 
 from mediarover.error import *
 from mediarover.source.item import Item
-from mediarover.source.factory import Factory
+from mediarover.factory import SourceFactory
 from mediarover.utils.injection import is_instance_of, Dependency
 
 class NewzbinItem(Item):
@@ -27,7 +27,7 @@ class NewzbinItem(Item):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	factory = Dependency('newzbin', is_instance_of(Factory))
+	factory = Dependency('newzbin', is_instance_of(SourceFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

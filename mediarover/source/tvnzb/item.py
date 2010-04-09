@@ -17,7 +17,7 @@ import logging
 import re
 
 from mediarover.error import *
-from mediarover.source.factory import Factory
+from mediarover.factory import SourceFactory
 from mediarover.source.item import Item
 from mediarover.utils.injection import is_instance_of, Dependency
 
@@ -27,7 +27,7 @@ class TvnzbItem(Item):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	factory = Dependency('tvnzb', is_instance_of(Factory))
+	factory = Dependency('tvnzb', is_instance_of(SourceFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

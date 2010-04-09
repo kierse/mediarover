@@ -13,44 +13,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from mediarover.episode.factory import EpisodeFactory
 from mediarover.error import *
-from mediarover.episode.single import SingleEpisode
-from mediarover.episode.multi import MultiEpisode
-from mediarover.episode.daily import DailyEpisode
+from mediarover.factory import SourceFactory
 from mediarover.series import Series
-from mediarover.source.factory import Factory
 from mediarover.source.tvnzb import TvnzbSource
 
-class TvnzbFactory(Factory):
+class TvnzbFactory(EpisodeFactory, SourceFactory):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def create_source(self, name, url, type, priority, timeout, quality):
 		return TvnzbSource(name, url, type, priority, timeout, quality) 	
-
-	def create_episode(self, string, **kwargs):
-		
-		# parse given string and extract episode attributes
-		if MultiEpisode.handle(string):
-			params = MultiEpisode.extract_from_string(string, **kwargs)
-		elif SingleEpisode.handle(string):
-			params = SingleEpisode.extract_from_string(string, **kwargs)
-		elif DailyEpisode.handle(string):
-			params = DailyEpisode.extract_from_string(string, **kwargs)
-		else:
-			raise InvalidEpisodeString("unable to identify episode type: %r" % string)
-
-		# locate series object.  If series is unknown, create new series
-		sanitized_series = Series.sanitized_series_name(name=params['series'])
-		if sanitized_series in self.watched_series:
-			params['series'] = self.watched_series[sanitized_series]
-		else:
-			params['series'] = Series(params['series'])
-
-		if 'start_episode' in params:
-			return MultiEpisode(**params)
-		elif 'year' in params:
-			return DailyEpisode(**params)
-		else:
-			return SingleEpisode(**params)
-
