@@ -74,6 +74,28 @@ class Series(object):
 
 		return False
 
+	def locate_season_folder(self, season):
+		path = None
+
+		metadata_regex = re.compile("\(.+?\)$")
+		number_regex = re.compile("[^\d]")
+		for root in self.path:
+			for dir in os.listdir(root):
+				if os.path.isdir(os.path.join(root, dir)):
+
+					# strip any metadata that may be appended to the end of 
+					# the season folder as it can interfer with season identification
+					clean_dir = metadata_regex.sub("", dir)
+
+					number = number_regex.sub("", clean_dir)
+					if len(number) and int(season) == int(number):
+						path = os.path.join(root, dir)
+						break
+			if path is not None:
+				break
+		
+		return path
+
 	def ignore(self, season):
 		""" return boolean indicating whether or not the given season number should be ignored """
 
@@ -86,6 +108,16 @@ class Series(object):
 		""" return a formatted pattern using series data """
 		pattern = pattern.replace("$(", "%(")
 		return pattern % self.format_parameters()
+
+	def format_season(self, pattern, episode):
+		""" return formatted pattern using episode season data """
+		try:
+			episode.daily
+		except AttributeError:
+			pattern = pattern.replace("$(", "%(")
+			return pattern % self.format_parameters(series=True, season=True)
+		else:
+			return "%04d" % self.year
 
 	def format_parameters(self):
 		""" return dict containing supported format parameters.  For use by forma_*() methods """
@@ -142,57 +174,8 @@ class Series(object):
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-#	def __eq__(self, other):
-#		""" 
-#			compare two series objects and check if they are equal 
-#
-#			two objects are considered equal when:
-#				a) lowercase versions of their names match, or
-#				b) a filtered version of their names match. 
-#		"""
-#		logger = logging.getLogger("mediarover.series")
-#
-#		# check if the series names just match...
-#		otherSeries = other.name.lower()
-#		if self.name.lower() == otherSeries:
-#			return True
-#
-#		# compare sanitized self to sanitized other 
-#		# and all its aliases
-#		sanitized_self = Series.sanitize_series_name(self)
-#		other_aliases = [other.name]
-#		other_aliases.extend(other.aliases)
-#		for i in range(0, len(other_aliases)):
-#			other_aliases[i] = Series.sanitize_series_name(other_aliases[i])
-#			if sanitized_self == other_aliases[i]:
-#				logger.debug("matched series alias '%s'" % sanitized_self)
-#				return True
-#
-#		# still no match, compare self's aliases to all
-#		# of other's sanitized names
-#		self_aliases = list(self.aliases)
-#		for i in range(0, len(self_aliases)):
-#			self_aliases[i] = Series.sanitize_series_name(self_aliases[i])
-#			for alias in other_aliases: 
-#				if self_aliases[i] == alias:	
-#					logger.debug("matched series alias '%s'" % alias)
-#					return True
-#
-#		return False
-#
-#	def __ne__(self, other):
-#		""" 
-#			compare two series objects and check if they are not equal
-#			see __eq__() for equality requirements
-#		"""
-#
-#		return not self.__eq__(other)
-#
 	def __str__(self):
 		return "%s" % self.name
-
-#	def __hash__(self):
-#		return Series.sanitize_series_name(self).__hash__()
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
