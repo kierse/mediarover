@@ -187,9 +187,9 @@ def _process(config, broker, options, args):
 					# locate and process any filters for current series.  If no user defined filters for 
 					# current series exist, build dict using default values
 					if sanitized_name in config['tv']['filter']:
-						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['filter'][sanitized_name])
+						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'], config['tv']['filter'][sanitized_name])
 					else:
-						config['tv']['filter'][sanitized_name] = build_series_filters(dir)
+						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'])
 
 					# check filters to see if user wants this series skipped...
 					if config['tv']['filter'][sanitized_name]["skip"]:
