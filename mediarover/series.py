@@ -19,7 +19,7 @@ import re
 
 from mediarover.config import ConfigObj
 from mediarover.error import *
-from mediarover.filesystem import create_filesystem_episode
+from mediarover.filesystem.factory import FilesystemFactory
 from mediarover.utils.injection import is_instance_of, Dependency
 from mediarover.utils.quality import QUALITY_LEVELS, compare_quality
 
@@ -30,6 +30,7 @@ class Series(object):
 
 	# declare module dependencies
 	config = Dependency('config', is_instance_of(ConfigObj))
+	filesystem_factory = Dependency('filesystem_factory', is_instance_of(FilesystemFactory))
 
 	metadata_regex = re.compile("\s*\(.+?\)")
 
@@ -40,6 +41,8 @@ class Series(object):
 			return boolean indicating whether or not a given episode should be downloaded.  This method takes into 
 			account episodes present on disk and user quality preferences
 		"""
+		logger = logging.getLogger("mediarover.series")
+
 		# get list of episodes that will serve as the test sample.  If a sample
 		# wasn't provided, grab the series episode list
 		if len(args) > 0:
@@ -54,10 +57,9 @@ class Series(object):
 			list = [episode]
 		
 		found = []
-		for item in list:
-			for ep in sample:
-				if item == ep:
-					found.append(ep2)
+		for ep in sample:
+			if ep in list:
+				found.append(ep)
 
 		# number of found episodes (from sample) doesn't match number in search list (given episode(s)) meaning
 		# not every given episode was found in the sample.  Given episode(s) should be downloaded
@@ -153,7 +155,7 @@ class Series(object):
 		if len(files):
 			for filename, params in files.items():
 				try:
-					episode = create_filesystem_episode(self, params['path'])
+					episode = self.filesystem_factory.create_filesystem_episode(self, params['path'])
 				except (InvalidData, MissingParameterError):
 					logger.warning("unable to determine episode specifics, encountered error while parsing filename. Skipping '%s'" % filename)
 					pass
