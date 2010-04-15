@@ -16,7 +16,13 @@
 class Job:
 	""" Queue job interface class """
 
+	def id(self):
+		raise NotImplementedError
+
 	def title(self):
+		raise NotImplementedError
+
+	def category(self):
 		raise NotImplementedError
 
 	def quality(self):
