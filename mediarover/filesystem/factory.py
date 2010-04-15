@@ -31,7 +31,7 @@ class FilesystemFactory(object):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def create_filesystem_episode(path, **kwargs):
+	def create_filesystem_episode(self, path, **kwargs):
 		
 		episode = None
 		if 'episode' in kwargs:
