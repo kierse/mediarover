@@ -30,12 +30,16 @@ class Queue(object):
 		""" add given item object to queue """
 		raise NotImplementedError
 
+	def remove_from_queue(self, job):
+		""" remove given job from queue """
+		raise NotImplementedError
+
 	def in_queue(self, download):
 		""" check if given download is already in queue """
 		raise NotImplementedError
 
-	def get_download_from_queue(self, download):
-		""" return equivalent download object from queue, None if not found """
+	def get_job_by_download(self, download):
+		""" return job from queue for a given download object, None if not found """
 		raise NotImplementedError
 
 	def processed(self, item):

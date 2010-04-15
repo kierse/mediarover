@@ -38,7 +38,6 @@ class SabnzbdQueue(Queue):
 
 	def jobs(self):
 		""" return list of Job items """
-		
 		logger = logging.getLogger("mediarover.queue.sabnzbd")
 
 		# if jobs list hasn't been constructed yet, parse document tree
@@ -106,32 +105,66 @@ class SabnzbdQueue(Queue):
 		# check response for status of request
 		response = handle.readline()
 		if response == "ok\n":
-			self.meta_ds.add_in_progress(item.title(), item.type(), item.quality())
+			if self.config['tv']['quality']['managed']:
+				self.meta_ds.add_in_progress(item.title(), item.type(), item.quality())
 			logger.info("item '%s' successfully queued for download", item.title())
 		elif response.startswith("error"):
 			raise QueueInsertionError("unable to queue item '%s' for download: %s", args=(item.title(), response))
 		else:
 			raise QueueInsertionError("unexpected response received from queue while attempting to schedule item '%s' for download: %s", args=(item.title(), response))
 
+	def remove_from_queue(self, job):
+		""" remove item representing given download from queue """
+		logger = logging.getLogger("mediarover.queue.sabnzbd")
+
+		args = {
+			'mode': 'queue',
+			'name': 'delete',
+			'value': job.id(),
+		}
+
+		if 'username' and 'password' in self._params:
+			if self._params['username'] is not None and self._params['password'] is not None:
+				args['ma_username'] = self._params['username']
+				args['ma_password'] = self._params['password']
+
+		if 'api_key' in self._params:
+			args['apikey'] = self._params['api_key']
+
+		# generate web service url and make call
+		url = "%s/api?%s" % (self.root, urllib.urlencode(args))
+		logger.debug("removing job from queue: %s", url)
+		handle = urllib.urlopen(url)
+
+		# check response for status of request
+		response = handle.readline()
+		if response == "ok\n":
+			if self.config['tv']['quality']['managed']:
+				self.meta_ds.delete_in_progress(job.title())
+			logger.info("job '%s' successfully removed from queue", job.title())
+		elif response.startswith("error"):
+			raise QueueDeletionError("unable to remove job %r from queue: %s", args=(job.title(), response))
+		else:
+			raise QueueDeletionError("unexpected response received from queue while attempting to remove job %r: %s", args=(job.title(), response))
+
 	def in_queue(self, download):
 		""" return boolean indicating whether or not the given source item is in queue """
 
-		if self.get_download_from_queue(download) is None:
+		if self.get_job_by_download(download) is None:
 			return False
 		else:
 			return True
 
-	def get_download_from_queue(self, download):
-		""" return equivalent download object if found in queue.  Return None if not found """
+	def get_job_by_download(self, download):
+		""" return job for given download if found in queue.  Return None if not found """
 
-		for job in self.jobs():
-			queued = job.download()
-			if queued == download:
+		job = None
+		for j in self.jobs():
+			if j.download() == download:
+				job = j
 				break
-		else:
-			queued = None
 
-		return queued
+		return job
 
 	def processed(self, item):
 		""" return boolean indicating whether or not the given source item has already been processed by queue """
