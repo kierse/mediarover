@@ -19,6 +19,7 @@ import urllib2
 import xml.dom.minidom
 
 from item import NzbmatrixItem
+from mediarover.error import InvalidItemTitle
 from mediarover.source import Source
 
 class NzbmatrixSource(Source):

@@ -18,6 +18,7 @@ import socket
 import urllib2
 import xml.dom.minidom
 
+from mediarover.error import InvalidItemTitle
 from mediarover.source import Source
 from mediarover.source.tvnzb.item import TvnzbItem
 

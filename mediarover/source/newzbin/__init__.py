@@ -51,9 +51,7 @@ class NewzbinSource(Source):
 					except InvalidItemTitle:
 						logger.debug("skipping '%s', unknown format", title)
 					else:
-						if item is None:
-							logger.warning("unsupported item title format: %s" % title)
-						else:
+						if item is not None:
 							self.__items.append(item)
 
 		# return item list to caller
