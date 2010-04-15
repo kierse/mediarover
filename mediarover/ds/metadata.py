@@ -103,6 +103,31 @@ class Metadata(object):
 			self.__dbh.commit()
 			cur.close()
 
+	def get_episode(self, episode):
+		""" retrieve database record for given episode.  Return None if not found """
+		cur = self.__dbh.cursor()
+
+		result = None
+
+		# first, determine if episode series is in db
+		series = self.__fetch_series_data(episode.series)
+		if series is not None:
+			args = [series['id']]
+			try:
+				episode.year
+			except AttributeError:
+				args.extend([episode.season, episode.episode])
+				sql = "SELECT quality FROM series_episode WHERE series=? AND season=? AND episode=?"
+			else:
+				args.extend([episode.year, episode.month, episode.day])
+				sql = "SELECT quality FROM daily_episode WHERE series=? AND year=? AND month=? AND day=?"
+
+			cur.execute(sql, args)
+			result = cur.fetchone()
+
+		cur.close()
+		return result
+
 	def cleanup(self):
 		self.__dbh.close()
 
