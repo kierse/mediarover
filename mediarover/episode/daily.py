@@ -168,7 +168,7 @@ class DailyEpisode(Episode):
 	title = property(fget=_title_prop, doc="episode title")
 	quality = property(fget=_quality_prop, fset=_quality_prop, doc="episode quality")
 
-	def __init__(self, series, year, month, day, title = "", quality = None):
+	def __init__(self, series, year, month, day, quality, title = ""):
 
 		if series is None:
 			raise MissingParameterError("missing episode series name")

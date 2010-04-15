@@ -160,7 +160,7 @@ class MultiEpisode(Episode):
 	title = property(fget=_title_prop, fset=_title_prop, doc="multiepisode title")
 	quality = property(fget=_quality_prop, fset=_quality_prop, doc="episode quality")
 
-	def __init__(self, series, season, start_episode, end_episode, title = "", quality = None):
+	def __init__(self, series, season, start_episode, end_episode, quality, title = ""):
 
 		episodes = []
 		for num in range(int(start_episode), int(end_episode)+1):

@@ -48,6 +48,12 @@ class EpisodeFactory(Factory):
 		else:
 			params['series'] = Series(params['series'])
 
+		if 'quality' not in kwargs:
+			if sanitized_series in self.config['tv']['filter']:
+				params['quality'] = self.config['tv']['filter'][sanitized_series]['quality']['desired']
+			else:
+				params['quality'] = self.config['tv']['quality']['desired']
+
 		if 'start_episode' in params:
 			return MultiEpisode(**params)
 		elif 'year' in params:
