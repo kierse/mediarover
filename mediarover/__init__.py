@@ -23,7 +23,10 @@ from optparse import OptionParser
 
 from mediarover.config import read_config, generate_config_files, build_series_filters, locate_config_files
 from mediarover.ds.metadata import Metadata
+from mediarover.episode.factory import EpisodeFactory
 from mediarover.error import *
+from mediarover.filesystem.factory import FilesystemFactory
+from mediarover.queue.sabnzbd.factory import SabnzbdFactory
 from mediarover.series import Series
 from mediarover.source.tvnzb.factory import TvnzbFactory
 from mediarover.source.mytvnzb.factory import MytvnzbFactory
@@ -97,6 +100,9 @@ def main():
 	broker.register('resources_dir', resources_dir)
 
 	# register the source objects
+	broker.register('episode_factory', EpisodeFactory())
+	broker.register('sabnzbd_factory', SabnzbdFactory())
+	broker.register('filesystem_factory', FilesystemFactory())
 	broker.register('newzbin', NewzbinFactory())
 	broker.register('tvnzb', TvnzbFactory())
 	broker.register('mytvnzb', MytvnzbFactory())
@@ -359,6 +365,7 @@ def _process(config, broker, options, args):
 			if item represents a Film object:
 	"""
 	scheduled = []
+	drop_from_queue = []
 	for source in sources:
 		logger.info("processing '%s' items", source.name)
 		for item in source.items():
@@ -407,11 +414,10 @@ def _process(config, broker, options, args):
 			# replace queued item and be scheduled for download
 			# ATTENTION: this call takes into account users preferences regarding single vs multi-part 
 			# episodes as well as desired quality level
-			drop_from_queue = None
 			if queue.in_queue(episode):
-				queued = queue.get_download_from_queue(episode)
-				if series.should_episode_be_downloaded(episode, queued):
-					drop_from_queue = queued
+				job = queue.get_job_by_download(episode)
+				if series.should_episode_be_downloaded(episode, job.download()):
+					drop_from_queue.append(job)
 				else:
 					logger.info("skipping '%s', in download queue", item.title())
 					continue
@@ -422,7 +428,7 @@ def _process(config, broker, options, args):
 			# episodes as well as desired quality level
 			drop_from_scheduled = None
 			if item in scheduled:
-				old_item = scheduled[scheduled.index(old_item)]
+				old_item = scheduled[scheduled.index(item)]
 				if series.should_episode_be_downloaded(episode, old_item.download()):
 					drop_from_scheduled = old_item
 				else:
@@ -437,19 +443,26 @@ def _process(config, broker, options, args):
 			if drop_from_scheduled is not None:
 				scheduled.remove(drop_from_scheduled)
 
-			# remove existing job from queue
-			if drop_from_queue is not None and not options.dry_run:
-				queue.remove_from_queue(drop_from_queue)
-
 	logger.debug("finished processing source items")
-	logger.info("scheduling items for download")
 
-	# now that we've fully parsed all source items
-	# lets add the collected downloads to the queue...
-	if len(scheduled) and not options.dry_run:
-		for item in scheduled:
-			try:
-				queue.add_to_queue(item)
-			except (IOError, QueueInsertionError):
-				logger.warning("unable to schedule item %r for download", item.title())
+	if not options.dry_run:
+		if len(drop_from_queue) > 0:
+			logger.info("removing flagged items from download")
+			for job in drop_from_queue:
+				try:
+					queue.remove_from_queue(job)
+				except QueueDeletionError:
+					logger.warning("unable to remove job %r from queue", job.title())
+
+		# now that we've fully parsed all source items
+		# lets add the collected downloads to the queue...
+		if len(scheduled) > 0:
+			logger.info("scheduling items for download")
+			for item in scheduled:
+				try:
+					queue.add_to_queue(item)
+				except (IOError, QueueInsertionError):
+					logger.warning("unable to schedule item %r for download", item.title())
+		else:
+			logger.info("no items to schedule for download")
 
