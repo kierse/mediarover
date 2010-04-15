@@ -21,7 +21,7 @@ from mediarover.config import ConfigObj
 from mediarover.error import *
 from mediarover.filesystem.factory import FilesystemFactory
 from mediarover.utils.injection import is_instance_of, Dependency
-from mediarover.utils.quality import QUALITY_LEVELS, compare_quality
+from mediarover.utils.quality import compare_quality
 
 class Series(object):
 	""" represents a tv series """
@@ -67,12 +67,43 @@ class Series(object):
 			return True
 
 		# Determine if given episode(s) should be downloaded due to quality preferences
-		elif config['tv']['quality']['managed']:
-			for a, b in zip(list, found):
-				if compare_quality(a.quality, b.quality) == 1:
-					if a.quality in config['tv']['quality']['acceptable']:
-						if QUALTITY_LEVELS[a.quality] <= QUALITY_LEVELS[config['tv']['quality']['desired']]:
+		sanitized_name = episode.series.sanitize_series_name(series=episode.series)
+		if self.config['tv']['quality']['managed']:
+
+			# make sure episode quality is acceptable
+			if episode.quality in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
+				desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
+				for new, old in zip(list, found):
+					old_quality = old.quality.lower()
+					new_quality = new.quality.lower()
+
+					# skip if old quality meets desired quality level
+					if old_quality == desired:
+						continue
+
+					# new download meets desired quality level
+					elif new_quality == desired:
+						logger.debug("episode meets desired quality level...")
+						return True
+
+					if desired == 'low':
+						if old_quality == 'high' and new_quality == 'medium':
+							logger.debug("episode is closer to desired quality level than current offering...")
 							return True
+
+					elif desired == 'high':
+						if old_quality == 'low' and new_quality == 'medium':
+							logger.debug("episode is closer to desired quality level than current offering...")
+							return True
+
+					# desired == medium
+					# neither new or old match desired quality level.  There is no sense 
+					# in downloading something that isn't the exact level in this case.
+					# skip to next pair
+					else:
+						continue
+			else:
+				logger.debug("episode of unacceptable quality, skipping")
 
 		return False
 
@@ -160,7 +191,26 @@ class Series(object):
 					logger.warning("unable to determine episode specifics, encountered error while parsing filename. Skipping '%s'" % filename)
 					pass
 				else:
-					episodes.append(episode)
+					try:
+						episode.episodes
+					except AttributeError:
+						list = [episode]
+					else:
+						list = []
+						for ep in episode.episodes:
+							if ep not in episodes:
+								list.append(ep)
+
+					# attempt to retrieve episode quality from metadata ds
+					# if quality management is turned on
+					finally:
+						if self.config['tv']['quality']['manage']:
+							for ep in list:
+								record = self.meta_ds.get_episode(ep)
+								if record is not None:
+									ep.quality = record['quality']
+
+						episodes.extend(list)
 
 		return episodes
 
