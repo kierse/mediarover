@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from mediarover.config import ConfigObj
 from mediarover.error import *
 from mediarover.factory import EpisodeFactory, SourceFactory
 from mediarover.series import Series
@@ -26,6 +27,7 @@ class NewzbinFactory(EpisodeFactory, SourceFactory):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
+	config = Dependency("config", is_instance_of(ConfigObj))
 	watched_series = Dependency('watched_series', is_instance_of(dict))
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -51,6 +53,12 @@ class NewzbinFactory(EpisodeFactory, SourceFactory):
 			params['series'] = self.watched_series[sanitized_series]
 		else:
 			params['series'] = Series(params['series'])
+
+		if 'quality' not in kwargs:
+			if sanitized_series in self.config['tv']['filter']:
+				params['quality'] = self.config['tv']['filter'][sanitized_series]['quality']['desired']
+			else:
+				params['quality'] = self.config['tv']['quality']['desired']
 
 		if 'start_episode' in params:
 			return NewzbinMultiEpisode(**params)
