@@ -43,3 +43,14 @@ multi-part episodes.
 - look at creating a RssSource object
 
 - stop logging from within error objects.  Add logging call before each raise error.  Fatal errors will print stack trace
+
+- update config template/spec
+	- update multiepisode options in config template/spec
+	- remove aggressive flag
+	- remove UI options
+	- rename multiepisode to multipart
+
+- come up with some way to prune stale data from in_progress table
+- not delaying insert when queue is paused
+- remove quality property from queue.job or determine quality in source and pass as param when creating new job
+- to address the possibility of nzb's having the same title, look at using the url or other piece of data to make title unique
