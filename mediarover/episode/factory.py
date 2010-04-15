@@ -13,11 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from mediarover.config import ConfigObj
 from mediarover.error import InvalidEpisodeString
 from mediarover.episode.single import SingleEpisode
 from mediarover.episode.daily import DailyEpisode
 from mediarover.episode.multi import MultiEpisode
 from mediarover.factory import EpisodeFactory as Factory
+from mediarover.series import Series
 from mediarover.utils.injection import is_instance_of, Dependency
 
 class EpisodeFactory(Factory):
@@ -25,6 +27,7 @@ class EpisodeFactory(Factory):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
+	config = Dependency("config", is_instance_of(ConfigObj))
 	watched_series = Dependency('watched_series', is_instance_of(dict))
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -42,7 +45,7 @@ class EpisodeFactory(Factory):
 			raise InvalidEpisodeString("unable to identify episode type: %r" % string)
 
 		# locate series object.  If series is unknown, create new series
-		sanitized_series = Series.sanitized_series_name(name=params['series'])
+		sanitized_series = Series.sanitize_series_name(name=params['series'])
 		if sanitized_series in self.watched_series:
 			params['series'] = self.watched_series[sanitized_series]
 		else:

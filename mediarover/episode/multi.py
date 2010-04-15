@@ -60,10 +60,16 @@ class MultiEpisode(Episode):
 		for pattern in cls.supported_patterns:
 			match = pattern.search(string)
 			if match:
-				params['start_season'] = kwargs['season'] if 'season' in kwargs else match.group(1)
 				params['start_episode'] = match.group(2)
-				params['end_season'] = kwargs['season'] if 'season' in kwargs else match.group(3)
 				params['end_episode'] = match.group(4)
+				if 'season' in kwargs:
+					params['start_season'] = params['end_season'] = kwargs['season']
+				else:
+					params['start_season'] = match.group(1)
+					if match.group(3) is not None:
+						params['end_season'] = match.group(3)
+					else:
+						params['end_season'] = params['start_season']
 				break
 
 		if params['start_season'] == params['end_season']:
@@ -79,13 +85,10 @@ class MultiEpisode(Episode):
 		# if we've got a match object, try to set series 
 		if 'series' in kwargs:
 			params['series'] = kwargs['series']
-
-		# grab series name and see if it's in the watched list.  If not,
-		# create a new series object
 		elif match:
 			start = 0
 			end = match.start()
-			params['series'] = series or match.string[start:end]
+			params['series'] = match.string[start:end]
 
 		# finally, set the episode title
 		# NOTE: title will only be set if it was specifically provided, meaning
