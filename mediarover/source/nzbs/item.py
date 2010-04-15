@@ -58,6 +58,9 @@ class NzbsItem(Item):
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def _report_category(self):
+		return re.match("(\w+)-", self.__item.getElementsByTagName("category")[0].childNodes[0].data).group(1)
+
 	def __parseItem(self):
 		""" parse item data and build appropriate download object """
 
@@ -65,10 +68,10 @@ class NzbsItem(Item):
 		if re.match("TV", self._report_category()):
 			try:
 				download = self.factory.create_episode(self.title(), quality=self.quality())
-			except InvalidMultiEpisodeData:
-				raise InvalidItemTitle("unable to parse item title and create MultiEpisode object: %r" % title)
-			except MissingParameterError:
-				raise InvalidItemTitle("unable to parse item title and create SingleEpisode object: %r" % title)
+			except (InvalidMultiEpisodeData, MissingParameterError):
+				raise InvalidItemTitle("unable to parse item title and create Episode object: %s" % self.title())
+			except InvalidEpisodeString:
+				raise InvalidItemTitle("unsupported item title format: %r" % self.title())
 
 		return download
 

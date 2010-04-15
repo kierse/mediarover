@@ -27,7 +27,7 @@ class NzbmatrixItem(Item):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	factory = Dependency('newzbin', is_instance_of(SourceFactory))
+	factory = Dependency('nzbmatrix', is_instance_of(SourceFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -61,13 +61,13 @@ class NzbmatrixItem(Item):
 		""" parse item data and build appropriate download object """
 
 		download = None
-		if int(self._report_category_id()) in list(6, 41):
+		if int(self._report_category_id()) in [6, 41]:
 			try:
 				download = self.factory.create_episode(self.title(), quality=self.quality())
-			except InvalidMultiEpisodeData:
-				raise InvalidItemTitle("unable to parse item title and create MultiEpisode object: %s" % title)
-			except MissingParameterError:
-				raise InvalidItemTitle("unable to parse item title and create SingleEpisode object: %s" % title)
+			except (InvalidMultiEpisodeData, MissingParameterError):
+				raise InvalidItemTitle("unable to parse item title and create Episode object: %s" % self.title())
+			except InvalidEpisodeString:
+				raise InvalidItemTitle("unsupported item title format: %r" % self.title())
 
 		return download
 
