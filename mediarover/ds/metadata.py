@@ -54,13 +54,13 @@ class Metadata(object):
 		""" delete tuple from the in_progress table for a given session id.  Return 1 for success, 0 if given session id is not found """
 		cur = self.__dbh.cursor()
 		cur.execute("DELETE FROM in_progress where title=?", (title,))
+		count = cur.rowcount
 		self.__dbh.commit()
-		count = cur.rowcount()
 		cur.close()
 
 		return count
 
-	def register_episode(self, episode, quality):
+	def add_episode(self, episode, quality):
 		""" record given episode and quality in database """
 		cur = self.__dbh.cursor()
 
@@ -202,6 +202,10 @@ class Metadata(object):
 
 		# establish connection to database
 		self.__dbh = sqlite3.connect(db)
+
+		# tell connection to return Row objects instead of tuples
+		self.__dbh.row_factory = sqlite3.Row
+
 
 		if exists == False:
 			self._build_schema()
