@@ -49,6 +49,7 @@ class FilesystemError(Error): pass
 class InvalidData(Error): pass
 class InvalidEpisodeString(Error): pass
 class InvalidItemTitle(Error): pass
+class InvalidJobTitle(Error): pass
 class InvalidMultiEpisodeData(Error): pass
 class InvalidURL(Error): pass
 class MissingParameterError(Error): pass
