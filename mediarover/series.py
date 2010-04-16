@@ -18,6 +18,7 @@ import os.path
 import re
 
 from mediarover.config import ConfigObj
+from mediarover.ds.metadata import Metadata
 from mediarover.error import *
 from mediarover.filesystem.factory import FilesystemFactory
 from mediarover.utils.injection import is_instance_of, Dependency
@@ -31,6 +32,7 @@ class Series(object):
 	# declare module dependencies
 	config = Dependency('config', is_instance_of(ConfigObj))
 	filesystem_factory = Dependency('filesystem_factory', is_instance_of(FilesystemFactory))
+	meta_ds = Dependency("metadata_data_store", is_instance_of(Metadata))
 
 	metadata_regex = re.compile("\s*\(.+?\)")
 
@@ -41,7 +43,17 @@ class Series(object):
 			return boolean indicating whether or not a given episode should be downloaded.  This method takes into 
 			account episodes present on disk and user quality preferences
 		"""
-		logger = logging.getLogger("mediarover.series")
+		if len(self.filter_undesirables(episode, *args)) > 0:
+			return True
+		else:
+			return False
+
+	def filter_undesirables(self, episode, *args):
+		"""
+			return list of episode objects that are desirable.  A desirable episode is one that isn't already on disk
+			or, one that is closer in quality to the desired level for a given series.  If there are no desirable 
+			episodes, return an empty list
+		"""
 
 		# get list of episodes that will serve as the test sample.  If a sample
 		# wasn't provided, grab the series episode list
@@ -57,55 +69,54 @@ class Series(object):
 			list = [episode]
 		
 		found = []
-		for ep in sample:
-			if ep in list:
-				found.append(ep)
+		desirable = []
+		for ep in list:
+			
+			# found, must compare quality before we can determine desirability
+			if ep in sample:
+				found.append((ep, sample[sample.index(ep)]))
 
-		# number of found episodes (from sample) doesn't match number in search list (given episode(s)) meaning
-		# not every given episode was found in the sample.  Given episode(s) should be downloaded
-		if len(list) != len(found):
-			return True
-
-		# Determine if given episode(s) should be downloaded due to quality preferences
-		sanitized_name = episode.series.sanitize_series_name(series=episode.series)
-		if self.config['tv']['quality']['managed']:
-
-			# make sure episode quality is acceptable
-			if episode.quality in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
-				desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
-				for new, old in zip(list, found):
-					old_quality = old.quality.lower()
-					new_quality = new.quality.lower()
-
-					# skip if old quality meets desired quality level
-					if old_quality == desired:
-						continue
-
-					# new download meets desired quality level
-					elif new_quality == desired:
-						logger.debug("episode meets desired quality level...")
-						return True
-
-					if desired == 'low':
-						if old_quality == 'high' and new_quality == 'medium':
-							logger.debug("episode is closer to desired quality level than current offering...")
-							return True
-
-					elif desired == 'high':
-						if old_quality == 'low' and new_quality == 'medium':
-							logger.debug("episode is closer to desired quality level than current offering...")
-							return True
-
-					# desired == medium
-					# neither new or old match desired quality level.  There is no sense 
-					# in downloading something that isn't the exact level in this case.
-					# skip to next pair
-					else:
-						continue
+			# not found == desirable
 			else:
-				logger.debug("episode of unacceptable quality, skipping")
+				desirable.append(ep)
 
-		return False
+		series = episode.series
+		sanitized_name = series.sanitize_series_name(series=series)
+
+		# make sure episode quality is acceptable
+		if episode.quality in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
+			desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
+			a_quality = episode.quality.lower()
+			for a, b in found:
+				b_quality = b.quality.lower()
+
+				# skip if object B already meets desired quality level
+				if b_quality == desired:
+					continue
+
+				# A meets desired level.  Since object B doesn't, add A to 
+				# desirable list
+				elif a_quality == desired:
+					desirable.append(a)
+
+				# intermediate step DOWN in quality
+				if desired == 'low':
+					if b_quality == 'high' and a_quality == 'medium':
+						desirable.append(a)
+
+				# intermediate step UP in quality
+				elif desired == 'high':
+					if b_quality == 'low' and a_quality == 'medium':
+						desirable.append(a)
+
+				# desired == medium
+				# neither A nor B match desired quality level.  There is no sense 
+				# in downloading something that isn't the exact level in this case.
+				# skip to next pair
+				else:
+					continue
+
+		return desirable
 
 	def locate_season_folder(self, season):
 		path = None
@@ -186,7 +197,7 @@ class Series(object):
 		if len(files):
 			for filename, params in files.items():
 				try:
-					episode = self.filesystem_factory.create_filesystem_episode(self, params['path'])
+					episode = self.filesystem_factory.create_filesystem_episode(params['path'], series=self)
 				except (InvalidData, MissingParameterError):
 					logger.warning("unable to determine episode specifics, encountered error while parsing filename. Skipping '%s'" % filename)
 					pass
