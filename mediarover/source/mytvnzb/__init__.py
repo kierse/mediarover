@@ -14,14 +14,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import socket
-import urllib2
-import xml.dom.minidom
 
-from mediarover.source import Source
+from mediarover.error import InvalidItemTitle
+from mediarover.source import AbstractXmlSource
 from mediarover.source.tvnzb.item import TvnzbItem
 
-class MytvnzbSource(Source):
+class MytvnzbSource(AbstractXmlSource):
 	""" MyTvNZB v2.5 source class """
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,35 +33,17 @@ class MytvnzbSource(Source):
 		try:
 			self.__items
 		except AttributeError:
-			try:
-				self.__document
-			except AttributeError:
-				self.__get_document()
-
 			self.__items = []
-			for rawItem in self.__document.getElementsByTagName("item"):
+			for rawItem in self._document.getElementsByTagName("item"):
 				title = rawItem.getElementsByTagName("title")[0].childNodes[0].data
 				try:
-					item = TvnzbItem(rawItem, self.type, self.priority, self.quality)
+					item = TvnzbItem(rawItem, self.type(), self.priority(), self.quality())
 				except InvalidItemTitle:
 					logger.debug("skipping '%s', unknown format", title)
 				else:
-					if item is None:
-						logger.warning("unsupported item title format: %s" % title)
-					else:
+					if item is not None:
 						self.__items.append(item)
 
 		# return item list to caller
 		return self.__items
-
-	# private methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	def __get_document(self):
-		current_timeout = socket.getdefaulttimeout()
-		socket.setdefaulttimeout(self.timeout)
-
-		url = urllib2.urlopen(self.url)
-		self.__document = xml.dom.minidom.parse(url)
-
-		socket.setdefaulttimeout(current_timeout)
 

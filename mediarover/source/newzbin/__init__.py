@@ -14,19 +14,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import re
-import socket
-import urllib2
-import xml.dom.minidom
 
-from item import NewzbinItem
-from mediarover.error import *
-from mediarover.source import Source
+from mediarover.error import InvalidItemTitle
+from mediarover.source import AbstractXmlSource
+from mediarover.source.newzbin.item import NewzbinItem
 
-class NewzbinSource(Source):
+class NewzbinSource(AbstractXmlSource):
 	""" newzbin source class """
 
-	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def items(self):
 		""" return list of Item objects """
@@ -37,17 +33,12 @@ class NewzbinSource(Source):
 		try:
 			self.__items
 		except AttributeError:
-			try:
-				self.__document
-			except AttributeError:
-				self.__get_document()
-
 			self.__items = []
-			for rawItem in self.__document.getElementsByTagName("item"):
-				if self.type.upper() == rawItem.getElementsByTagName("report:category")[0].childNodes[0].data.upper():
+			for rawItem in self._document.getElementsByTagName("item"):
+				if self.type().upper() == rawItem.getElementsByTagName("report:category")[0].childNodes[0].data.upper():
 					title = rawItem.getElementsByTagName("title")[0].childNodes[0].data
 					try:
-						item = NewzbinItem(rawItem, self.type, self.priority, self.quality)
+						item = NewzbinItem(rawItem, self.type(), self.priority(), self.quality())
 					except InvalidItemTitle:
 						logger.debug("skipping '%s', unknown format", title)
 					else:
@@ -56,15 +47,4 @@ class NewzbinSource(Source):
 
 		# return item list to caller
 		return self.__items
-
-	# private methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	def __get_document(self):
-		current_timeout = socket.getdefaulttimeout()
-		socket.setdefaulttimeout(self.timeout)
-
-		url = urllib2.urlopen(self.url)
-		self.__document = xml.dom.minidom.parse(url)
-
-		socket.setdefaulttimeout(current_timeout)
 

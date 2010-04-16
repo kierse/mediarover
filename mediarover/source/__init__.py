@@ -13,75 +13,106 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
-
-from mediarover.error import *
-
 class Source:
 	""" NZB source interface class """
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def items(self):
-		""" 
-			return list of Item objects from source 
-
-			Note: this method throws urllib2.URLError on timeout
-		"""
+	def name(self):
 		raise NotImplementedError
-	
-	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def _name_prop(self, name = None):
-		if name is not None:
-			self._name = name
+	def url(self):
+		raise NotImplementedError
+
+	def type(self):
+		raise NotImplementedError
+
+	def priority(self):
+		raise NotImplementedError
+
+	def timeout(self):
+		raise NotImplementedError
+
+	def quality(self):
+		raise NotImplementedError
+
+	def items(self):
+		""" return list of zero or more mediarover.source.item objects """
+		raise NotImplementedError
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+import logging
+import re
+import socket
+import urllib2
+import xml.dom.minidom
+from xml.parsers.expat import ExpatError
+
+from mediarover.error import InvalidRemoteData
+
+class AbstractXmlSource(Source):
+	""" NZB abstract source class """
+	
+	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	def name(self):
 		return self._name
 
-	def _url_prop(self, url = None):
-		if url is not None:
-
-			# NEED MORE TESTS!!!
-			if url == "":
-				raise InvalidURL("empty url")
-			elif not re.match("^\w+://", url): 
-				raise InvalidURL("invalid URL structure: %s", url)
-			else:
-				self._url = url
-
+	def url(self):
 		return self._url
 
-	def _type_prop(self):
+	def type(self):
 		return self._type
 
-	def _priority_prop(self, priority = None):
-		if priority is not None:
-			self._priority = priority
+	def priority(self):
 		return self._priority
 
-	def _timeout_prop(self, timeout = None):
-		if timeout is not None:
-			self._timeout = timeout
+	def timeout(self):
 		return self._timeout
 
-	def _quality_prop(self):
+	def quality(self):
 		return self._quality
 
-	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
+	# private methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	name = property(fget=_name_prop, fset=_name_prop, doc="source name")
-	url = property(fget=_url_prop, fset=_url_prop, doc="source url")
-	priority = property(fget=_priority_prop, fset=_priority_prop, doc="source item download priority")
-	type = property(fget=_type_prop, doc="source type (ie. tv, movies, music, etc)")
-	quality = property(fget=_quality_prop, doc="declared source quality")
+	def _get_document(self):
+		logger = logging.getLogger("mediarover.source")
+
+		# update socket timeout to reflect source value
+		current_timeout = socket.getdefaulttimeout()
+		socket.setdefaulttimeout(self.timeout())
+
+		# attempt to retrieve data at source url
+		url = urllib2.urlopen(self.url())
+			
+		# parse xml response data and build DOM
+		# trap any expat errors
+		try:
+			document = xml.dom.minidom.parse(url)
+		except ExpatError, (e):
+			raise InvalidRemoteData(e)
+
+		# reset socket timeout value to default
+		socket.setdefaulttimeout(current_timeout)
+
+		return document
 
 	def __init__(self, name, url, type, priority, timeout, quality):
 		""" validate given url and verify that it is a valid url (syntactically) """
 
-		self.name = name
-		self.url = url
-		self.priority = priority
-		self.timeout = timeout
-
+		self._name = name
+		self._priority = priority
+		self._timeout = int(timeout)
 		self._type = type
 		self._quality = quality
+
+		if url in ("", None):
+			raise InvalidURL("empty url")
+		elif not re.match("^\w+://", url): 
+			raise InvalidURL("invalid URL structure: %s", url)
+		else:
+			self._url = url
+
+		# call the given url and retrieve remote document
+		self._document = self._get_document()
 
