@@ -129,12 +129,12 @@ class FilesystemDailyEpisode(DailyEpisode):
 	path = property(fget=_path_prop, doc="filesystem path to episode file")
 	extension = property(fget=_extension_prop, doc="file extension")
 
-	def __init__(self, series, year, month, day, path, title = "", quality = None):
+	def __init__(self, series, year, month, day, path, quality, title = ""):
 
 		if path is None:
 			raise MissingParameterError("missing filesystem path")
 
-		super(FilesystemDailyEpisode, self).__init__(series, year, month, day, title, quality)
+		super(FilesystemDailyEpisode, self).__init__(series, year, month, day, quality, title)
 
 		self.__path = path
 

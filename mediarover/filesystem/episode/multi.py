@@ -200,12 +200,12 @@ class FilesystemMultiEpisode(MultiEpisode):
 	path = property(fget=_path_prop, doc="filesystem path to episode file")
 	extension = property(fget=_extension_prop, doc="file extension")
 
-	def __init__(self, series, season, start_episode, end_episode, path, title = "", quality = None):
+	def __init__(self, series, season, start_episode, end_episode, path, quality, title = ""):
 		
 		if path is None:
 			raise MissingParameterError("missing filesystem path")
 
-		super(FilesystemMultiEpisode, self).__init__(series, season, start_episode, end_episode, title, quality)
+		super(FilesystemMultiEpisode, self).__init__(series, season, start_episode, end_episode, quality, title)
 
 		self.__path = path
 
