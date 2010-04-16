@@ -17,11 +17,11 @@ import logging
 import re
 
 from mediarover.error import *
-from mediarover.source.item import Item
+from mediarover.source.item import AbstractItem
 from mediarover.factory import SourceFactory
 from mediarover.utils.injection import is_instance_of, Dependency
 
-class NzbmatrixItem(Item):
+class NzbmatrixItem(AbstractItem):
 	""" wrapper object representing an unparsed report object """
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

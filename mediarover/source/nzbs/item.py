@@ -20,10 +20,10 @@ from mediarover.error import *
 from mediarover.episode.single import SingleEpisode
 from mediarover.episode.multi import MultiEpisode
 from mediarover.factory import SourceFactory
-from mediarover.source.item import Item
+from mediarover.source.item import AbstractItem
 from mediarover.utils.injection import is_instance_of, Dependency
 
-class NzbsItem(Item):
+class NzbsItem(AbstractItem):
 	""" wrapper object representing an unparsed report object """
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
