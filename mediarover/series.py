@@ -204,7 +204,7 @@ class Series(object):
 					# attempt to retrieve episode quality from metadata ds
 					# if quality management is turned on
 					finally:
-						if self.config['tv']['quality']['manage']:
+						if self.config['tv']['quality']['managed']:
 							for ep in list:
 								record = self.meta_ds.get_episode(ep)
 								if record is not None:

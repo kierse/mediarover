@@ -69,7 +69,7 @@ class FilesystemFactory(object):
 				if sanitized_series in self.config['tv']['filter']:
 					episode.quality = self.config['tv']['filter'][sanitized_series]['quality']['desire']
 				else:
-					episode.quality = self.config['tv']['quality']['desire']
+					episode.quality = self.config['tv']['quality']['desired']
 
 		return episode
 
