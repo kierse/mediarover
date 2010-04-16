@@ -74,7 +74,7 @@ class Metadata(object):
 				episode.year
 			except AttributeError:
 				args.extend([episode.season, episode.episode, episode.quality])
-				sql += "series_episode (series, season, episode, quality) VALUES (?,?,?,?)"
+				sql += "single_episode (series, season, episode, quality) VALUES (?,?,?,?)"
 			else:
 				args.extend([episode.year, episode.month, episode.day, episode.quality])
 				sql += "daily_episode (series, year, month, day, quality) VALUES (?,?,?,?,?)"
@@ -88,7 +88,7 @@ class Metadata(object):
 			try:
 				episode.year
 			except AttributeError:
-				table = "series_episode"
+				table = "single_episode"
 			else:
 				table = "daily_episode"
 
@@ -111,7 +111,7 @@ class Metadata(object):
 				episode.year
 			except AttributeError:
 				args.extend([episode.season, episode.episode])
-				sql = "SELECT id, quality FROM series_episode WHERE series=? AND season=? AND episode=?"
+				sql = "SELECT id, quality FROM single_episode WHERE series=? AND season=? AND episode=?"
 			else:
 				args.extend([episode.year, episode.month, episode.day])
 				sql = "SELECT id, quality FROM daily_episode WHERE series=? AND year=? AND month=? AND day=?"

@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS series
 	UNIQUE(sanitized_name)
 );
 
-CREATE TABLE IF NOT EXISTS series_episode
+CREATE TABLE IF NOT EXISTS single_episode
 (
 	id INTEGER PRIMARY KEY,
 	series INTEGER NOT NULL,
