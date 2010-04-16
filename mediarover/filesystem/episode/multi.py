@@ -19,6 +19,7 @@ import re
 from mediarover.config import ConfigObj
 from mediarover.error import *
 from mediarover.episode.multi import MultiEpisode
+from mediarover.filesystem.episode.single import FilesystemSingleEpisode
 from mediarover.utils.injection import is_instance_of, Dependency
 
 class FilesystemMultiEpisode(MultiEpisode):
@@ -45,18 +46,22 @@ class FilesystemMultiEpisode(MultiEpisode):
 		return MultiEpisode.handle(string)
 
 	@classmethod
-	def new_from_episode(cls, episode, path):
+	def new_from_episode(cls, multi, path):
 		""" create a new FilesystemMultiEpisode object from an MultiEpisode object """
 
 		episodes = []
-		for ep in episode.episodes:
+		for ep in multi.episodes:
 			episodes.append(FilesystemSingleEpisode.new_from_episode(ep, path))
 
 		return FilesystemMultiEpisode(
-			episodes = episodes,
-			title = episode.title,
-			quality = episode.quality,
-			path = path
+			multi.series,
+			multi.season,
+			None,
+			None,
+			path,
+			multi.quality,
+			multi.title,
+			episodes=episodes
 		)
 
 	@classmethod
@@ -152,6 +157,19 @@ class FilesystemMultiEpisode(MultiEpisode):
 
 		return template % params
 
+	def format_season(self):
+		""" return formatted pattern using episode data """
+
+		template = self.config['tv']['template']['season']
+		if template not in ("", None):
+			params = self._format_parameters(series=True, season=True)
+
+			# replace '$(' with '%(' so that variable replacement
+			# will work properly
+			template = template.replace("$(", "%(")
+
+		return template % params
+
 	# private methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	def _format_parameters(self, series=False, season=False, title=False):
@@ -200,12 +218,12 @@ class FilesystemMultiEpisode(MultiEpisode):
 	path = property(fget=_path_prop, doc="filesystem path to episode file")
 	extension = property(fget=_extension_prop, doc="file extension")
 
-	def __init__(self, series, season, start_episode, end_episode, path, quality, title = ""):
+	def __init__(self, series, season, start_episode, end_episode, path, quality, title = "", **kwargs):
 		
 		if path is None:
 			raise MissingParameterError("missing filesystem path")
 
-		super(FilesystemMultiEpisode, self).__init__(series, season, start_episode, end_episode, quality, title)
+		super(FilesystemMultiEpisode, self).__init__(series, season, start_episode, end_episode, quality, title, **kwargs)
 
 		self.__path = path
 

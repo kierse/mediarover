@@ -157,17 +157,20 @@ class MultiEpisode(Episode):
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	series = property(fget=_series_prop, fset=_series_prop, doc="multiepisode series object")
+	series = property(fget=_series_prop, doc="multiepisode series object")
 	season = property(fget=_season_prop, doc = "multiepisode season number")
 	episodes = property(fget=_episodes_prop, fset=_episodes_prop, doc="multiepisode episode list")
-	title = property(fget=_title_prop, fset=_title_prop, doc="multiepisode title")
+	title = property(fget=_title_prop, doc="multiepisode title")
 	quality = property(fget=_quality_prop, fset=_quality_prop, doc="episode quality")
 
-	def __init__(self, series, season, start_episode, end_episode, quality, title = ""):
+	def __init__(self, series, season, start_episode, end_episode, quality, title = "", **kwargs):
 
-		episodes = []
-		for num in range(int(start_episode), int(end_episode)+1):
-			episodes.append(SingleEpisode(series=series, season=season, episode=num, quality=quality))
+		if 'episodes' in kwargs:
+			episodes = kwargs['episodes']
+		else:
+			episodes = []
+			for num in range(int(start_episode), int(end_episode)+1):
+				episodes.append(SingleEpisode(series=series, season=season, episode=num, quality=quality))
 		
 		self._episodes = episodes
 		self._title = title
