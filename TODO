@@ -54,3 +54,6 @@ multi-part episodes.
 - not delaying insert when queue is paused
 - remove quality property from queue.job or determine quality in source and pass as param when creating new job
 - to address the possibility of nzb's having the same title, look at using the url or other piece of data to make title unique
+
+- rename series_episode template to single_episode template
+- add format parameter for episode quality
