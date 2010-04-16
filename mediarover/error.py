@@ -51,6 +51,7 @@ class InvalidEpisodeString(Error): pass
 class InvalidItemTitle(Error): pass
 class InvalidJobTitle(Error): pass
 class InvalidMultiEpisodeData(Error): pass
+class InvalidRemoteData(Error): pass
 class InvalidURL(Error): pass
 class MissingParameterError(Error): pass
 class QueueDeletionError(Error): pass
