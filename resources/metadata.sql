@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS series
 	id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL,
 	sanitized_name TEXT NOT NULL,
-	daily BOOLEAN NOT NULL DEFAULT 0,
 	UNIQUE(sanitized_name)
 );
 
