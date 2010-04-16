@@ -36,96 +36,88 @@ class Metadata(object):
 
 	def add_in_progress(self, title, type, quality):
 		""" record given nzb in progress table with type, and quality """
-		cur = self.__dbh.cursor()
-		cur.execute("INSERT INTO in_progress (title, type, quality) VALUES (?,?,?)", (title, type, quality))
+		self.__dbh.execute("INSERT INTO in_progress (title, type, quality) VALUES (?,?,?)", (title, type, quality))
 		self.__dbh.commit()
-		cur.close()
 
 	def get_in_progress(self, title):
 		""" retrieve tuple from the in_progress table for a given session id.  If given id doesn't exist, return None """
-		cur = self.__dbh.cursor()
-		cur.execute("SELECT type, quality FROM in_progress WHERE title=?", (title,))
-		row = cur.fetchone()
-		cur.close()
-
+		row = self.__dbh.execute("SELECT type, quality FROM in_progress WHERE title=?", (title,)).fetchone()
 		return row
 
 	def delete_in_progress(self, title):
 		""" delete tuple from the in_progress table for a given session id.  Return 1 for success, 0 if given session id is not found """
-		cur = self.__dbh.cursor()
-		cur.execute("DELETE FROM in_progress where title=?", (title,))
-		count = cur.rowcount
+		count = self.__dbh.execute("DELETE FROM in_progress WHERE title=?", (title,)).rowcount
 		self.__dbh.commit()
-		cur.close()
 
 		return count
 
-	def add_episode(self, episode, quality):
+	def add_episode(self, episode):
 		""" record given episode and quality in database """
-		cur = self.__dbh.cursor()
 
 		# first, determine if episode series is in db
 		series = self.__fetch_series_data(episode.series)
 
 		# if series doesn't exist, register it
 		if series is None:
-			args = (episode.series.name, sanitized, episode.daily)
-			cur.execute("INSERT INTO series VALUES (?)", args)
-			series = cur.lastrowid
+			sanitized = episode.series.sanitize_series_name(series=episode.series)
+			args = (episode.series.name, sanitized)
+			series = self.__dbh.execute("INSERT INTO series (name, sanitized_name) VALUES (?,?)", args).lastrowid
 		else:
 			series = series['id']
 
 		# check if episode already exists in database
-		current = self.__fetch_episode(episode, series)
+		current = self.get_episode(episode)
 		if current is None:
 			args = [series]
 			sql = "INSERT INTO "
-			if episode.daily:
-				args.extend(episode.year, episode.month, episode.day)
-				sql += "daily_episode VALUES (?)"
+			try:
+				episode.year
+			except AttributeError:
+				args.extend([episode.season, episode.episode, episode.quality])
+				sql += "series_episode (series, season, episode, quality) VALUES (?,?,?,?)"
 			else:
-				args.extend(episode.season, episode.episode)
-				sql += "series_episode VALUES (?)"
+				args.extend([episode.year, episode.month, episode.day, episode.quality])
+				sql += "daily_episode (series, year, month, day, quality) VALUES (?,?,?,?,?)"
 
 			# insert episode
-			cur.execute(sql, (args))
+			self.__dbh.execute(sql, (args))
 		
 		# update existing episode
 		else:
-			args = (current['quality'], current['id'])
-			if episode.daily:
-				sql = "UPDATE daily_episode SET quality=? WHERE id=?"
+			args = (episode['quality'], current['id'])
+			try:
+				episode.year
+			except AttributeError:
+				table = "series_episode"
 			else:
-				sql = "UPDATE series_episode SET quality=? WHERE id=?"
+				table = "daily_episode"
 
 			# update episode data
-			cur.execute(sql, args)
-			self.__dbh.commit()
-			cur.close()
+			self.__dbh.execute("UPDATE %s SET quality=? WHERE id=?" % table, args)
 
-	def get_episode(self, episode):
+		self.__dbh.commit()
+
+	def get_episode(self, episode, series=None):
 		""" retrieve database record for given episode.  Return None if not found """
-		cur = self.__dbh.cursor()
+
+		# series id wasn't given, try and find it
+		if series is None:
+			series = self.__fetch_series_data(episode.series)
 
 		result = None
-
-		# first, determine if episode series is in db
-		series = self.__fetch_series_data(episode.series)
 		if series is not None:
 			args = [series['id']]
 			try:
 				episode.year
 			except AttributeError:
 				args.extend([episode.season, episode.episode])
-				sql = "SELECT quality FROM series_episode WHERE series=? AND season=? AND episode=?"
+				sql = "SELECT id, quality FROM series_episode WHERE series=? AND season=? AND episode=?"
 			else:
 				args.extend([episode.year, episode.month, episode.day])
-				sql = "SELECT quality FROM daily_episode WHERE series=? AND year=? AND month=? AND day=?"
+				sql = "SELECT id, quality FROM daily_episode WHERE series=? AND year=? AND month=? AND day=?"
 
-			cur.execute(sql, args)
-			result = cur.fetchone()
+			result = self.__dbh.execute(sql, args).fetchone()
 
-		cur.close()
 		return result
 
 	def cleanup(self):
@@ -135,63 +127,26 @@ class Metadata(object):
 
 	def __fetch_series_data(self, series):
 		""" query the database and return row data for the given series (if exists) """
-		cur = self.__dbh.cursor()
 		details = None
 
 		args = (series.sanitize_series_name(series=series),)
-		cur.execute("SELECT id, name, sanitized_name, daily FROM series WHERE sanitized_name=?", args)
-		row = cur.fetchone()
+		row = self.__dbh.execute("SELECT id, name, sanitized_name FROM series WHERE sanitized_name=?", args).fetchone()
 		if row is not None:
 			details = row
 
-		cur.close()
-		return details
-
-	def __fetch_episode_data(self, episode, series=None):
-		""" query the database and return row data for the given episode (if exists) """
-		cur = self.__dbh.cursor()
-		details = None
-
-		# series id wasn't given, try and find it
-		if series is None:
-			args = (episode.series.sanitize_series_name(series=episode.series),)
-			cur.execute("SELECT id FROM series WHERE sanitized_name=?", args)
-			row = cur.fetchone()
-			if row is not None:
-				series = row['id']
-
-		if series:
-			args = [series]
-			sql = "SELECT * FROM "
-			if episode.daily:
-				args.extend(episode.year, episode.month, episode.day)
-				sql += "daily_episode WHERE series=? AND year=? AND month=? AND day=?"
-			else:
-				args.extend(episode.season, episode.episode)
-				sql += "series_episode WHERE series=? AND season=? AND episode=?"
-				
-			cur.execute(sql, (args))
-			row = cur.fetchone()
-			if row is not None:
-				details = row
-
-		cur.close()
 		return details
 
 	def _build_schema(self):
 		""" invoked the first time an instance is created, or when the database file cannot be found """
 		logger = logging.getLogger("mediarover.ds.metadata")
-
-		cur = self.__dbh.cursor()
 		
 		# read the sql commands from disk
 		with open(os.path.join(self.resources, "metadata.sql"), "r") as fh:
 			sql = fh.readlines()
 
 		# and create the schema
-		cur.executescript("\n".join(sql))
+		self.__dbh.executescript("\n".join(sql))
 		self.__dbh.commit()
-		cur.close()
 
 		logger.info("created metadata datastore")
 
