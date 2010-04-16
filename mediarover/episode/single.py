@@ -175,8 +175,8 @@ class SingleEpisode(Episode):
 
 		# initialize a few fields
 		self._series = series
-		self._season = season
-		self._episode = episode
+		self._season = int(season)
+		self._episode = int(episode)
 		self._title = title
 		self._quality = quality
 
