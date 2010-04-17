@@ -40,7 +40,7 @@
 		season = string(default=s$(season)02d)
 		title = string(default=$(title)s)
 		smart_title = string(default=' - $(title)s')
-		series_episode = string(default='$(series)s - $(season_episode_1)s$(smart_title)s')
+		single_episode = string(default='$(series)s - $(season_episode_1)s$(smart_title)s')
 		daily_episode = string(default='$(series)s - $(daily-)s$(smart_title)s')
 
 [source]

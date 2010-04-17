@@ -118,7 +118,7 @@ class FilesystemMultiEpisode(MultiEpisode):
 		""" return formatted pattern using episode data """
 
 		params = self._format_parameters(series=True, season=True, quality=True, title=True)
-		template = self.config['tv']['template']['series_episode']
+		template = self.config['tv']['template']['single_episode']
 
 		# modify episode template to reflect multiepisode nature of file...
 		first = self.episodes[0].format_parameters(episode=True)

@@ -234,13 +234,12 @@
 
 		# episode quality
 		# string representation of an episodes quality
-		# NOTE: this parameter can only be used in the series or daily episode templates
+		# NOTE: this parameter can only be used in the single or daily episode templates
 		#
 		#  $(quality) = 'low', 'medium', or 'high'
-		#  $(QUALITY) = 'LOW', 'MEDIUM', or 'HIGH'
 
-		# series episode naming pattern
-		# this pattern is the template used when renaming SERIES episodes. You may use any
+		# single episode naming pattern
+		# this pattern is the template used when renaming SINGLE episodes. You may use any
 		# of the above naming patterns in constructing the file naming pattern 
 		#
 		#  $(episode)d          => 3
@@ -253,7 +252,7 @@
 		#       episodes on disk would be next to impossible
 		#
 		# NOTE: defaults to '$(series)s - $(season_episode_1)s$(smart_title)s'
-		#series_episode = '$(series)s - $(season_episode_1)s$(smart_title)s'
+		#single_episode = '$(series)s - $(season_episode_1)s$(smart_title)s'
 
 		# daily episode naming pattern
 		# this pattern is the template used when renaming DAILY episodes.  You may use any

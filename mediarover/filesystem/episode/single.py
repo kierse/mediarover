@@ -101,7 +101,7 @@ class FilesystemSingleEpisode(SingleEpisode):
 		""" return formatted pattern using episode data """
 
 		params = self.format_parameters(series=True, season=True, episode=True, quality=True, title=True)
-		template = self.config['tv']['template']['series_episode']
+		template = self.config['tv']['template']['single_episode']
 
 		# replace '$(' with '%(' so that variable replacement
 		# will work properly
