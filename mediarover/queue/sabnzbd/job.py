@@ -47,10 +47,6 @@ class SabnzbdJob(Job):
 		""" download object """
 		return self.__download
 
-	def quality(self):
-		""" job quality (if known) """
-		return self.__quality
-
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def __parseJob(self):
@@ -75,7 +71,7 @@ class SabnzbdJob(Job):
 
 		return download
 
-	def __init__(self, job, quality=None):
+	def __init__(self, job):
 
 		self.__job = job
 
@@ -85,6 +81,5 @@ class SabnzbdJob(Job):
 
 		self.__id = self.__job.getElementsByTagName("nzo_id")[0].childNodes[0].data
 		self.__title = self.__job.getElementsByTagName("filename")[0].childNodes[0].data
-		self.__quality = quality
 		self.__download = self.__parseJob()
 

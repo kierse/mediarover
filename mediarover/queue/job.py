@@ -25,9 +25,6 @@ class Job:
 	def category(self):
 		raise NotImplementedError
 
-	def quality(self):
-		raise NotImplementedError
-
 	def download(self):
 		raise NotImplementedError
 
