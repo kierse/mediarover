@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS series;
-DROP TABLE IF EXISTS series_episode;
+DROP TABLE IF EXISTS single_episode;
 DROP TABLE IF EXISTS daily_episode;
 DROP TABLE IF EXISTS in_progress;
 
