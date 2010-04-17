@@ -232,6 +232,13 @@
 		# NOTE: defaults to ' - $(title)s'
 		#smart_title = ' - $(title)s'
 
+		# episode quality
+		# string representation of an episodes quality
+		# NOTE: this parameter can only be used in the series or daily episode templates
+		#
+		#  $(quality) = 'low', 'medium', or 'high'
+		#  $(QUALITY) = 'LOW', 'MEDIUM', or 'HIGH'
+
 		# series episode naming pattern
 		# this pattern is the template used when renaming SERIES episodes. You may use any
 		# of the above naming patterns in constructing the file naming pattern 

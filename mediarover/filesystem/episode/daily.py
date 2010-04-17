@@ -51,7 +51,7 @@ class FilesystemDailyEpisode(DailyEpisode):
 	def format(self, additional=""):
 		""" return formatted pattern using episode data """
 
-		params = self._format_parameters(series=True, season=True, title=True)
+		params = self._format_parameters(series=True, season=True, quality=True, title=True)
 		template = self.config['tv']['template']['daily_episode']
 
 		# replace '$(' with '%(' so that variable replacement
@@ -76,7 +76,7 @@ class FilesystemDailyEpisode(DailyEpisode):
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def _format_parameters(self, series=False, season=False, title=False):
+	def _format_parameters(self, series=False, season=False, quality=True, title=False):
 		""" return dict containing supported format parameters.  For use by format_*() methods """
 
 		params = {}
@@ -88,6 +88,10 @@ class FilesystemDailyEpisode(DailyEpisode):
 		# prepare season parameters
 		if season:
 			params['season'] = params['SEASON'] = "%04d" % self.year
+
+		if quality:
+			params['quality'] = self.quality
+			params['QUALITY'] = self.quality.upper()
 
 		# prepare title parameters
 		if title:

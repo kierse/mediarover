@@ -100,7 +100,7 @@ class FilesystemSingleEpisode(SingleEpisode):
 	def format(self, additional=""):
 		""" return formatted pattern using episode data """
 
-		params = self.format_parameters(series=True, season=True, episode=True, title=True)
+		params = self.format_parameters(series=True, season=True, episode=True, quality=True, title=True)
 		template = self.config['tv']['template']['series_episode']
 
 		# replace '$(' with '%(' so that variable replacement
@@ -136,7 +136,7 @@ class FilesystemSingleEpisode(SingleEpisode):
 
 		return template % params
 
-	def format_parameters(self, series=False, season=False, episode=False, title=False):
+	def format_parameters(self, series=False, season=False, episode=False, quality=False, title=False):
 		""" return dict containing supported format parameters.  For use by format_*() methods """
 
 		params = {}
@@ -158,6 +158,10 @@ class FilesystemSingleEpisode(SingleEpisode):
 			params['EPISODE'] = params['episode']
 			params['SEASON_EPISODE_1'] = params['season_episode_1'].upper()
 			params['SEASON_EPISODE_2'] = params['season_episode_2'].upper()
+
+		if quality:
+			params['quality'] = self.quality
+			params['QUALITY'] = self.quality.upper()
 
 		# prepare title parameters
 		if title:
