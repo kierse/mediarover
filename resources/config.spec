@@ -13,18 +13,13 @@
 	umask = integer(default=022)
 	category = string(default=tv)
 	priority = option('normal', 'high', 'low', 'force', default='normal')
-	ignore_series_metadata = boolean(default=True)
 	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com","tbn","jpg","png","gif","info"))
+	allow_multipart = boolean(default=True)
 
 	[[quality]]
 		managed = boolean(default=False)
 		acceptable = options_list(options=list('all', 'low', 'medium', 'high'), default=list('all'))
 		desired = option('low', 'medium', 'high', None, default=None)
-
-	[[multiepisode]]
-		allow = boolean(default=True)
-		prefer = boolean(default=False)
-		aggressive = boolean(default=False)
 
 	[[filter]]
 		[[[__many__]]]

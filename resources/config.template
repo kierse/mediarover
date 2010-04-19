@@ -1,12 +1,3 @@
-[ui]
-	#templates_dir = templates/
-	#template = default
-
-	[[server]]
-
-		# NOTE: defaults to 8081
-		#server.socket_port = 8081
-
 [logging]
 
 	# sorting error log
@@ -27,7 +18,7 @@
 	# NOTE: defaults to 022
 	#umask = 022
 
-	# download category
+	# queue download category
 	# NOTE: defaults to 'tv'
 	#category = tv
 
@@ -36,17 +27,13 @@
 	# NOTE: defaults to normal
 	#priority = normal
 
-	# ignore series metadata
-	# ie. ignore year, country of origin, etc commonly found between ()
-	#	Lost (2004)
-	#	Battlestar Galactica (2004) or Battlestar Galactica (1978)
-	#	The Office (US)
-	# NOTE: defaults to True
-	#ignore_series_metadata = True
-
 	# ignored file extensions (used when sorting downloads)
 	# NOTE: defaults to: nfo,txt,sfv,srt,nzb,idx,log,par,par2,exe,bat,com,tbn,jpg,png,gif,info
 	#ignored_extensions = nfo,txt,sfv,srt,nzb,idx,log,par,par2,exe,bat,com,tbn,jpg,png,gif,info
+
+	# allow multi-part episodes
+	# NOTE: defaults to True
+	#allow_multipart = True
 
 	[[quality]]
 
@@ -81,48 +68,6 @@
 		# Note: only set if managed is True
 		#desired = 
 
-	[[multiepisode]]
-
-		# allow multiepisode downloads
-		# NOTE: defaults to True
-		#allow = True
-
-		# aggressively schedule downloads based on prefer flag
-		# WARNING: SETTING THIS OPTION TO TRUE MAY RESULT IN EPISODES BEING DELETED
-		#
-		# when set to True, Media Rover becomes more aggressive in scheduling downloads and 
-		# cleaning up unnecessary data.  Here's how it's used:
-		#
-		#   If you prefer single episodes =>
-		#      aggresive = True
-		#      prefer = False
-		#    
-		#    - this will cause Media Rover to download single episodes that already exist on disk 
-		#      as part of a multiepisode.  Once all the individual parts are on disk, Media Rover
-		#      will attempt to delete the multiepisode
-		#
-		#  If you prefer multiepisodes =>
-		#     aggressive = True
-		#     prefer = True
-		#
-		#   - this will cause Media Rover to download multiepisodes when available and attempt
-		#     to delete any/all individual episodes.
-		#
-		# NOTE: defaults to False
-		#aggressive = False
-
-		# prefer multiepisode files over individual files
-		#
-		# ATTENTION: this flag works in conjunction with the aggressive flag above.  It is ignored
-		# unless the aggressive flag is set.  A value of True indicates that you prefer multiepisodes
-		# over single episodes whenever possible.  A value of False indicates that you prefer single
-		# episodes over multiepisodes whenever possible.  When the aggressive flag is set, Media 
-		# Rover will make all attempts to see that your specified preference (single or multi episodes)
-		# is met.
-		#
-		# NOTE: defaults to False
-		#prefer = False
-
 	# series specific filter options
 	# usage: in order to specify filters for a given series, define
 	# a new subsection with the series name.  Define all filter rules
@@ -136,11 +81,16 @@
 	#        skip = <boolean>
 	#        ignore = <list>
 	#        alias = <list>
+	#        [[[[ quality ]]]]
+	#            acceptable = all
+	#            desired = high
 	#
 	#     [[[ series_name_2 ]]]
 	#        skip = <boolean>
 	#        ignore = <list>
 	#        alias = <list>
+	#        [[[[ quality ]]]]
+	#            desired = medium
 	#
 	#     ...
 	#     ..
