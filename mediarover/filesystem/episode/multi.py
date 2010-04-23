@@ -227,7 +227,11 @@ class FilesystemMultiEpisode(MultiEpisode):
 		if path is None:
 			raise MissingParameterError("missing filesystem path")
 
-		super(FilesystemMultiEpisode, self).__init__(series, season, start_episode, end_episode, quality, title, **kwargs)
+		kwargs['episodes'] = []
+		for num in range(int(start_episode), int(end_episode)+1):
+			kwargs['episodes'].append(FilesystemSingleEpisode(series=series, season=season, episode=num, path=path, quality=quality, title=title))
+
+		super(FilesystemMultiEpisode, self).__init__(series, season, None, None, quality, title, **kwargs)
 
 		self.__path = path
 
