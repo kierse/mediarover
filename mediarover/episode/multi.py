@@ -152,8 +152,9 @@ class MultiEpisode(Episode):
 
 	def _quality_prop(self, quality=None):
 		if quality is not None:
-			self._quality = quality
-		return self._quality
+			for episode in self.episodes:
+				episode.quality = quality
+		return self.episodes[0].quality
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -174,5 +175,4 @@ class MultiEpisode(Episode):
 		
 		self._episodes = episodes
 		self._title = title
-		self._quality = quality
 
