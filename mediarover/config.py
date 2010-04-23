@@ -151,7 +151,7 @@ def check_filesystem_path(path):
 		if not os.path.isdir(path):
 			new_path = os.path.join(sys.path[0], path)
 			if not os.path.isdir(new_path):
-				raise VdtValueException("path '%s' does not exist!", path)
+				raise VdtValueError("path '%s' does not exist!" % path)
 			else:
 				path = new_path
 
@@ -183,7 +183,7 @@ def check_url(url):
 
 	if url != "":
 		if not re.match("^\w+://", url):
-			raise VdtValueException("invalid url '%s'", url)
+			raise VdtValueError("invalid url '%s'" % url)
 
 	return url
 
@@ -208,7 +208,7 @@ def check_int_list(data):
 		try:
 			num = int(num)
 		except ValueError:
-			raise VdtValueException("'%s' contains non-digit characters!", orig)
+			raise VdtValueError("'%s' contains non-digit characters!" % orig)
 		else:
 			int_list.append(num)
 
@@ -226,7 +226,7 @@ def check_options_list(selections, **kargs):
 			else:
 				selections = []
 		else:
-			raise VdtValueException("missing required value!")
+			raise VdtValueError("missing required value!")
 
 	# make sure selection is is a list
 	if not isinstance(selections, list):
@@ -242,7 +242,7 @@ def check_options_list(selections, **kargs):
 		if selected.issubset(options):
 			selections = list(selected)
 		else:
-			raise VdtValueException("unknown option!")
+			raise VdtValueError("unknown option!")
 
 	return selections
 
@@ -342,17 +342,4 @@ def _write_new_config_file(path, data):
 			print "Created %s" % f.name
 		finally:
 			f.close()
-
-# - - - - - -  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-class VdtValueException(VdtValueError):
-	
-	def __init__(self, message, data):
-
-		Exception.__init__(self, data)
-		self.message = message
-		self.data = data
-
-	def __str__(self):
-		return self.message % self.data
 
