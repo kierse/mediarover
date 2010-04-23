@@ -23,14 +23,18 @@ from optparse import OptionParser
 from tempfile import TemporaryFile
 from time import strftime
 
-from mediarover import locate_config_files
-from mediarover.config import read_config
+from mediarover.config import read_config, locate_config_files, build_series_filters
+from mediarover.ds.metadata import Metadata
+from mediarover.episode.factory import EpisodeFactory
 from mediarover.error import *
+from mediarover.filesystem.factory import FilesystemFactory
+from mediarover.source.newzbin.factory import NewzbinFactory
 from mediarover.scripts.error import *
 from mediarover.series import Series
-from mediarover.filesystem.episode import FilesystemEpisode, FilesystemMultiEpisode
 from mediarover.utils.configobj import ConfigObj
-from mediarover.utils.filesystem import series_episode_exists, series_episode_path, series_season_path, series_season_multiepisodes, clean_path
+from mediarover.utils.filesystem import clean_path
+from mediarover.utils.injection import initialize_broker
+from mediarover.utils.quality import compare_quality
 from mediarover.version import __app_version__
 
 # public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -62,11 +66,14 @@ def sort():
 	else: # os.name == "posix":
 		config_dir = os.path.expanduser("~/.mediarover")
 
+	# grab location of resources folder
+	resources_dir = os.path.join(sys.path[0], "resources")
+
 	# make sure application config file exists and is readable
 	locate_config_files(config_dir)
 
 	# create config object using user config values
-	config = read_config(config_dir)
+	config = read_config(resources_dir, config_dir)
 
 	""" logging setup """
 
@@ -76,6 +83,18 @@ def sort():
 	logger = logging.getLogger("mediarover.scripts.sabnzbd.episode")
 
 	""" post configuration setup """
+
+	# initialize dependency broker and register resources
+	broker = initialize_broker()
+	broker.register('config', config)
+	broker.register('config_dir', config_dir)
+	broker.register('resources_dir', resources_dir)
+	broker.register('metadata_data_store', Metadata())
+
+	# register factory objects
+	broker.register('newzbin', NewzbinFactory())
+	broker.register('episode_factory', EpisodeFactory())
+	broker.register('filesystem_factory', FilesystemFactory())
 
 	# make sure script was passed 6 arguments
 	if not len(args) == 7:
@@ -98,7 +117,7 @@ def sort():
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name, ignore_metadata=config['tv'].as_bool('ignore_series_metadata'))] = filters
+		config['tv']['filter'][Series.sanitize_series_name(name=name)] = filters
 
 	""" main """
 
@@ -111,7 +130,7 @@ def sort():
 
 	fatal = 0
 	try:
-		_process_download(config, options, args)
+		_process_download(config, broker, options, args)
 	except Exception, e:
 		fatal = 1
 		logger.exception(e)
@@ -125,12 +144,27 @@ def sort():
 			sort_log = open(os.path.join(args[0], "sort.log"), "w")
 			shutil.copyfileobj(tmp_file, sort_log)
 			sort_log.close()
+	finally:
+		# close db handler
+		try:
+			broker['metadata_data_store']
+		except KeyError:
+			pass
+		else:
+			broker['metadata_data_store'].cleanup()
 
+	if fatal:
+		print "FAILURE, unable to sort downloaded episode! See log file at %r for more details!" % os.path.join(config_dir, "logs", "sabnzbd_episode_sort.log")
+	else:
+		if options.dry_run:
+			print "DONE, dry-run flag set...nothing to do!"
+		else:
+			print "SUCCESS, downloaded episode sorted!"
 	exit(fatal)
 
 # private methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def _process_download(config, options, args):
+def _process_download(config, broker, options, args):
 
 	logger = logging.getLogger("mediarover.scripts.sabnzbd.episode")
 
@@ -166,8 +200,8 @@ def _process_download(config, options, args):
 		logger.warning("download is marked as failed, moving to trash...")
 		try:
 			args[0] = _move_to_trash(tv_root[0], path)
-		except OSError, (num, message):
-			if num == 13:
+		except OSError, (e):
+			if e.errno == 13:
 				logger.error("unable to move download directory to '%s', permission denied", args[0])
 		finally:
 			raise FailedDownload("unable to sort failed download")
@@ -180,8 +214,8 @@ def _process_download(config, options, args):
 	elif status == 3:
 		raise FailedDownload("download failed verification and unpack")
 
-	shows = {}
-	alias_map = {}
+	watched_list = {}
+	skip_list = {}
 	for root in tv_root:
 
 		# make sure tv root directory exists and that we have read and 
@@ -192,10 +226,6 @@ def _process_download(config, options, args):
 			raise FilesystemError("Missing read/write access to tv root directory (%s)", (root))
 
 		logger.info("begin processing tv directory: %s", root)
-
-		ignore_metadata = True
-		if 'ignore_series_metadata' in config['tv']:
-			ignore_metadata = config['tv'].as_bool('ignore_series_metadata')
 
 		# set umask for files and directories created during this session
 		os.umask(config['tv']['umask'])
@@ -212,29 +242,60 @@ def _process_download(config, options, args):
 			dir = os.path.join(root, name)
 			if os.path.isdir(dir):
 
-				series = Series(name, path=dir, ignore_metadata=ignore_metadata)
-				sanitized_name = Series.sanitize_series_name(series)
+				sanitized_name = Series.sanitize_series_name(name=name)
 
-				if sanitized_name in shows:
-					logger.warning("duplicate series directory found! Multiple directories for the same series can result in sorting errors!  You've been warned...")
+				# already seen this series and have determined that user wants to skip it
+				if sanitized_name in skip_list:
+					continue
 
-				# process series aliases
-				if sanitized_name in config['tv']['filter']:
-					if 'alias' in config['tv']['filter'][sanitized_name]:
+				# we've already seen this series.  Append new directory to list of series paths
+				elif sanitized_name in watched_list:
+					series = watched_list[sanitized_name]
+					series.path.append(dir)
+
+				# new series, create new Series object and add to the watched list
+				else:
+					series = Series(name, path=dir)
+					additions = {sanitized_name: series}
+
+					# locate and process any filters for current series.  If no user defined filters for 
+					# current series exist, build dict using default values
+					if sanitized_name in config['tv']['filter']:
+						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'], config['tv']['filter'][sanitized_name])
+					else:
+						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'])
+
+					# check filters to see if user wants this series skipped...
+					if config['tv']['filter'][sanitized_name]["skip"]:
+						skip_list[sanitized_name] = series
+						logger.debug("found skip filter, ignoring series: %s", series.name)
+						continue
+
+					# set season ignore list for current series
+					if len(config['tv']['filter'][sanitized_name]['ignore']):
+						logger.debug("ignoring the following seasons of %s: %s", series.name, config['tv']['filter'][sanitized_name]['ignore'])
+						series.ignores = config['tv']['filter'][sanitized_name]['ignore']
+
+					# process series aliases.  For each new alias, register series in watched_list
+					if config['tv']['filter'][sanitized_name]['alias']:
 						series.aliases = config['tv']['filter'][sanitized_name]['alias'];
 						count = 0
 						for alias in series.aliases:
-							sanitized_alias = Series.sanitize_series_name(alias, series.ignore_metadata)
-							if sanitized_alias in alias_map:
-								logger.warning("duplicate series alias found! Duplicate aliases (when part of two different series filters) can/will result in incorrect downloads and improper sorting! You've been warned...")
-							alias_map[sanitized_alias] = sanitized_name
+							sanitized_alias = Series.sanitize_series_name(name=alias)
+							if sanitized_alias in watched_list:
+								logger.warning("duplicate series alias found for '%s'! Duplicate aliases can/will result in incorrect downloads and improper sorting! You've been warned..." % series)
+							additions[sanitized_alias] = series
 							count += 1
-						logger.info("%d alias(es) identified for series '%s'" % (count, series))
+						logger.debug("%d alias(es) identified for series '%s'" % (count, series))
 
-				shows[sanitized_name] = series
-				logger.debug("watching series: %s => %s", sanitized_name, dir)
+					# finally, add additions to watched list
+					logger.debug("watching series: %s", series)
+					watched_list.update(additions)
 
-	logger.info("watching %d tv show(s)", len(shows))
+	# register series dictionary with dependency broker
+	broker.register('watched_series', watched_list)
+
+	logger.info("watching %d tv show(s)", len(watched_list))
 	logger.debug("finished processing watched tv")
 
 	ignored = [ext.lower() for ext in config['tv']['ignored_extensions']]
@@ -244,9 +305,8 @@ def _process_download(config, options, args):
 	filename = None
 	extension = None
 	size = 0
-	for file in os.listdir(path):
-		if os.path.isfile(os.path.join(path, file)):
-			
+	for dirpath, dirnames, filenames in os.walk(path):
+		for file in filenames:
 			# check if current file's extension is in list
 			# of ignored extensions
 			(name, ext) = os.path.splitext(file)
@@ -255,197 +315,132 @@ def _process_download(config, options, args):
 				continue
 
 			# get size of current file (in bytes)
-			stat = os.stat(os.path.join(path, file))
+			stat = os.stat(os.path.join(dirpath, file))
 			if stat.st_size > size:
 				filename = file
 				extension = ext
 				size = stat.st_size
 				logger.debug("identified possible download: filename => %s, size => %d", filename, size)
-	else:
-		if filename is None:
-			raise FilesystemError("unable to find episode file in given download path '%s'", path)
 
-		orig_path = os.path.join(path, filename)
-		logger.info("found download file at '%s'", orig_path)
+	if filename is None:
+		raise FilesystemError("unable to find episode file in given download path '%s'", path)
 
-	# build episode object using command line values
+	orig_path = os.path.join(path, filename)
+	logger.info("found download file at '%s'", orig_path)
+
+	# retrieve the proper factory object
 	if report_id is not None and report_id != "":
-		from mediarover.source.newzbin.episode import NewzbinEpisode, NewzbinMultiEpisode
-		
-		try:
-			if NewzbinMultiEpisode.handle(job):
-				episode = NewzbinMultiEpisode.new_from_string(job)
-			else:
-				episode = NewzbinEpisode.new_from_string(job)
-				
-		except MissingParameterError:
-			logger.error("Unable to parse job name (%s) and extract necessary values", job)
-			raise
-
-	# other download
+		factory = broker['newzbin']
 	else:
-		from mediarover.episode import Episode, MultiEpisode
+		factory = broker['episode_factory']
 
-		try:
-			if MultiEpisode.handle(job):
-				episode = MultiEpisode.new_from_string(job)
-			else:
-				episode = Episode.new_from_string(job)
+	# build episode object using job name
+	try:
+		episode = factory.create_episode(job)
+	except (InvalidMultiEpisodeData, MissingParameterError):
+		raise InvalidJobTitle("unable to parse job title and create Episode object: %s" % title)
 
-		except MissingParameterError:
-			logger.error("Unable to parse job name (%s) and extract necessary values", job)
-			raise
+	# sanitize series name for later use
+	series = episode.series
+	sanitized_name = series.sanitize_series_name(series=series)
+
+	# determine quality of given job if quality management is turned on
+	if config['tv']['quality']['managed']:
+		result = broker['metadata_data_store'].get_in_progress(job)
+		if result is not None:
+			episode.quality = result['quality']
 
 	# build a filesystem episode object
-	try:
-		episode.episodes
-	except AttributeError:
-		episode = FilesystemEpisode.new_from_episode(episode, filename, extension)
-	else:
-		episode = FilesystemMultiEpisode.new_from_episode(episode, filename, extension)
+	episode = broker['filesystem_factory'].create_filesystem_episode(orig_path, episode=episode)
 
-	# make sure episode series object knows whether to ignore metadata or not
-	episode.series.ignore_metadata = config['tv']['ignore_series_metadata']
-
-	# determine if episode belongs to a currently watched series
-	season_path = None
-	additional = None
-
-	# get actual name of series
-	sanitized_name = Series.sanitize_series_name(episode.series)
-	if sanitized_name in alias_map:
-		sanitized_name = alias_map[sanitized_name]
-
-	try:
-		episode.series = shows[sanitized_name]
-
-	# if not, we need to create the series directory
-	except KeyError:
-
+	if len(series.path) == 0:
 		logger.info("series directory not found")
-		series_dir = os.path.join(tv_root[0], episode.format_series(config['tv']['template']['series']))
-		season_path = os.path.join(series_dir, episode.format_season(config['tv']['template']['season']))
-		try:
-			os.makedirs(season_path)
-			logger.info("created series directory '%s'", series_dir)
-		except OSError, (num, message):
-			if num == 13:
-				logger.error("unable to create series directory '%s', permission denied", season_path)
-			raise
-		finally:
-			episode.series.path = series_dir
-			shows[sanitized_name] = episode.series
-	
-	# series directory found, look for season directory
-	else:
+		series.path = os.path.join(tv_root[0], series.format(config['tv']['template']['series']))
 
-		# look for existing season directory
-		try:
-			season_path = series_season_path(episode.series, episode.season, config['tv']['ignored_extensions'])
-
-		# if not, we need to create it
-		except FilesystemError:
-			dir = episode.format_season(config['tv']['template']['season'])
-			season_path = os.path.join(episode.series.path, dir)
+	dest_dir = series.locate_season_folder(episode.season)
+	if dest_dir is None:
+		if config['tv']['template']['season'] not in ("", None):
 			try:
-				os.mkdir(season_path)
-			except OSError, (num, message):
-				if num == 13:
-					logger.error("unable to create season directory '%s', permission denied", season_path)
-				raise
-
-		# season directory found, perform some last minute checks before we 
-		# start moving stuff around
+				episode.year
+			except AttributeError:
+				dest_dir = os.path.join(series.path[0], episode.format_season())
+			else:
+				dest_dir = os.path.join(series.path[0], str(episode.year))
 		else:
-			if series_episode_exists(episode.series, episode, config['tv']['ignored_extensions']):
-				logger.warning("duplicate episode detected: %s", filename)
-				additional = strftime("%Y%m%d%H%M")
+			dest_dir = series.path[0]
+
+	if not os.path.isdir(dest_dir):
+		try:
+			os.makedirs(dest_dir)
+			logger.debug("created directory '%s'", dest_dir)
+		except OSError, (e):
+			if e.errno == 13:
+				logger.error("unable to create directory '%s', permission denied", dest_dir)
+			raise
+
+	# build list of episode(s) (either SingleEpisode or DailyEpisode) that are desirable
+	# ie. missing or of more desirable quality than current offering
+	desirables = series.filter_undesirables(episode)
+	additional = None
+	if len(desirables) == 0:
+		logger.warning("duplicate episode detected: %s", filename)
+		additional = "[%s].%s" % (episode.quality, strftime("%Y%m%d%H%M"))
 
 	# generate new filename for current episode
-	new_path = os.path.join(season_path, episode.format_episode(
-		series_template = config['tv']['template']['series_episode'],
-		daily_template = config['tv']['template']['daily_episode'], 
-		smart_title_template = config['tv']['template']['smart_title'],
-		additional = additional
-	))
+	new_path = os.path.join(dest_dir, episode.format(additional))
 
 	# move downloaded file to new location and rename
 	if not options.dry_run:
 		try:
 			shutil.move(orig_path, new_path)
-			logger.info("moving downloaded episode '%s' to '%s'", orig_path, new_path)
-		except OSError, (num, message):
-			if num == 13:
+		except OSError, (e):
+			if e.errno == 13:
 				logger.error("unable to move downloaded episode to '%s', permission denied", new_path)
 			raise
 	
 		# move successful, cleanup download directory
 		else:
+			logger.info("moving downloaded episode '%s' to '%s'", orig_path, new_path)
+
+			# remove job from in_progress
+			broker['metadata_data_store'].delete_in_progress(job)
 
 			# clean up download directory by removing all files matching ignored extensions list.
-			# if unable to download directory (because it's not empty), move it to .trash
+			# if unable to delete download directory (because it's not empty), move it to .trash
 			try:
 				clean_path(path, ignored)
 				logger.info("removing download directory '%s'", path)
 			except (OSError, FilesystemError):
 				logger.error("unable to remove download directory '%s'", path)
 
-				try:
-					args[0] = _move_to_trash(tv_root[0], path)
-					logger.info("moving download directory '%s' to '%s'", path, args[0])
-				except OSError, (num, message):
-					if num == 13:
-						logger.error("unable to move download directory to '%s', permission denied", args[0])
-					raise
+				args[0] = _move_to_trash(tv_root[0], path)
+				logger.info("moving download directory '%s' to '%s'", path, args[0])
 
-			# if aggressive flag is set, check to see if current download
-			# made any existing files redundant or unnecessary
-			if config['tv']['multiepisode']['aggressive']:
-				logger.info("aggressive flag set to True, checking for redundant files...")
-	
-				list = []
-				try:
-					episode.episodes
+			if additional is None:
 
-				# single episode
-				except AttributeError:
-					if not config['tv']['multiepisode']['prefer']:
-						for multi in series_season_multiepisodes(episode.series, episode.season, config['tv']['ignored_extensions']):
-							if episode in multi.episodes:
-								for ep in multi.episodes:
-									# ATTENTION: when a file is moved using shutil, its modification time IS NOT updated
-									# this means that the cache won't be regenerated (because its stale) meaning we won't 
-									# find the current episode.  Therefore, skip the current episode as we know its in the 
-									# correct place
-									if ep != episode and not series_episode_exists(ep.series, ep, config['tv']['ignored_extensions']):
-										break
-								else:
-									logger.info("scheduling '%s' for deletion", multi)
-									list.append(multi)
+				# mark series episode list stale
+				series.mark_episode_list_stale()
 
-				# multipart episode
-				else:
-					if config['tv']['multiepisode']['prefer']:
-						for ep in episode.episodes:
-							if series_episode_exists(ep.series, ep, config['tv']['ignored_extensions']):
-								logger.info("scheduling '%s' for deletion", ep)
-								list.append(file)
+				# update metadata db with newly sorted episode information
+				for ep in desirables:
+					broker['metadata_data_store'].add_episode(ep)
 
-				# iterate over list of stale downloads and remove them from filesystem
-				finally:
-					for ep in list:
+				# determine if any multipart episodes on disk can now be removed 
+				logger.info("checking multipart episodes for any redundancies...")
+				for multi in series.multipart_episodes:
+					for ep in multi.episodes:
+						index = series.episodes.index(ep)
+						if ep.path == series.episodes[index].path:
+							break
+					else:
 						try:
-							file = series_episode_path(ep.series, ep, config['tv']['ignored_extensions'])
-						except:
-							logger.warning("unable to locate '%s' on disk!", ep)
+							os.remove(multi.path)
+						except OSError, (e):
+							if e.errno == 13:
+								logger.error("unable to delete file %r, permission denied", multi.path)
 							raise
-						try:
-							os.remove(file)
-							logger.info("removing file '%s'", file)
-						except OSError, (num, message):
-							if num == 13:
-								logger.error("unable to delete file '%s', permission denied", file)
-							raise
+						else:
+							logger.info("removing file %r", multi.path)
 
 def _move_to_trash(root, path):
 

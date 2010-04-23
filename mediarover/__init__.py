@@ -20,13 +20,13 @@ import os.path
 import re
 import sys
 from optparse import OptionParser
+from urllib2 import URLError
 
 from mediarover.config import read_config, generate_config_files, build_series_filters, locate_config_files
 from mediarover.ds.metadata import Metadata
 from mediarover.episode.factory import EpisodeFactory
 from mediarover.error import *
 from mediarover.filesystem.factory import FilesystemFactory
-from mediarover.queue.sabnzbd.factory import SabnzbdFactory
 from mediarover.series import Series
 from mediarover.source.tvnzb.factory import TvnzbFactory
 from mediarover.source.mytvnzb.factory import MytvnzbFactory
@@ -98,10 +98,10 @@ def main():
 	broker.register('config', config)
 	broker.register('config_dir', config_dir)
 	broker.register('resources_dir', resources_dir)
+	broker.register('metadata_data_store', Metadata())
 
 	# register the source objects
 	broker.register('episode_factory', EpisodeFactory())
-	broker.register('sabnzbd_factory', SabnzbdFactory())
 	broker.register('filesystem_factory', FilesystemFactory())
 	broker.register('newzbin', NewzbinFactory())
 	broker.register('tvnzb', TvnzbFactory())
@@ -133,6 +133,12 @@ def main():
 			pass
 		else:
 			broker['metadata_data_store'].cleanup()
+
+	if options.dry_run:
+		logger.info("DONE, dry-run flag set...nothing to do!")
+	else:
+		logger.info("DONE")
+
 
 # private methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -221,7 +227,7 @@ def _process(config, broker, options, args):
 						logger.debug("%d alias(es) identified for series '%s'" % (count, series))
 
 					# finally, add additions to watched list
-					logger.info("watching series: %s", series)
+					logger.debug("watching series: %s", series)
 					watched_list.update(additions)
 
 	logger.info("watching %d tv show(s)", len(watched_list))
@@ -249,16 +255,16 @@ def _process(config, broker, options, args):
 			# NOTE: must set raw flag to True when retrieving item pairs from source feed list
 			# as they may contain '%' which will throw off Config parser
 			feeds = []
-			for label, params in config['source'][available].items():
+			for name, params in config['source'][available].items():
 
 				# first things first: if manage_quality is True, make sure the user
 				# has specified a quality for this source
 				if manage_quality and params['quality'] is None:
-					raise ConfigurationError("missing quality flag for source '%s'" % label)
+					raise ConfigurationError("missing quality flag for source '%s'" % name)
 
 				if 'url' in params:
-					logger.info("found feed '%s'", label)
-					params['label'] = label
+					logger.debug("found feed '%s'", name)
+					params['name'] = name 
 					params['priority'] = config[params['type']]['priority']
 					if params['timeout'] is None:
 						params['timeout'] = config['source']['default_timeout']
@@ -274,24 +280,16 @@ def _process(config, broker, options, args):
 
 				# loop through list of available feeds and create Source object
 				for feed in feeds:
-					logger.debug("creating source for feed '%s'", feed['label'])
+					logger.debug("creating source for feed '%s'", feed['name'])
 					try:
-						sources.append(
-							factory.create_source(
-								feed['label'], 
-								feed['url'], 
-								feed['type'],
-								feed['priority'], 
-								feed['timeout'], 
-								feed['quality']
-							)
-						)
-					except URLError, (msg):
-						logger.error("skipping source '%s', %s", source.name, msg)
+						source = factory.create_source(**feed)
+					except URLError, (e):
+						logger.error("skipping source %r, error encountered while retrieving url: %r", feed['name'], e)
+					except InvalidRemoteData, (e):
+						logger.error("skipping source %r, unable to process remote data: %r", feed['name'], e)
 						continue
-					except Exception, (msg):
-						logger.error("skipping source '%s', unknown error: %s", source.name, msg)
-						continue
+					else:
+						sources.append(source)
 			else:
 				logger.debug("skipping source '%s', no feeds", available)
 
@@ -304,10 +302,6 @@ def _process(config, broker, options, args):
 
 	logger.info("watching %d source(s)", len(sources))
 	logger.debug("finished processing sources")
-
-	# register quality db handler with dependency broker
-	logger.debug("preparing metadata store...")
-	broker.register('metadata_data_store', Metadata())
 
 	logger.info("begin queue configuration")
 
@@ -367,7 +361,7 @@ def _process(config, broker, options, args):
 	scheduled = []
 	drop_from_queue = []
 	for source in sources:
-		logger.info("processing '%s' items", source.name)
+		logger.info("processing '%s' items", source.name())
 		for item in source.items():
 
 			logger.debug("begin processing item '%s'", item.title())
@@ -389,7 +383,7 @@ def _process(config, broker, options, args):
 
 			# if multiepisode job: check if user will accept, otherwise 
 			# continue to next job
-			if not config['tv']['multiepisode']['allow']:
+			if not config['tv']['allow_multipart']:
 				try:
 					episode.episodes
 				except AttributeError:
