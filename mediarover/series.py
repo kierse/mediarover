@@ -293,6 +293,8 @@ class Series(object):
 		return self.__name
 
 	def _ignores_prop(self, ignores = None):
+		if ignores is not None:
+			self.__ignores = ignores
 		return self.__ignores
 
 	def _aliases_prop(self, aliases = None):
@@ -320,7 +322,7 @@ class Series(object):
 
 	path = property(fget=_path_prop, fset=_path_prop, doc="series filesystem path")
 	name = property(fget=_name_prop, doc="series name")
-	ignores = property(fget=_ignores_prop, doc="season ignore list")
+	ignores = property(fget=_ignores_prop, fset=_ignores_prop, doc="season ignore list")
 	aliases = property(fget=_aliases_prop, fset=_aliases_prop, doc="aliases for current series")
 	episodes = property(fget=_episodes_prop, doc="list of series episodes found on disk")
 	multipart_episodes = property(fget=_multipart_prop, doc="list of multipart episodes found on disk")
