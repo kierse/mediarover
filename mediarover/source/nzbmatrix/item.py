@@ -61,7 +61,7 @@ class NzbmatrixItem(AbstractItem):
 		""" parse item data and build appropriate download object """
 
 		download = None
-		if int(self._report_category_id()) in [6, 41]:
+		if re.match("TV", self._report_category()):
 			try:
 				download = self.factory.create_episode(self.title(), quality=self.quality())
 			except (InvalidMultiEpisodeData, MissingParameterError):
@@ -71,9 +71,9 @@ class NzbmatrixItem(AbstractItem):
 
 		return download
 
-	def _report_category_id(self):
+	def _report_category(self):
 		""" report category id from source item """
-		return self.__item.getElementsByTagName("categoryid")[0].childNodes[0].data
+		return re.match("(\w+):", self.__item.getElementsByTagName("category")[0].childNodes[0].data).group(1)
 
 	def __init__(self, item, type, priority, quality):
 		""" init method expects a DOM Element object (xml.dom.Element) """
