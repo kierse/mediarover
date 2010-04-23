@@ -116,8 +116,8 @@ def generate_config_files(resources, path):
 	file.close()
 
 	# write logging config files
-	for config, log in zip(["logging.conf", "sabnzbd_episode_sort_logging.conf", "ui_logging.conf"], 
-		['mediarover.log', 'sabnzbd_episode_sort.log', 'ui.log']):
+	for config, log in zip(["logging.conf", "sabnzbd_episode_sort_logging.conf"], 
+		['mediarover.log', 'sabnzbd_episode_sort.log']):
 
 		if _have_write_permission(os.path.join(path, config)):
 
@@ -130,7 +130,7 @@ def generate_config_files(resources, path):
 def locate_config_files(path):
 	
 	if os.path.exists(path):
-		for file in ("mediarover.conf", "logging.conf", "sabnzbd_episode_sort_logging.conf", "ui_logging.conf"):
+		for file in ("mediarover.conf", "logging.conf", "sabnzbd_episode_sort_logging.conf"):
 			if not os.path.exists(os.path.join(path, file)):
 				print "ERROR: missing config file '%s'.  Run `python mediarover.py --config=%s --write-configs`" % (os.path.join(path, file), path)
 				exit(1)
