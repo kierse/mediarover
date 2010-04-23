@@ -17,10 +17,10 @@ folder.
 - update custom errors to allow setting an error number.  That way I can 
 handle different numbered error specifically
 	- update util.filesystem to number different errors
-- when looking for episode on disk, search all subdirectories for possible 
+x when looking for episode on disk, search all subdirectories for possible 
 files
-	- use os.walk instead of os.listdir
-- look at moving daily flag to series object as it is a property of the show
+	x use os.walk instead of os.listdir
+x look at moving daily flag to series object as it is a property of the show
 - standardize category types that are supported by application
 	- each source should return one of supported categories when queried
 - update mediarover.error so that it doesn't accept arguments to apply to the error message
@@ -28,32 +28,34 @@ files
 x add all watched series to dict
 x register as a dependency
 - all code that creates episodes uses dict of series objects to find series
-- update series interface to include methods that
+x update series interface to include methods that
   a) say whether episode exists on disk or not, and
   b) say whether given episode is of better quality than existing episode on disk
 x update series so that it can exist across multiple tv_roots
-- create a FilesystemSeries that subclasses Series.  This object will contain all filesystem related method and checks
-  - will also contain list of episodes for that series
+x create a FilesystemSeries that subclasses Series.  This object will contain all filesystem related method and checks
+  x will also contain list of episodes for that series
 
 - for each source subclass, create an abstract factor.  All implementing subclasses will need to be able to handle daily, regular, and 
 multi-part episodes.
   - have one handle method, and one new_from_string method which returns the appropriate object
 
-- update source.py to be an interface rather than an implementation
-- look at creating a RssSource object
+x update source.py to be an interface rather than an implementation
+	x look at creating a RssSource object
 
 - stop logging from within error objects.  Add logging call before each raise error.  Fatal errors will print stack trace
 
 - update config template/spec
-	- update multiepisode options in config template/spec
-	- remove aggressive flag
-	- remove UI options
-	- rename multiepisode to multipart
+	x update multiepisode options in config template/spec
+	x remove aggressive flag
+	x remove UI options
+	x rename multiepisode to multipart
+	- update comments in config.template
 
 - come up with some way to prune stale data from in_progress table
-- not delaying insert when queue is paused
-- remove quality property from queue.job or determine quality in source and pass as param when creating new job
+x remove quality property from queue.job or determine quality in source and pass as param when creating new job
 - to address the possibility of nzb's having the same title, look at using the url or other piece of data to make title unique
 
-- rename series_episode template to single_episode template
-- add format parameter for episode quality
+x rename series_episode template to single_episode template
+x add format parameter for episode quality
+
+- think about duplicate episodes on disk (no timestamp) and how MR handles them when reading in a series episodes
