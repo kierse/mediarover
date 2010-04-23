@@ -13,7 +13,7 @@
 	umask = integer(default=022)
 	category = string(default=tv)
 	priority = option('normal', 'high', 'low', 'force', default='normal')
-	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com","tbn","jpg","png","gif","info"))
+	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com","tbn","jpg","png","gif","info","db"))
 	allow_multipart = boolean(default=True)
 
 	[[quality]]
