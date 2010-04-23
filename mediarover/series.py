@@ -50,7 +50,7 @@ class Series(object):
 
 	def filter_undesirables(self, episode, *args):
 		"""
-			return list of episode objects that are desirable.  A desirable episode is one that isn't already on disk
+			return list of episode objects that are desirable.  A desirable episode is one that isn't already in the sample
 			or, one that is closer in quality to the desired level for a given series.  If there are no desirable 
 			episodes, return an empty list
 		"""
@@ -84,37 +84,38 @@ class Series(object):
 		sanitized_name = series.sanitize_series_name(series=series)
 
 		# make sure episode quality is acceptable
-		if episode.quality in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
-			desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
-			a_quality = episode.quality.lower()
-			for a, b in found:
-				b_quality = b.quality.lower()
+		if self.config['tv']['quality']['managed']:
+			if episode.quality in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
+				desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
+				a_quality = episode.quality.lower()
+				for a, b in found:
+					b_quality = b.quality.lower()
 
-				# skip if object B already meets desired quality level
-				if b_quality == desired:
-					continue
+					# skip if object B already meets desired quality level
+					if b_quality == desired:
+						continue
 
-				# A meets desired level.  Since object B doesn't, add A to 
-				# desirable list
-				elif a_quality == desired:
-					desirable.append(a)
-
-				# intermediate step DOWN in quality
-				if desired == 'low':
-					if b_quality == 'high' and a_quality == 'medium':
+					# A meets desired level.  Since object B doesn't, add A to 
+					# desirable list
+					elif a_quality == desired:
 						desirable.append(a)
 
-				# intermediate step UP in quality
-				elif desired == 'high':
-					if b_quality == 'low' and a_quality == 'medium':
-						desirable.append(a)
+					# intermediate step DOWN in quality
+					if desired == 'low':
+						if b_quality == 'high' and a_quality == 'medium':
+							desirable.append(a)
 
-				# desired == medium
-				# neither A nor B match desired quality level.  There is no sense 
-				# in downloading something that isn't the exact level in this case.
-				# skip to next pair
-				else:
-					continue
+					# intermediate step UP in quality
+					elif desired == 'high':
+						if b_quality == 'low' and a_quality == 'medium':
+							desirable.append(a)
+
+					# desired == medium
+					# neither A nor B match desired quality level.  There is no sense 
+					# in downloading something that isn't the exact level in this case.
+					# skip to next pair
+					else:
+						continue
 
 		return desirable
 
@@ -167,9 +168,13 @@ class Series(object):
 
 		return params
 
+	def mark_episode_list_stale(self):
+		self.__episodes = None
+		self.__multipart_episodes = None
+
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def _find_series_episodes(self):
+	def __find_series_episodes(self):
 		""" return list of episode objects for current series """
 		logger = logging.getLogger("mediarover.series")
 
@@ -193,7 +198,9 @@ class Series(object):
 						if name not in files or size > files[name]['size']:
 							files[name] = {'size': size, 'path': os.path.join(dirpath, filename)}
 
-		episodes = []
+		single = []
+		multipart = []
+
 		if len(files):
 			for filename, params in files.items():
 				try:
@@ -205,25 +212,30 @@ class Series(object):
 					try:
 						episode.episodes
 					except AttributeError:
-						list = [episode]
+						if self.config['tv']['quality']['managed']:
+							record = self.meta_ds.get_episode(ep)
+							if record is not None:
+								episode.quality = record['quality']
+						single.append(episode)
 					else:
+						# add to list of multipart episodes
+						multipart.append(episode)
+
+						# now look at individual parts and determine
+						# if they should be added to single episode list
 						list = []
 						for ep in episode.episodes:
-							if ep not in episodes:
+							if ep not in single:
 								list.append(ep)
 
-					# attempt to retrieve episode quality from metadata ds
-					# if quality management is turned on
-					finally:
 						if self.config['tv']['quality']['managed']:
-							for ep in list:
-								record = self.meta_ds.get_episode(ep)
-								if record is not None:
-									ep.quality = record['quality']
+							record = self.meta_ds.get_episode(list[0])
+							if record is not None:
+								episode.quality = record['quality']
+						single.extend(list)
 
-						episodes.extend(list)
-
-		return episodes
+		self.__episodes = single
+		self.__multipart_episodes = multipart
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -294,9 +306,15 @@ class Series(object):
 
 	def _episodes_prop(self):
 		if self.__episodes is None:
-			self.__episodes = self._find_series_episodes()
+			self.__find_series_episodes()
 			
 		return self.__episodes
+
+	def _multipart_prop(self):
+		if self.__multipart_episodes is None:
+			self.__find_series_episodes()
+
+		return self.__multipart_episodes
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -305,6 +323,7 @@ class Series(object):
 	ignores = property(fget=_ignores_prop, doc="season ignore list")
 	aliases = property(fget=_aliases_prop, fset=_aliases_prop, doc="aliases for current series")
 	episodes = property(fget=_episodes_prop, doc="list of series episodes found on disk")
+	multipart_episodes = property(fget=_multipart_prop, doc="list of multipart episodes found on disk")
 
 	def __init__(self, name, path = [], ignores = [], aliases = []):
 
@@ -316,7 +335,9 @@ class Series(object):
 		self.aliases = aliases
 		self.path = path
 
-		self.__episodes = self._find_series_episodes()
+		# initialize episode related attributes
+		self.__episodes = None
+		self.__multipart_episodes = None
 
 		# sanitize ignores list
 		self.__ignores = set([int(re.sub("[^\d]", "", str(i))) for i in ignores if i])
