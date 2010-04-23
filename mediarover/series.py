@@ -205,7 +205,7 @@ class Series(object):
 			for filename, params in files.items():
 				try:
 					episode = self.filesystem_factory.create_filesystem_episode(params['path'], series=self)
-				except (InvalidData, MissingParameterError):
+				except (InvalidEpisodeString, MissingParameterError):
 					logger.warning("unable to determine episode specifics, encountered error while parsing filename. Skipping '%s'" % filename)
 					pass
 				else:
@@ -213,7 +213,7 @@ class Series(object):
 						episode.episodes
 					except AttributeError:
 						if self.config['tv']['quality']['managed']:
-							record = self.meta_ds.get_episode(ep)
+							record = self.meta_ds.get_episode(episode)
 							if record is not None:
 								episode.quality = record['quality']
 						single.append(episode)

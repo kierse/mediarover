@@ -67,7 +67,7 @@ class FilesystemFactory(object):
 			if 'quality' not in kwargs:
 				sanitized_series = episode.series.sanitize_series_name(series=episode.series)
 				if sanitized_series in self.config['tv']['filter']:
-					episode.quality = self.config['tv']['filter'][sanitized_series]['quality']['desire']
+					episode.quality = self.config['tv']['filter'][sanitized_series]['quality']['desired']
 				else:
 					episode.quality = self.config['tv']['quality']['desired']
 

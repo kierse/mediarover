@@ -106,7 +106,7 @@ class FilesystemMultiEpisode(MultiEpisode):
 
 				break
 		else:
-			params = MultiEpisode._parse_string(filename, **kwargs)
+			params = MultiEpisode.extract_from_string(filename, **kwargs)
 
 		params['path'] = path
 
