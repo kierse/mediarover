@@ -30,9 +30,6 @@ class FilesystemSingleEpisode(SingleEpisode):
 	supported_patterns = (
 		# episode 1 regex, ie 310
 		re.compile("(\d{1,2})(\d{2})[^ip]?"),
-
-		# episode 2 regex, ie 10
-		re.compile("^(\d{1,2})")
 	)
 
 	config = Dependency('config', is_instance_of(ConfigObj))
