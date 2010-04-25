@@ -228,7 +228,7 @@ class Series(object):
 							if ep not in single:
 								list.append(ep)
 
-						if self.config['tv']['quality']['managed']:
+						if len(list) > 0 and self.config['tv']['quality']['managed']:
 							record = self.meta_ds.get_episode(list[0])
 							if record is not None:
 								episode.quality = record['quality']
