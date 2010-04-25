@@ -459,4 +459,9 @@ def _process(config, broker, options, args):
 					logger.warning("unable to schedule item %r for download", item.title())
 		else:
 			logger.info("no items to schedule for download")
+	else:
+		if len(scheduled) > 0:
+			logger.info("the following items would have been scheduled for download:")
+			for item in scheduled:
+				logger.info(item.title())
 
