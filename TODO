@@ -35,9 +35,9 @@ x update series so that it can exist across multiple tv_roots
 x create a FilesystemSeries that subclasses Series.  This object will contain all filesystem related method and checks
   x will also contain list of episodes for that series
 
-- for each source subclass, create an abstract factor.  All implementing subclasses will need to be able to handle daily, regular, and 
+x for each source subclass, create an abstract factory.  All implementing subclasses will need to be able to handle daily, regular, and 
 multi-part episodes.
-  - have one handle method, and one new_from_string method which returns the appropriate object
+  x have one handle method, and one new_from_string method which returns the appropriate object
 
 x update source.py to be an interface rather than an implementation
 	x look at creating a RssSource object
@@ -59,3 +59,9 @@ x rename series_episode template to single_episode template
 x add format parameter for episode quality
 
 - think about duplicate episodes on disk (no timestamp) and how MR handles them when reading in a series episodes
+- update config version number
+- problem: adding something to queue, get ok back from sabnzbd
+  - sab isn't able to retrieve url and add to queue
+  - mr registers download with in_progress table
+  - next time mr is run, it attempts to schedule downloads again and we get a not unique error because download title is already in table
+  - maybe it should silently fail?
