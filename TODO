@@ -49,7 +49,7 @@ x update source.py to be an interface rather than an implementation
 	x remove aggressive flag
 	x remove UI options
 	x rename multiepisode to multipart
-	- update comments in config.template
+	x update comments in config.template
 
 - come up with some way to prune stale data from in_progress table
 x remove quality property from queue.job or determine quality in source and pass as param when creating new job
