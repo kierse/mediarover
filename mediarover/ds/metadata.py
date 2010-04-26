@@ -44,12 +44,17 @@ class Metadata(object):
 		row = self.__dbh.execute("SELECT type, quality FROM in_progress WHERE title=?", (title,)).fetchone()
 		return row
 
-	def delete_in_progress(self, title):
+	def delete_in_progress(self, *titles):
 		""" delete tuple from the in_progress table for a given session id.  Return 1 for success, 0 if given session id is not found """
-		count = self.__dbh.execute("DELETE FROM in_progress WHERE title=?", (title,)).rowcount
-		self.__dbh.commit()
-
+		count = 0
+		if len(titles) > 0:
+			count = self.__dbh.execute("DELETE FROM in_progress WHERE title IN (%s)" % ",".join(["?" for i in titles]), titles).rowcount
+			self.__dbh.commit()
 		return count
+
+	def list_in_progress(self):
+		""" return a list of all items currently found in the in_progress table """
+		return self.__dbh.execute("SELECT title, type, quality FROM in_progress").fetchall()
 
 	def add_episode(self, episode):
 		""" record given episode and quality in database """

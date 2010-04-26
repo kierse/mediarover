@@ -344,6 +344,21 @@ def _process(config, broker, options, args):
 		exit(1)
 
 	logger.debug("finished queue configuration")
+	logger.info("cleaning database of stale jobs")
+
+	# grab queue and list of in_progress jobs from database
+	in_queue = []
+	in_progress = set([row['title'] for row in broker['metadata_data_store'].list_in_progress()])
+	for job in queue.jobs():
+		if job.title() in in_progress:
+			in_queue.append(job.title())
+
+	# find the difference between the two.  If there are any items in the in_progress
+	# table that aren't in the queue, remove them
+	not_in_queue = in_progress.difference(set(in_queue))
+	if len(not_in_queue) > 0:
+		logger.debug("found %d stale job(s) in the database, removing..." % len(not_in_queue))
+		broker['metadata_data_store'].delete_in_progress(*not_in_queue)
 
 	"""
 		for each Source object, loop through the list of available Items and
