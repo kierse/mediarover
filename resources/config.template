@@ -31,7 +31,7 @@
 	# NOTE: defaults to: nfo,txt,sfv,srt,nzb,idx,log,par,par2,exe,bat,com,tbn,jpg,png,gif,info
 	#ignored_extensions = nfo,txt,sfv,srt,srr,nzb,idx,log,par,par2,exe,bat,com,tbn,jpg,png,gif,info,db
 
-	# allow multi-part episodes
+	# allow Media Rover to schedule multi-part episodes for download
 	# NOTE: defaults to True
 	#allow_multipart = True
 
@@ -76,52 +76,84 @@
 	# Section layout:
 	#
 	#  [[ filter ]]
-	#
 	#     [[[ series_name_1 ]]]
-	#        skip = <boolean>
-	#        ignore = <list>
-	#        alias = <list>
-	#        [[[[ quality ]]]]
-	#            acceptable = all
-	#            desired = high
+	#        option = blah
+	#        option = blah
 	#
 	#     [[[ series_name_2 ]]]
-	#        skip = <boolean>
-	#        ignore = <list>
-	#        alias = <list>
-	#        [[[[ quality ]]]]
-	#            desired = medium
+	#        option = blah
+	#        option = blah
 	#
 	#     ...
 	#     ..
 	#
 	#     [[[ series_name_N ]]]
-	#        skip = <boolean>
-	#        ignore = <list>
-	#        alias = <list>
+	#        option = blah
+	#        option = blah
 	#
-	# Options:
-	#  filter:      skip
-	#  values:      True or False
-	#  default:     False
-	#  description: ignore TV series entirely (won't download any new episodes).
+	# Declaring a new series filter:
 	#
-	#  filter:      ignore
-	#  values:      comma separated list (ie. 1,2,3,4)
-	#  default:     none (empty list)
-	#  description: comma separated list of seasons to ignore when downloading new episode
+	#  1. name the filter.  This name is used to pair the filter to a specific folder 
+	#     on disk so it should match very closely. Create a new subsection within the
+	#     [tv][[filter]] section using your filter name.  You begin defining a new sub-
+	#     section by wrapping your filter name in 3 sets of square brackets.  For example:
+	#     say you were defining a series filter for "The Super Terrific Happy Hour", you
+	#     would create a new subsection like so: [[[ The Super Terrific Happy Hour ]]].
+	#     NOTE: See below for a complete example
 	#
-	#  filter:      alias
-	#  values:      comma separated list (ie. 1,2,3,4)
-	#  default:     none (empty list)
-	#  description: comma separated list of aliases that will be used to match nzb titles 
-	#               when downloading new episodes. For example:
+	#  2. set series specific options. These options deterine how Media Rover treats
+	#     both folders it finds on disk and source items that match watched series.
+	#     Options include:
 	#
-	#               [[ filter ]]
-	#                  [[[ The Show Name ]]]
-	#                    alias = "Show Name", "Show Name, The"
+	#     a) option: skip 
+	#        values: True or False
+	#        default: False
+	#        description: this option tells Media Rover to skip a series entirely. No new 
+	#                     nzb's will be scheduled for a series that has a skip flag set to True
 	#
-	# ATTENTION: subsection names should exactly match series folder on disk in order to
+	#     b) option: ignore
+	#        values: comma separated list (ie. 1,2,3,4)
+	#        default: none (empty list)
+	#        description: this option tells Media Rover to ignore any new items (for the current series)
+	#                     that are from a list of seasons.
+	#
+	#     c) option: alias
+	#        values: comma separated list (ie. 1,2,3,4)
+	#        default: none (empty list)
+	#        description: this option tells Media Rover to match source items to the current series that
+	#                     normally wouldn't be matched. This option is typically used when the series name
+	#                     (contained in a source item title) does not match the series folder name on disk.
+	#
+	#  3. set series specific quality preferences. If [tv][quality][managed] is True, you have the option 
+	#     of specifying quality preferences on a per series basis. 
+	#     NOTE: all quality options must be placed under a quality subsection (ie. [[[[quality]]]]).  
+	#     Options include:
+	#
+	#     a) option: desired
+	#        values: low, medium, or high
+	#        default: [tv][quality][desired]
+	#        description: this option allows you to tell Media Rover your preferred quality level for
+	#                     the current series.
+	#
+	#     b) option: accetable
+	#        values: comma separated list containing one or more of the following: all, low, medium, high
+	#        default: [tv][quality][acceptable]
+	#        description: this option tells Media Rover which quality levels you find acceptable for the 
+	#                     current series.
+	#
+	#  Example:
+	#
+	#     [tv]
+	#        [[ filter ]]
+	#           [[[ The Super Terrific Happy Hour ]]]
+	#             skip = False
+	#             ignore = 1,2,3 # don't download anything from season 1, 2, or 3
+	#             alias = "The Super Terrific Happy Hour (Us)", "STHH"
+	#             [[[[ quality ]]]]
+	#               desired = high
+	#               acceptable = medium, high
+	#     
+	# ATTENTION: filter names should exactly match series folder on disk in order to
 	#            guarantee consistent application of filters
 	#
 	# NOTE: SOME filters can optionally be stored on the filesystem in the series directory.  See
@@ -159,6 +191,12 @@
 		#  $(season)02d        => 01
 		#  Season $(season)02d => Season 01
 		#
+		#  Setting the season template to be empty (ie. "season = ") tells Media Rover
+		#  not to create a season folder and to put all episodes directly under the series
+		#  folder. NOTE: if a season folder already exists on disk, Media Rover will continue to 
+		#  sort all newly downloaded episodes into it, however no new season directories will be
+		#  constructed.
+		#
 		# NOTE: defaults to 's$(season)02d'
 		#season = s$(season)02d
 
@@ -192,8 +230,6 @@
 		# this pattern is the template used when renaming SINGLE episodes. You may use any
 		# of the above naming patterns in constructing the file naming pattern 
 		#
-		#  $(episode)d          => 3
-		#  $(episode)02d        => 03
 		#  $(season_episode_1)s => s01e03
 		#  $(season_episode_2)s => 1x03
 		#
@@ -227,32 +263,67 @@
 # Section layout:
 #
 #  [ source ]
-#
-#     [[ plugin_1 ]]
-#
-#        # source 1
+#     [[ <index_source> ]]
 #        [[[ user_label_1 ]]]
-#        
-#        	# required
-#        	url = http://path/to/rss/feed/...
-#        
-#        	# optional
-#        	timeout = 60 # in seconds
+#           option = blah
+#           option = blah
 #
-#        	# quality (low, medium, high)
-#           quality = medium
-#        
-#        # source 2
 #        [[[ user_label_2 ]]]
-#        	url = http://path/to/rss/feed/...
-#        	timeout = 60 # in seconds
-#        	quality = high
+#           option = blah
+#           option = blah
 #
-#     [[ plugin_2 ]]
 #        ...
 #        ..
 #
-# Available source plugins:
+#        [[[ user_label_N ]]]
+#           option = blah
+#           option = blah
+#
+# Declaring a new source:
+#
+#  1. name the source. This name has no real significance other than that it is displayed in the logs
+#     when Media Rover processes it.  Create a new subsection under the appropriate index source and 
+#     wrap your filter name in 3 sets of square brackets.  For example: lets say you are defining a 
+#     new nzbmatrix source that returns only xvid/divx nzbs and you want to call it "new xvid". You 
+#     would start by locating [source][[nzbmatrix]] in the config and defining a new subsection beneath
+#     it like so: [[[ new xvid ]]].
+#     NOTE: See below for a complete example
+#
+#  2. set source specific options/values.  These options tell Media Rover where the source is located 
+#     and how to handle it. Options include:
+#
+#     a) option: url
+#        value: web url (supports both http and https resources)
+#        required: yes
+#        description: this REQUIRED field is the resource location that Media Rover consumes when 
+#                     searching for available episodes
+#
+#     b) required: quality
+#        value: one of low, medium, or high
+#        required: yes if [tv][quality][managed] is true
+#        description: this field indicates what quality Media Rover can expect from this source.
+#
+#     c) option: timeout
+#        value: number (in seconds)
+#        required: no
+#        default: [source][default_timeout]
+#        description: this option tells Media Rover to stop waiting for a response from the source
+#                     url once the specified number of seconds has been reached.
+#
+#  Example:
+#
+#     [source]
+#        [[nzbmatrix]]
+#           [[[ new xvid ]]]
+#              url = https://rss.nzbmatrix.com/some/rss/feed
+#              quality = medium
+#              timeout = 30
+#           [[[ new HD ]]]
+#              url = https://rss.nzbmatrix.com/some/other/rss/feed
+#              quality = high
+#              timeout = 30
+#
+# Media Rover currently supports the following indexing sources:
 #
 #  newzbin   - http://newzbin.com
 #  tvnzb     - http://www.tvnzb.com
@@ -284,19 +355,47 @@
 	# nzbmatrix.com RSS feeds go here
 	[[ nzbmatrix ]]
 
-# binary newsreader consumable queue
-# ATTENTION: you must declare at least one queue
+# binary newsreader queue
 #
-#  [[sabnzbd]]
+# Section layout:
 #
-#    # required
-#    root = http://localhost[:PORT]/sabnzbd
-#    api_key = <key> # SABnzbd+ 0.4.9 and greater!
+#  [ queue ]
+#     [[ sabnzbd ]]
+#        option = blah
+#        option = blah
 #
-#    # optional 
-#    username = <username>
-#    password = <password>
-#    backup_dir = /path/to/sabnzbd/nzb_backup_dir
+# Configuring the SABnzbd queue:
+#
+#  1. specify the root url where SABnzbd can be accessed.  If you are running Media Rover on the 
+#     same machine that is running SABnzbd, the default value will likely be http://localhost:8080/sabnzbd.
+#     This is a REQUIRED field
+#
+#  2. set the api_key. This value can be found in the SABnzbd at Configs > General > API Key.  This field is
+#     likely required unless you have disabled the API-Key requirement in SABnzbd.
+#
+#  3. set optional values.  Options include:
+#
+#     a) option: username
+#        description: if you have authentication configured in SABnzbd (Configs > General > SABnzbd Username), 
+#                     you will need to specify a username in order for Media Rover to work properly.
+#
+#     b) option: backup_dir
+#        description: if configured, Media Rover will check the SABnzbd backup directory before scheduling
+#                     an nzb for download.
+#
+#     c) option: password
+#        description: if you have authentication configured in SABnzbd (Configs > General > SABnzbd Password), 
+#                     you will need to specify a password in order for Media Rover to work properly.
+#
+#  Example:
+#
+#     [queue]
+#        [[sabnzbd]]
+#           url = http://localhost:8080/sabnzbd
+#           api_key = abc123
+#           backup_dir = /path/to/sabnzbd/nzb_backup_dir
+#           username = bob
+#           password = secret
 #
 # NOTE: if backup_dir is not specified, failed downloads may be rescheduled by Media Rover
 [queue]
