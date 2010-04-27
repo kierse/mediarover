@@ -109,7 +109,7 @@ class AbstractXmlSource(Source):
 		if url in ("", None):
 			raise InvalidURL("empty url")
 		elif not re.match("^\w+://", url): 
-			raise InvalidURL("invalid URL structure: %s", url)
+			raise InvalidURL("invalid URL: %s", url)
 		else:
 			self._url = url
 

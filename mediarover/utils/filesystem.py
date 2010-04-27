@@ -48,13 +48,11 @@ def clean_path(path, extensions):
 				# finally, try to remove path altogether
 				try:
 					os.rmdir(path)
-					logger.debug("deleting '%s'...", path)
-				except OSError, e:
-					if e.errno == 39:
-						logger.warning("unable to delete '%s', directory not empty", path)
-					else:
-						logger.warning("unable to delete '%s'", path)
+				except OSError, (e):
+					logger.warning("unable to delete %r: %s", path, e.strerror)
 					raise
+				else:
+					logger.debug("deleting '%s'...", path)
 			else:
 				raise FilesystemError("given filesystem path '%s' is not a directory", path)
 		else:
@@ -73,9 +71,10 @@ def clean_file(file, extensions):
 			if ext in extensions:
 				try:
 					os.unlink(file)
+				except OSError, (e):
+					logger.warning("unable to delete %r: %s", file, e.strerror)
+				else:
 					logger.debug("deleting '%s'...", file)
-				except OSError:
-					logger.warning("unable to delete '%s'", file)
 			else:
 				logger.debug("skipping '%s'..." % file)
 		else:

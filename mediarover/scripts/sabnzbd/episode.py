@@ -201,9 +201,7 @@ def _process_download(config, broker, options, args):
 		try:
 			args[0] = _move_to_trash(tv_root[0], path)
 		except OSError, (e):
-			if e.errno == 13:
-				logger.error("unable to move download directory to '%s', permission denied", args[0])
-		finally:
+			logger.error("unable to move download directory to %r: %s", args[0], e.strerror)
 			raise FailedDownload("unable to sort failed download")
 	elif job is None or job == "":
 		raise InvalidArgument("job name is missing or null")
@@ -323,7 +321,7 @@ def _process_download(config, broker, options, args):
 				logger.debug("identified possible download: filename => %s, size => %d", filename, size)
 
 	if filename is None:
-		raise FilesystemError("unable to find episode file in given download path '%s'", path)
+		raise FilesystemError("unable to find episode file in given download path %r", path)
 
 	orig_path = os.path.join(path, filename)
 	logger.info("found download file at '%s'", orig_path)
@@ -374,8 +372,7 @@ def _process_download(config, broker, options, args):
 			os.makedirs(dest_dir)
 			logger.debug("created directory '%s'", dest_dir)
 		except OSError, (e):
-			if e.errno == 13:
-				logger.error("unable to create directory '%s', permission denied", dest_dir)
+			logger.error("unable to create directory %r: %s", dest_dir, e.strerror)
 			raise
 
 	# build list of episode(s) (either SingleEpisode or DailyEpisode) that are desirable
@@ -394,8 +391,7 @@ def _process_download(config, broker, options, args):
 		try:
 			shutil.move(orig_path, new_path)
 		except OSError, (e):
-			if e.errno == 13:
-				logger.error("unable to move downloaded episode to '%s', permission denied", new_path)
+			logger.error("unable to move downloaded episode to %r: %s", new_path, e.strerror)
 			raise
 	
 		# move successful, cleanup download directory
@@ -436,8 +432,7 @@ def _process_download(config, broker, options, args):
 						try:
 							os.remove(multi.path)
 						except OSError, (e):
-							if e.errno == 13:
-								logger.error("unable to delete file %r, permission denied", multi.path)
+							logger.error("unable to delete file %r: %s", multi.path, e.strerror)
 							raise
 						else:
 							logger.info("removing file %r", multi.path)

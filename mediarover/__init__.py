@@ -164,7 +164,7 @@ def _process(config, broker, options, args):
 		if not os.access(root, os.F_OK):
 			raise FilesystemError("TV root rootectory (%s) does not exist!", root)
 		if not os.access(root, os.R_OK):
-			raise FilesystemError("Missing read access to tv root rootectory (%s)", root)
+			raise FilesystemError("Missing read access to tv root directory (%s)", root)
 
 		logger.info("begin processing tv directory: %s", root)
 	
@@ -285,6 +285,7 @@ def _process(config, broker, options, args):
 						source = factory.create_source(**feed)
 					except URLError, (e):
 						logger.error("skipping source %r, error encountered while retrieving url: %r", feed['name'], e)
+						continue
 					except InvalidRemoteData, (e):
 						logger.error("skipping source %r, unable to process remote data: %r", feed['name'], e)
 						continue

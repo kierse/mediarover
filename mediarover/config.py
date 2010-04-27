@@ -325,7 +325,6 @@ def _write_new_config_file(path, data):
 		new = "%s.%s" % (path, strftime("%Y%m%d%H%M"))
 		try:
 			os.rename(path, new)
-			print "Moved %s to %s" % (path, new)
 		except OSError:
 			while True:
 				query = raw_input("unable to preserve %s! Overwrite? [y/n] " % path)
@@ -334,11 +333,14 @@ def _write_new_config_file(path, data):
 				elif query.lower() == "n":
 					proceed = False
 					break
+		else:
+			print "Moved %s to %s" % (path, new)
 
 	if proceed:
 		f = open(path, "w")
 		try:
 			f.write(data)
+		else:
 			print "Created %s" % f.name
 		finally:
 			f.close()

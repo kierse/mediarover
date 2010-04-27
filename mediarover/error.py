@@ -15,48 +15,19 @@
 
 import logging
 
-class Error(Exception):
-	""" base class for exceptions in this module """
-
-	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	def _fatal_prop(self, fatal = None):
-		if fatal is not None:
-			self._fatal = fatal
-		return self._fatal
-
-	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	fatal = property(fget=_fatal_prop, fset=_fatal_prop, doc="flag indicating whether or not Error object is fatal")
-
-	def __init__(self, message, args = None, fatal = False, log_errors = True):
-		
-		if args is not None:
-			message = message % args
-
-		Exception.__init__(self, message)
-		self.fatal = fatal
-
-		if log_errors:
-			logger = logging.getLogger("mediarover.error")
-			if fatal:
-				logger.exception(message)
-			else:
-				logger.error(message)
-
-class ConfigurationError(Error): pass
-class FilesystemError(Error): pass
-class InvalidData(Error): pass
-class InvalidEpisodeString(Error): pass
-class InvalidItemTitle(Error): pass
-class InvalidJobTitle(Error): pass
-class InvalidMultiEpisodeData(Error): pass
-class InvalidRemoteData(Error): pass
-class InvalidURL(Error): pass
-class MissingParameterError(Error): pass
-class QueueDeletionError(Error): pass
-class QueueInsertionError(Error): pass
-class QueueRetrievalError(Error): pass
-class TooManyParametersError(Error): pass
-class UnknownQueue(Error): pass
+class ConfigurationError(Exception): pass
+class FilesystemError(Exception): pass
+class InvalidData(Exception): pass
+class InvalidEpisodeString(Exception): pass
+class InvalidItemTitle(Exception): pass
+class InvalidJobTitle(Exception): pass
+class InvalidMultiEpisodeData(Exception): pass
+class InvalidRemoteData(Exception): pass
+class InvalidURL(Exception): pass
+class MissingParameterError(Exception): pass
+class QueueDeletionError(Exception): pass
+class QueueInsertionError(Exception): pass
+class QueueRetrievalError(Exception): pass
+class TooManyParametersError(Exception): pass
+class UnknownQueue(Exception): pass
 
