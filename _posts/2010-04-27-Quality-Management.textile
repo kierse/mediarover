@@ -1,0 +1,11 @@
+---
+layout: announcement
+title: Quality management support
+desc: "Recent updates pushed to Github include support for quality management"
+---
+
+The latest code changes pushed to Github include support for quality management.  In order to implement quality support, Media Rover underwent some major changes under the hood and may contain bugs.  Please report any problems you encounter "here":http://github.com/kierse/mediarover/issues.
+
+*Download:*
+
+Get the latest code updates "here":http://mediarover.tv/#installation, or you can grab them straight from "GitHub":http://github.com/kierse/mediarover/archives/dev (dev branch)
