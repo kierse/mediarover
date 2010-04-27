@@ -102,19 +102,17 @@ def generate_config_files(resources, path):
 	if _have_write_permission(os.path.join(path, "mediarover.conf")):
 		
 		# read in config template from resources directory
-		file = open(os.path.join(resources, "config.template"), "r")
-		template = file.read()
-		template = template % {'version': __config_version__['version']}
-		file.close()
+		with open(os.path.join(resources, "config.template"), "r") as f:
+			template = f.read()
+			template = template % {'version': __config_version__['version']}
 
 		# write file to disk
 		_write_new_config_file(os.path.join(path, "mediarover.conf"), template)
 
-	# read in logging template form resources directory
-	file = open(os.path.join(resources, "logging.template"), "r")
-	logging_template = file.read()
-	file.close()
-
+	# read in logging template from resources directory
+	with open(os.path.join(resources, "logging.template"), "r") as f:
+		logging_template = f.read()
+		
 	# write logging config files
 	for config, log in zip(["logging.conf", "sabnzbd_episode_sort_logging.conf"], 
 		['mediarover.log', 'sabnzbd_episode_sort.log']):
@@ -337,11 +335,7 @@ def _write_new_config_file(path, data):
 			print "Moved %s to %s" % (path, new)
 
 	if proceed:
-		f = open(path, "w")
-		try:
+		with open(path, "w") as f:
 			f.write(data)
-		else:
 			print "Created %s" % f.name
-		finally:
-			f.close()
 
