@@ -157,7 +157,7 @@ class Metadata(object):
 
 	def __init__(self):
 
-		db = os.path.join(self.config_dir, "ds", "metadata.mr")
+		db = os.path.join(self.config_dir, "ds", "metadata.db")
 		exists = True if os.path.exists(db) else False
 
 		# establish connection to database
