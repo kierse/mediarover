@@ -13,8 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from mediarover.error import Error
-
-class UnexpectedArgumentCount(Error): pass
-class InvalidArgument(Error): pass
-class FailedDownload(Error): pass
+class UnexpectedArgumentCount(Exception): pass
+class InvalidArgument(Exception): pass
+class FailedDownload(Exception): pass
