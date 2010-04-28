@@ -410,18 +410,8 @@ def _process_download(config, broker, options, args):
 			logger.info("moving downloaded episode '%s' to '%s'", orig_path, new_path)
 
 			# remove job from in_progress
-			broker['metadata_data_store'].delete_in_progress(job)
-
-			# clean up download directory by removing all files matching ignored extensions list.
-			# if unable to delete download directory (because it's not empty), move it to .trash
-			try:
-				clean_path(path, ignored)
-				logger.info("removing download directory '%s'", path)
-			except (OSError, FilesystemError):
-				logger.error("unable to remove download directory '%s'", path)
-
-				args[0] = _move_to_trash(tv_root[0], path)
-				logger.info("moving download directory '%s' to '%s'", path, args[0])
+			if config['tv']['quality']['managed']:
+				broker['metadata_data_store'].delete_in_progress(job)
 
 			if additional is None:
 
@@ -429,8 +419,9 @@ def _process_download(config, broker, options, args):
 				series.mark_episode_list_stale()
 
 				# update metadata db with newly sorted episode information
-				for ep in desirables:
-					broker['metadata_data_store'].add_episode(ep)
+				if config['tv']['quality']['managed']:
+					for ep in desirables:
+						broker['metadata_data_store'].add_episode(ep)
 
 				# determine if any multipart episodes on disk can now be removed 
 				logger.info("checking multipart episodes for any redundancies...")
@@ -447,6 +438,18 @@ def _process_download(config, broker, options, args):
 							raise
 						else:
 							logger.info("removing file %r", multi.path)
+
+			# clean up download directory by removing all files matching ignored extensions list.
+			# if unable to delete download directory (because it's not empty), move it to .trash
+			try:
+				clean_path(path, ignored)
+			except (OSError, FilesystemError):
+				logger.error("unable to remove download directory '%s'", path)
+
+				args[0] = _move_to_trash(tv_root[0], path)
+				logger.info("moving download directory '%s' to '%s'", path, args[0])
+			else:
+				logger.info("removing download directory '%s'", path)
 
 def _move_to_trash(root, path):
 
