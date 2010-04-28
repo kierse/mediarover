@@ -65,3 +65,8 @@ x problem: adding something to queue, get ok back from sabnzbd
   x mr registers download with in_progress table
   x next time mr is run, it attempts to schedule downloads again and we get a not unique error because download title is already in table
   x maybe it should silently fail?
+
+- when using shutil library to move a file, it uses copystat() to copy permissions, access time, etc.  This causes problems if the user doesn't 
+  permission to set this type of metadata on a file.  
+  - look at replacing shutil.move() with a straight copy()
+  - write my own move utility that checks for such errors

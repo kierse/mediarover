@@ -80,42 +80,44 @@ class Series(object):
 			else:
 				desirable.append(ep)
 
-		series = episode.series
-		sanitized_name = series.sanitize_series_name(series=series)
-
 		# make sure episode quality is acceptable
 		if self.config['tv']['quality']['managed']:
-			if episode.quality in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
-				desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
-				a_quality = episode.quality.lower()
-				for a, b in found:
-					b_quality = b.quality.lower()
 
-					# skip if object B already meets desired quality level
-					if b_quality == desired:
-						continue
+			series = episode.series
+			sanitized_name = series.sanitize_series_name(series=series)
+			if sanitized_name in self.config['tv']['filter']:
 
-					# A meets desired level.  Since object B doesn't, add A to 
-					# desirable list
-					elif a_quality == desired:
-						desirable.append(a)
+				if episode.quality in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
+					desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
+					a_quality = episode.quality.lower()
+					for a, b in found:
+						b_quality = b.quality.lower()
 
-					# intermediate step DOWN in quality
-					if desired == 'low':
-						if b_quality == 'high' and a_quality == 'medium':
+						# skip if object B already meets desired quality level
+						if b_quality == desired:
+							continue
+
+						# A meets desired level.  Since object B doesn't, add A to 
+						# desirable list
+						elif a_quality == desired:
 							desirable.append(a)
 
-					# intermediate step UP in quality
-					elif desired == 'high':
-						if b_quality == 'low' and a_quality == 'medium':
-							desirable.append(a)
+						# intermediate step DOWN in quality
+						if desired == 'low':
+							if b_quality == 'high' and a_quality == 'medium':
+								desirable.append(a)
 
-					# desired == medium
-					# neither A nor B match desired quality level.  There is no sense 
-					# in downloading something that isn't the exact level in this case.
-					# skip to next pair
-					else:
-						continue
+						# intermediate step UP in quality
+						elif desired == 'high':
+							if b_quality == 'low' and a_quality == 'medium':
+								desirable.append(a)
+
+						# desired == medium
+						# neither A nor B match desired quality level.  There is no sense 
+						# in downloading something that isn't the exact level in this case.
+						# skip to next pair
+						else:
+							continue
 
 		return desirable
 

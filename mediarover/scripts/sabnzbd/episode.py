@@ -351,43 +351,54 @@ def _process_download(config, broker, options, args):
 	# build a filesystem episode object
 	episode = broker['filesystem_factory'].create_filesystem_episode(orig_path, episode=episode)
 
-	if len(series.path) == 0:
-		logger.info("series directory not found")
-		series.path = os.path.join(tv_root[0], series.format(config['tv']['template']['series']))
-
-	dest_dir = series.locate_season_folder(episode.season)
-	if dest_dir is None:
-		if config['tv']['template']['season'] not in ("", None):
-			try:
-				episode.year
-			except AttributeError:
-				dest_dir = os.path.join(series.path[0], episode.format_season())
-			else:
-				dest_dir = os.path.join(series.path[0], str(episode.year))
-		else:
-			dest_dir = series.path[0]
-
-	if not os.path.isdir(dest_dir):
-		try:
-			os.makedirs(dest_dir)
-			logger.debug("created directory '%s'", dest_dir)
-		except OSError, (e):
-			logger.error("unable to create directory %r: %s", dest_dir, e.strerror)
-			raise
-
-	# build list of episode(s) (either SingleEpisode or DailyEpisode) that are desirable
-	# ie. missing or of more desirable quality than current offering
-	desirables = series.filter_undesirables(episode)
-	additional = None
-	if len(desirables) == 0:
-		logger.warning("duplicate episode detected: %s", filename)
-		additional = "[%s].%s" % (episode.quality, strftime("%Y%m%d%H%M"))
-
-	# generate new filename for current episode
-	new_path = os.path.join(dest_dir, episode.format(additional))
-
 	# move downloaded file to new location and rename
 	if not options.dry_run:
+
+		dest_dir = series.locate_season_folder(episode.season)
+		if dest_dir is None:
+			
+			# determine series path
+			if len(series.path) == 0:
+				root = os.path.join(tv_root[0], series.format(config['tv']['template']['series']))
+			else:
+				root = series.path[0]
+
+			# get season folder (if desired)
+			if config['tv']['template']['season'] not in ("", None):
+				try:
+					episode.year
+				except AttributeError:
+					dest_dir = os.path.join(root, episode.format_season())
+				else:
+					dest_dir = os.path.join(root, str(episode.year))
+			else:
+				dest_dir = root
+
+			if not os.path.isdir(dest_dir):
+				try:
+					os.makedirs(dest_dir)
+				except OSError, (e):
+					logger.error("unable to create directory %r: %s", dest_dir, e.strerror)
+					raise
+				else:
+					logger.debug("created directory '%s'", dest_dir)
+
+			# now that the series folder has been created
+			# set the series path
+			if len(series.path) == 0:
+				series.path = root
+				
+		# build list of episode(s) (either SingleEpisode or DailyEpisode) that are desirable
+		# ie. missing or of more desirable quality than current offering
+		desirables = series.filter_undesirables(episode)
+		additional = None
+		if len(desirables) == 0:
+			logger.warning("duplicate episode detected: %s", filename)
+			additional = "[%s].%s" % (episode.quality, strftime("%Y%m%d%H%M"))
+
+		# generate new filename for current episode
+		new_path = os.path.join(dest_dir, episode.format(additional))
+
 		try:
 			shutil.move(orig_path, new_path)
 		except OSError, (e):
