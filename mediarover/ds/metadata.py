@@ -89,7 +89,7 @@ class Metadata(object):
 		
 		# update existing episode
 		else:
-			args = (episode['quality'], current['id'])
+			args = (episode.quality, current['id'])
 			try:
 				episode.year
 			except AttributeError:
