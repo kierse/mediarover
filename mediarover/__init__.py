@@ -284,7 +284,11 @@ def _process(config, broker, options, args):
 					try:
 						source = factory.create_source(**feed)
 					except URLError, (e):
-						logger.error("skipping source %r, error encountered while retrieving url: %r", feed['name'], e.reason)
+						if hasattr(e, "code"):
+							error = "skipping source %r, remote server couldn't complete request: %d" % (feed['name'], e.code)
+						else:
+							error = "skipping source %r, error encountered while retrieving url: %r" % (feed['name'], e.reason)
+						logger.error(error)
 						continue
 					except InvalidRemoteData, (e):
 						logger.error("skipping source %r, unable to process remote data: %r", feed['name'], e.reason)
