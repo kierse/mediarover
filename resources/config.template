@@ -230,6 +230,8 @@
 		# this pattern is the template used when renaming SINGLE episodes. You may use any
 		# of the above naming patterns in constructing the file naming pattern 
 		#
+		#  $(episode)d          => 3
+		#  $(episode)02d        => 03
 		#  $(season_episode_1)s => s01e03
 		#  $(season_episode_2)s => 1x03
 		#
