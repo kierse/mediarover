@@ -18,7 +18,7 @@ import re
 
 from mediarover.error import *
 from mediarover.source.item import AbstractItem
-from mediarover.factory import SourceFactory
+from mediarover.factory import EpisodeFactory
 from mediarover.utils.injection import is_instance_of, Dependency
 
 class NzbmatrixItem(AbstractItem):
@@ -27,7 +27,7 @@ class NzbmatrixItem(AbstractItem):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	factory = Dependency('nzbmatrix', is_instance_of(SourceFactory))
+	factory = Dependency('nzbmatrix', is_instance_of(EpisodeFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
