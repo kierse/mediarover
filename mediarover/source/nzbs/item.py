@@ -64,16 +64,18 @@ class NzbsItem(AbstractItem):
 	def __parseItem(self):
 		""" parse item data and build appropriate download object """
 
-		download = None
-		if re.match("TV", self._report_category()):
+		report_category = self._report_category()
+		if re.match("TV", report_category):
 			try:
 				download = self.factory.create_episode(self.title(), quality=self.quality())
 			except (InvalidMultiEpisodeData, MissingParameterError):
 				raise InvalidItemTitle("unable to parse item title and create Episode object: %r" % self.title())
 			except InvalidEpisodeString:
 				raise InvalidItemTitle("unsupported item title format: %r" % self.title())
+			else:
+				return download
 
-		return download
+		raise UnsupportedCategory("category %r unsupported!" % report_category)
 
 	def __init__(self, item, type, priority, quality):
 		""" init method expects a DOM Element object (xml.dom.Element) """

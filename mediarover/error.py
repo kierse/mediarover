@@ -30,4 +30,5 @@ class QueueInsertionError(Exception): pass
 class QueueRetrievalError(Exception): pass
 class TooManyParametersError(Exception): pass
 class UnknownQueue(Exception): pass
+class UnsupportedCategory(Exception): pass
 

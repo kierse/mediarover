@@ -15,7 +15,7 @@
 
 import logging
 
-from mediarover.error import InvalidItemTitle
+from mediarover.error import InvalidItemTitle, UnsupportedCategory
 from mediarover.source import AbstractXmlSource
 from mediarover.source.nzbmatrix.item import NzbmatrixItem
 
@@ -39,7 +39,9 @@ class NzbmatrixSource(AbstractXmlSource):
 				try:
 					item = NzbmatrixItem(rawItem, self.type(), self.priority(), self.quality())
 				except InvalidItemTitle:
-					logger.debug("skipping '%s', unknown format", title)
+					logger.debug("skipping %r, unknown format" % title)
+				except UnsupportedCategory:
+					logger.debug("skipping %r, unsupported category type" % title)
 				else:
 					if item is not None:
 						self.__items.append(item)

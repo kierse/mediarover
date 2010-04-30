@@ -64,7 +64,6 @@ class NewzbinItem(AbstractItem):
 	def __parseItem(self):
 		""" parse item data and build appropriate download object """
 
-		download = None
 		if self._report_category() == "TV":
 			try:
 				download = self.factory.create_episode(self.title(), quality=self.quality())
@@ -72,8 +71,10 @@ class NewzbinItem(AbstractItem):
 				raise InvalidItemTitle("unable to parse item title and create Episode object: %r" % self.title())
 			except InvalidEpisodeString:
 				raise InvalidItemTitle("unsupported item title format: %r" % self.title())
+			else:
+				return download
 
-		return download
+		raise UnsupportedCategory("category %r unsupported!" % self._report_category())
 
 	def _report_category(self):
 		""" report category from source item """
