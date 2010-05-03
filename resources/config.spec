@@ -39,13 +39,12 @@
 		daily_episode = string(default='$(series)s - $(daily-)s$(smart_title)s')
 
 [source]
-	default_timeout = integer(default=60)
 	[[__many__]]
-		[[[__many__]]]
-			url = url()
-			type = option('tv', default='tv')
-			quality = option('low', 'medium', 'high', None, default=None)
-			timeout = integer(default=None)
+		url = url()
+		provider = option('newzbin','tvnzb','mytvnzb','nzbs','nzbmatrix')
+		type = option('tv', default='tv')
+		quality = option('low', 'medium', 'high', None, default=None)
+		timeout = integer(default=60)
 
 [queue]
 	[[__many__]]
@@ -57,6 +56,4 @@
 
 [__SYSTEM__]
 	__version__ = integer(default=0)
-	__available_sources = list(default=list('newzbin','tvnzb','mytvnzb','nzbs','nzbmatrix'))
-	__available_sources_label = list(default=list('http://www.newzbin.com', 'http://www.tvnzb.com', 'MyTvNZB v2.5', 'http://nzbs.org', 'http://nzbmatrix.com'))
 	__available_queues = list(default=list('sabnzbd'))

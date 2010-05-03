@@ -14,4 +14,4 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 __app_version__ = "0.5.0_alpha"
-__config_version__ = {'version': 4, 'min': 4}
+__config_version__ = {'version': 5, 'min': 5}

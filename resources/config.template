@@ -259,36 +259,35 @@
 		#daily_episode = '$(series)s - $(daily-)s$(smart_title)s'
 
 # consumable nzb RSS source feeds
-# usage: define one or more new subsections under the appropriate plugin.  Each subsection consists
-# of a user defined text label, a url pointing to a RSS feed, and zero or more optional arguments.
+# usage: define one or more new subsections under .  Each subsection (identified by a user defined 
+# text label) must indicate a provider, a url pointing to a consumable resource, and zero or more 
+# optional arguments.
 #
 # Section layout:
 #
 #  [ source ]
-#     [[ <index_source> ]]
-#        [[[ user_label_1 ]]]
-#           option = blah
-#           option = blah
+#     [[[ user_label_1 ]]]
+#        option = blah
+#        option = blah
 #
-#        [[[ user_label_2 ]]]
-#           option = blah
-#           option = blah
+#     [[[ user_label_2 ]]]
+#        option = blah
+#        option = blah
 #
-#        ...
-#        ..
+#     ...
+#     ..
 #
-#        [[[ user_label_N ]]]
-#           option = blah
-#           option = blah
+#     [[[ user_label_N ]]]
+#        option = blah
+#        option = blah
 #
 # Declaring a new source:
 #
 #  1. name the source. This name has no real significance other than that it is displayed in the logs
-#     when Media Rover processes it.  Create a new subsection under the appropriate index source and 
-#     wrap your filter name in 3 sets of square brackets.  For example: lets say you are defining a 
-#     new nzbmatrix source that returns only xvid/divx nzbs and you want to call it "new xvid". You 
-#     would start by locating [source][[nzbmatrix]] in the config and defining a new subsection beneath
-#     it like so: [[[ new xvid ]]].
+#     when Media Rover processes it.  Create a new subsection under [source] and wrap your filter name 
+#     in 3 sets of square brackets.  For example: lets say you are defining a new nzbmatrix source 
+#     that returns only xvid/divx nzbs and you want to call it "new xvid". You would start by locating 
+#     [source] in the config and defining a new subsection beneath it like so: [[[ new xvid ]]].
 #     NOTE: See below for a complete example
 #
 #  2. set source specific options/values.  These options tell Media Rover where the source is located 
@@ -315,15 +314,16 @@
 #  Example:
 #
 #     [source]
-#        [[nzbmatrix]]
-#           [[[ new xvid ]]]
-#              url = https://rss.nzbmatrix.com/some/rss/feed
-#              quality = medium
-#              timeout = 30
-#           [[[ new HD ]]]
-#              url = https://rss.nzbmatrix.com/some/other/rss/feed
-#              quality = high
-#              timeout = 30
+#        [[[ new xvid ]]]
+#           provider = nzbmatrix
+#           url = https://rss.nzbmatrix.com/some/rss/feed
+#           quality = medium
+#           timeout = 30
+#        [[[ new HD ]]]
+#           provider = newzbin
+#           url = https://newzbin.com/some/other/rss/feed
+#           quality = high
+#           timeout = 30
 #
 # Media Rover currently supports the following indexing sources:
 #
@@ -337,25 +337,6 @@
 #
 # ATTENTION: you must declare at least one source
 [source]
-
-	# default timeout
-	# NOTE defaults to 60 seconds
-	#default_timeout = 60
-
-	# newzbin.com RSS feeds go here
-	[[ newzbin ]]
-
-	# tvnzb.com RSS feeds go here
-	[[ tvnzb ]]
-
-	# mytvnzb RSS feeds go here
-	[[ mytvnzb ]]
-
-	# nzbs.org RSS feeds go here
-	[[ nzbs ]]
-
-	# nzbmatrix.com RSS feeds go here
-	[[ nzbmatrix ]]
 
 # binary newsreader queue
 #

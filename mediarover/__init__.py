@@ -99,10 +99,10 @@ def main():
 	broker.register('config_dir', config_dir)
 	broker.register('resources_dir', resources_dir)
 	broker.register('metadata_data_store', Metadata())
-
-	# register the source objects
 	broker.register('episode_factory', EpisodeFactory())
 	broker.register('filesystem_factory', FilesystemFactory())
+
+	# register the source objects
 	broker.register('newzbin', NewzbinFactory())
 	broker.register('tvnzb', TvnzbFactory())
 	broker.register('mytvnzb', MytvnzbFactory())
@@ -245,58 +245,39 @@ def _process(config, broker, options, args):
 
 	# grab list of source url's from config file and build appropriate Source objects
 	sources = []
-	for available in config['__SYSTEM__']['__available_sources']:
+	for name, params in config['source'].items():
+		logger.debug("found feed '%s'", name)
 
-		# check if the config file has a section defined for the current source
-		if available in config['source']:
+		# first things first: if manage_quality is True, make sure the user
+		# has specified a quality for this source
+		if manage_quality and params['quality'] is None:
+			raise ConfigurationError("missing quality flag for source '%s'" % name)
 
-			# loop through available options in current source section and 
-			# add feeds to list
-			# NOTE: must set raw flag to True when retrieving item pairs from source feed list
-			# as they may contain '%' which will throw off Config parser
-			feeds = []
-			for name, params in config['source'][available].items():
+		params['name'] = name
+		params['priority'] = config[params['type']]['priority']
+		
+		provider = params['provider']
+		del params['provider']
 
-				# first things first: if manage_quality is True, make sure the user
-				# has specified a quality for this source
-				if manage_quality and params['quality'] is None:
-					raise ConfigurationError("missing quality flag for source '%s'" % name)
+		# grab source object
+		factory = broker[provider]
 
-				if 'url' in params:
-					logger.debug("found feed '%s'", name)
-					params['name'] = name 
-					params['priority'] = config[params['type']]['priority']
-					if params['timeout'] is None:
-						params['timeout'] = config['source']['default_timeout']
-					feeds.append(params)
-				else:
-					logger.warning("invalid feed '%s' - missing url!")
-
-			if len(feeds):
-				logger.debug("found %d feed(s) for source '%s'" % (len(feeds), available))
-
-				# grab source object
-				factory = broker[available]
-
-				# loop through list of available feeds and create Source object
-				for feed in feeds:
-					logger.debug("creating source for feed '%s'", feed['name'])
-					try:
-						source = factory.create_source(**feed)
-					except URLError, (e):
-						if hasattr(e, "code"):
-							error = "skipping source %r, remote server couldn't complete request: %d" % (feed['name'], e.code)
-						else:
-							error = "skipping source %r, error encountered while retrieving url: %r" % (feed['name'], e.reason)
-						logger.error(error)
-						continue
-					except InvalidRemoteData, (e):
-						logger.error("skipping source %r, unable to process remote data: %r", feed['name'], e.reason)
-						continue
-					else:
-						sources.append(source)
+		logger.debug("creating source for feed %r", name)
+		try:
+			source = factory.create_source(**params)
+		except URLError, (e):
+			if hasattr(e, "code"):
+				error = "skipping source %r, remote server couldn't complete request: %d" % (name, e.code)
 			else:
-				logger.debug("skipping source '%s', no feeds", available)
+				error = "skipping source %r, error encountered while retrieving url: %r" % (name, e.reason)
+			logger.error(error)
+			continue
+		except InvalidRemoteData, (e):
+			logger.error("skipping source %r, unable to process remote data: %r", name, e.reason)
+			continue
+		else:
+			logger.info("created source %r" % name)
+			sources.append(source)
 
 	# if we don't have any sources there isn't any reason to continue.  Print
 	# message and exit
