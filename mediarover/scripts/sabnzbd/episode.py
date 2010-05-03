@@ -321,7 +321,7 @@ def _process_download(config, broker, options, args):
 				logger.debug("identified possible download: filename => %s, size => %d", filename, size)
 
 	if filename is None:
-		raise FilesystemError("unable to find episode file in given download path %r", path)
+		raise FilesystemError("unable to find episode file in given download path %r" % path)
 
 	orig_path = os.path.join(path, filename)
 	logger.info("found download file at '%s'", orig_path)
