@@ -76,7 +76,7 @@ def read_config(resources, path):
 				dict = dict[key]
 				level += 1
 			message.append(" %s %s = %s" % (" ".join(section), error[1], error[2]))
-		raise ConfigurationError("Invalid Data in configuration file\n\n%s\n" % "\n".join(message), log_errors=False)
+		raise ConfigurationError("Invalid Data in configuration file\n\n%s\n" % "\n".join(message))
 
 	return config
 
