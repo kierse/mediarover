@@ -266,72 +266,77 @@
 # Section layout:
 #
 #  [ source ]
-#     [[[ user_label_1 ]]]
-#        option = blah
-#        option = blah
+#     [[ user_label_1 ]]
+#       option = blah
+#       option = blah
 #
-#     [[[ user_label_2 ]]]
-#        option = blah
-#        option = blah
+#     [[ user_label_2 ]]
+#       option = blah
+#       option = blah
 #
 #     ...
 #     ..
 #
-#     [[[ user_label_N ]]]
-#        option = blah
-#        option = blah
+#     [[ user_label_N ]]
+#       option = blah
+#       option = blah
 #
 # Declaring a new source:
 #
 #  1. name the source. This name has no real significance other than that it is displayed in the logs
 #     when Media Rover processes it.  Create a new subsection under [source] and wrap your filter name 
-#     in 3 sets of square brackets.  For example: lets say you are defining a new nzbmatrix source 
+#     in 2 sets of square brackets.  For example: lets say you are defining a new nzbmatrix source 
 #     that returns only xvid/divx nzbs and you want to call it "new xvid". You would start by locating 
-#     [source] in the config and defining a new subsection beneath it like so: [[[ new xvid ]]].
+#     [source] in the config and defining a new subsection beneath it like so: [[ new xvid ]].
 #     NOTE: See below for a complete example
 #
 #  2. set source specific options/values.  These options tell Media Rover where the source is located 
 #     and how to handle it. Options include:
 #
-#     a) option: url
+#     a) option: provider
+#        value: index provider (see below)
+#        required: YES
+#        description: this REQUIRED field tells Media Rover which indexing service this source pulls
+#                     data from.
+#
+#        Media Rover currently supports the following providers:
+#
+#          newzbin   (http://newzbin.com)
+#          tvnzb     (http://www.tvnzb.com)
+#          mytvznb   (any version 2.5 site)
+#          nzbs      (http://www.nzbs.org)
+#          nzbmatrix (http://nzbmatrix.com)
+#
+#     b) option: url
 #        value: web url (supports both http and https resources)
-#        required: yes
+#        required: YES
 #        description: this REQUIRED field is the resource location that Media Rover consumes when 
 #                     searching for available episodes
 #
-#     b) required: quality
+#     c) required: quality
 #        value: one of low, medium, or high
-#        required: yes if [tv][quality][managed] is true
+#        required: YES, IF [tv][quality][managed] is TRUE
 #        description: this field indicates what quality Media Rover can expect from this source.
 #
-#     c) option: timeout
+#     d) option: timeout
 #        value: number (in seconds)
 #        required: no
-#        default: [source][default_timeout]
+#        default: 60
 #        description: this option tells Media Rover to stop waiting for a response from the source
 #                     url once the specified number of seconds has been reached.
 #
 #  Example:
 #
 #     [source]
-#        [[[ new xvid ]]]
-#           provider = nzbmatrix
-#           url = https://rss.nzbmatrix.com/some/rss/feed
-#           quality = medium
-#           timeout = 30
-#        [[[ new HD ]]]
+#        [[ new xvid ]]
+#          provider = nzbmatrix
+#          url = https://rss.nzbmatrix.com/some/rss/feed
+#          quality = medium
+#        [[ new HD ]]
 #           provider = newzbin
 #           url = https://newzbin.com/some/other/rss/feed
 #           quality = high
 #           timeout = 30
-#
-# Media Rover currently supports the following indexing sources:
-#
-#  newzbin   - http://newzbin.com
-#  tvnzb     - http://www.tvnzb.com
-#  mytvznb   - any version 2.5 site
-#  nzbs      - http://www.nzbs.org
-#  nzbmatrix - http://nzbmatrix.com
 #
 # See http://wiki.github.com/kierse/mediarover/config-source for examples
 #
@@ -358,13 +363,13 @@
 #
 #  3. set optional values.  Options include:
 #
-#     a) option: username
-#        description: if you have authentication configured in SABnzbd (Configs > General > SABnzbd Username), 
-#                     you will need to specify a username in order for Media Rover to work properly.
-#
-#     b) option: backup_dir
+#     a) option: backup_dir
 #        description: if configured, Media Rover will check the SABnzbd backup directory before scheduling
 #                     an nzb for download.
+#
+#     b) option: username
+#        description: if you have authentication configured in SABnzbd (Configs > General > SABnzbd Username), 
+#                     you will need to specify a username in order for Media Rover to work properly.
 #
 #     c) option: password
 #        description: if you have authentication configured in SABnzbd (Configs > General > SABnzbd Password), 
