@@ -131,7 +131,7 @@ class DailyEpisode(Episode):
 		return hash.__hash__()
 
 	def __repr__(self):
-		return "DailyEpisode(series='%s',year='%s',month='%s',day='%s',title='%s')" % (self.series,self.year,self.month,self.day,self.title)
+		return "DailyEpisode(series=%r,year=%r,month=%r,day=%r,title=%r)" % (self.series,self.year,self.month,self.day,self.title)
 
 	def __str__(self):
 		return "%s %04d-%02d-%02d" % (self.series.name, self.year, self.month, self.day)
