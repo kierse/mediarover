@@ -111,7 +111,7 @@ class Series(object):
 				desirable.append(ep)
 
 		# make sure episode quality is acceptable
-		if self.config['tv']['quality']['managed']:
+		if self.config['tv']['quality']['managed'] and len(found) > 0:
 
 			series = episode.series
 			sanitized_name = series.sanitize_series_name(series=series)
