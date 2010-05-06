@@ -354,6 +354,9 @@ def _process_download(config, broker, options, args):
 	# move downloaded file to new location and rename
 	if not options.dry_run:
 
+		# build a filesystem episode object
+		file = broker['filesystem_factory'].create_filesystem_episode(orig_path, episode=episode)
+
 		dest_dir = series.locate_season_folder(episode.season)
 		if dest_dir is None:
 			
@@ -368,9 +371,9 @@ def _process_download(config, broker, options, args):
 				try:
 					episode.year
 				except AttributeError:
-					dest_dir = os.path.join(root, episode.format_season())
+					dest_dir = os.path.join(root, file.format_season())
 				else:
-					dest_dir = os.path.join(root, str(episode.year))
+					dest_dir = os.path.join(root, str(file.year))
 			else:
 				dest_dir = root
 
@@ -397,7 +400,7 @@ def _process_download(config, broker, options, args):
 			additional = "[%s].%s" % (episode.quality, strftime("%Y%m%d%H%M"))
 
 		# generate new filename for current episode
-		new_path = os.path.join(dest_dir, episode.format(additional))
+		new_path = os.path.join(dest_dir, file.format(additional))
 
 		try:
 			shutil.move(orig_path, new_path)
@@ -408,6 +411,9 @@ def _process_download(config, broker, options, args):
 		# move successful, cleanup download directory
 		else:
 			logger.info("moving downloaded episode '%s' to '%s'", orig_path, new_path)
+
+			# update episode and set new filesystem path
+			file.path = new_path
 
 			# remove job from in_progress
 			if config['tv']['quality']['managed']:
@@ -423,22 +429,35 @@ def _process_download(config, broker, options, args):
 					for ep in desirables:
 						broker['metadata_data_store'].add_episode(ep)
 
-				# determine if any multipart episodes on disk can now be removed 
-				logger.info("checking multipart episodes for any redundancies...")
-				for multi in series.multipart_episodes:
-					for ep in multi.episodes:
-						index = series.episodes.index(ep)
-						if ep.path == series.episodes[index].path:
-							break
-					else:
+				remove = []
+				files = series.find_episode_on_disk(episode)
+
+				# remove any duplicate or multipart episodes on disk that are no longer
+				# needed...
+				logger.info("checking filesystem for duplicate or multipart episode redundancies...")
+				for found in files:
+					object = found.episode
+					if hasattr(object, "episodes"):
+						for ep in object.episodes:
+							list = series.find_episode_on_disk(ep, False)
+							if len(list) == 0: # individual part not found on disk, can't delete this multi
+								break
+						else:
+							remove.append(found)
+
+					elif file != found:
+						remove.append(found)
+
+				if len(remove) > 0:
+					for old in remove:
 						try:
-							os.remove(multi.path)
+							os.remove(old.path)
 						except OSError, (e):
-							logger.error("unable to delete file %r: %s", multi.path, e.strerror)
+							logger.error("unable to delete file %r: %s", old.path, e.strerror)
 							raise
 						else:
-							logger.info("removing file %r", multi.path)
-
+							logger.info("removing file %r", old.path)
+					
 			# clean up download directory by removing all files matching ignored extensions list.
 			# if unable to delete download directory (because it's not empty), move it to .trash
 			try:

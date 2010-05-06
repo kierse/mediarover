@@ -13,12 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os.path
+
 from mediarover.config import ConfigObj
 from mediarover.ds.metadata import Metadata
 from mediarover.error import InvalidEpisodeString
-from mediarover.filesystem.episode.single import FilesystemSingleEpisode
-from mediarover.filesystem.episode.daily import FilesystemDailyEpisode
-from mediarover.filesystem.episode.multi import FilesystemMultiEpisode
+from mediarover.factory import EpisodeFactory
+from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.utils.injection import is_instance_of, Dependency
 
 class FilesystemFactory(object):
@@ -27,49 +28,26 @@ class FilesystemFactory(object):
 
 	# declare module dependencies
 	config = Dependency('config', is_instance_of(ConfigObj))
+	factory = Dependency('episode_factory', is_instance_of(EpisodeFactory))
 	meta_ds = Dependency("metadata_data_store", is_instance_of(Metadata))
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def create_filesystem_episode(self, path, **kwargs):
 		
+		# make sure we have an episode object before proceeding
 		episode = None
 		if 'episode' in kwargs:
 			episode = kwargs['episode']
-			try:
-				episode.episodes
-			except AttributeError:
-				try:
-					episode.year
-				except AttributeError:
-					episode = FilesystemSingleEpisode.new_from_episode(episode, path)
-				else:
-					episode = FilesystemDailyEpisode.new_from_episode(episode, path)
-			else:
-				episode = FilesystemMultiEpisode.new_from_episode(episode, path)
-
 		else:
-			if FilesystemMultiEpisode.handle(path):
-				params = FilesystemMultiEpisode.extract_from_string(path, **kwargs)
-				episode = FilesystemMultiEpisode(**params)
+			filename = os.path.basename(path)
+			(file, ext) = os.path.splitext(filename)
 
-			elif FilesystemSingleEpisode.handle(path):
-				params = FilesystemSingleEpisode.extract_from_string(path, **kwargs)
-				episode = FilesystemSingleEpisode(**params)
+			# create episode object
+			episode = self.factory.create_episode(file, **kwargs)
 
-			elif FilesystemDailyEpisode.handle(path):
-				params = FilesystemDailyEpisode.extract_from_string(path, **kwargs)
-				episode = FilesystemDailyEpisode(**params)
+		# create filesystem episode object
+		file = FilesystemEpisode(path, episode)
 
-			else:
-				raise InvalidEpisodeString("unable to identify episode type: %r" % path)
-
-			if 'quality' not in kwargs:
-				sanitized_series = episode.series.sanitize_series_name(series=episode.series)
-				if sanitized_series in self.config['tv']['filter']:
-					episode.quality = self.config['tv']['filter'][sanitized_series]['quality']['desired']
-				else:
-					episode.quality = self.config['tv']['quality']['desired']
-
-		return episode
+		return file
 

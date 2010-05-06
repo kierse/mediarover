@@ -20,7 +20,6 @@ import re
 from mediarover.comparable import Comparable
 from mediarover.config import ConfigObj
 from mediarover.error import *
-from mediarover.episode.single import SingleEpisode
 from mediarover.utils.injection import is_instance_of, Dependency
 
 class FilesystemEpisode(Comparable):
@@ -28,70 +27,7 @@ class FilesystemEpisode(Comparable):
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	supported_patterns = (
-		# episode 1 regex, ie 310
-		re.compile("(\d{1,2})(\d{2})[^ip]?"),
-	)
-
 	config = Dependency('config', is_instance_of(ConfigObj))
-
-	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	@classmethod
-	def handle(cls, string):
-
-		for pattern in cls.supported_patterns:
-			if pattern.search(string):
-				return True
-		
-		return SingleEpisode.handle(string)
-
-	@classmethod
-	def new_from_episode(cls, episode, path):
-		""" create a new FilesystemSingleEpisode object from an Episode object """
-
-		return cls(
-			series = episode.series,
-			season = episode.season,
-			episode = episode.episode,
-			title = episode.title,
-			quality = episode.quality,
-			path = path
-		)
-
-	@classmethod
-	def extract_from_string(cls, path, **kwargs):
-		""" parse given string and attempt to extract episode values """
-
-		params = {
-			'series':None,
-			'season':None,
-			'episode':None,
-			'title':None,
-			'quality':None,
-		}
-
-		# strip path and extension to get filename
-		(filename, ext) = os.path.splitext(path)
-		filename = os.path.basename(filename)
-		
-		for pattern in cls.supported_patterns:
-			match = pattern.search(filename)
-			if match:
-				params['season'] = kwargs['season'] if 'season' in kwargs else match.group(1)
-				params['episode'] = kwargs['episode'] if 'episode' in kwargs else match.group(2)
-				params['series'] = kwargs['series']
-				if 'title' in kwargs:
-					params['title'] = kwargs['title']
-				if 'quality' in kwargs:
-					params['quality'] = kwargs['quality']
-				break
-		else:
-			params = SingleEpisode.extract_from_string(filename, **kwargs)
-
-		params['path'] = path
-
-		return params
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -140,31 +76,32 @@ class FilesystemEpisode(Comparable):
 		params = {}
 
 		# fetch series parameters
+		episode = self.episode
 		if series:
-			params.update(self.series.format_parameters())
+			params.update(episode.series.format_parameters())
 
 		# prepare season parameters
 		if season:
-			params['season'] = params['SEASON'] = self.season
+			params['season'] = params['SEASON'] = episode.season
 
 		# prepare episode parameters
 		if episode:
-			params['episode'] = self.episode
-			params['season_episode_1'] = "s%02de%02d" % (self.season, self.episode)
-			params['season_episode_2'] = "%dx%02d" % (self.season, self.episode)
+			params['episode'] = episode.episode
+			params['season_episode_1'] = "s%02de%02d" % (episode.season, episode.episode)
+			params['season_episode_2'] = "%dx%02d" % (episode.season, episode.episode)
 
 			params['EPISODE'] = params['episode']
 			params['SEASON_EPISODE_1'] = params['season_episode_1'].upper()
 			params['SEASON_EPISODE_2'] = params['season_episode_2'].upper()
 
 		if quality:
-			params['quality'] = self.quality
-			params['QUALITY'] = self.quality.upper()
+			params['quality'] = episode.quality
+			params['QUALITY'] = episode.quality.upper()
 
 		# prepare title parameters
 		if title:
-			if self.title is not None and self.title != "":
-				value = self.title
+			if episode.title is not None and episode.title != "":
+				value = episode.title
 				params['title'] = value 
 				params['title.'] = re.sub("\s", ".", value)
 				params['title_'] = re.sub("\s", "_", value)
@@ -181,28 +118,60 @@ class FilesystemEpisode(Comparable):
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 	def __repr__(self):
-		return "FilesystemSingleEpisode(series=%r,season=%d,episode=%s,title=%r,quality=%r,path=%r)" % (self.series,self.season,self.episode,self.title,self.quality,self.path)
+		return "FilesystemEpisode(path=%r,episode=%r" % (self.path, self.episode)
+
+	def __eq__(self, other):
+		""" 
+			compare two filesystem episode objects and check if they are equal
+
+			NOTE: if given object is not a filesystem episode object, default
+			to regular episode equality check
+
+			to be considered equal, any two episodes must:
+				a) be of the same filesystem episode type (ie single vs daily vs multi)
+				b) point to the same file on disk
+		"""
+		try:
+			if self.path != other.path: return False
+		except AttributeError:
+			return False
+
+		return True
+
+	def __ne__(self, other):
+		return not self == other
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def _path_prop(self):
-		return self.__path
-
+	def _episode_prop(self):
+		return self.__episode
+	
 	def _extension_prop(self):
 		return os.path.splitext(self.path)[1].lstrip(".")
 
+	def _path_prop(self, path = None):
+		if path is not None:
+			if not os.path.exists(path):
+				raise FilesystemError("given filesystem episode path '%s' does not exist" % path)
+			else:
+				self.__path = path
+			
+		return self.__path
+
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	path = property(fget=_path_prop, doc="filesystem path to episode file")
+	episode = property(fget=_episode_prop, doc="associated episode object")
 	extension = property(fget=_extension_prop, doc="file extension")
+	path = property(fget=_path_prop, fset=_path_prop, doc="filesystem path to episode file")
 
-	def __init__(self, series, season, episode, path, quality, title = ""):
+	def __init__(self, path, episode):
 
 		if path is None:
 			raise MissingParameterError("missing filesystem path")
 
-		super(FilesystemSingleEpisode, self).__init__(series, season, episode, quality, title)
-
 		self.__path = path
+		self.__episode = episode
 

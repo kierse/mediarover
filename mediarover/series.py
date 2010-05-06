@@ -38,6 +38,36 @@ class Series(object):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def find_episode_on_disk(self, episode, include_multipart = True):
+		""" return list of files on disk that contain the given episode """
+		list = []
+
+		self.__check_episode_lists()
+
+		# episode is daily
+		if hasattr(episode, "year"):
+			for file in self.__daily_files:
+				ep = file.episode
+				if episode == ep:
+					list.append(file)
+
+		else:
+			if not hasattr(episode, "episodes"):
+				for file in self.__single_files:
+					ep = file.episode
+					if episode == ep:
+						list.append(file)
+
+			if include_multipart:
+				for file in self.__multipart_files:
+					ep = file.episode
+					if episode == ep:
+						list.append(file)
+					elif episode in ep.episodes:
+						list.append(file)
+
+		return list
+
 	def should_episode_be_downloaded(self, episode, *args):
 		""" 
 			return boolean indicating whether or not a given episode should be downloaded.  This method takes into 
@@ -172,7 +202,9 @@ class Series(object):
 
 	def mark_episode_list_stale(self):
 		self.__episodes = None
-		self.__multipart_episodes = None
+		self.__single_files = None
+		self.__daily_files = None
+		self.__multipart_files = None
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -200,44 +232,59 @@ class Series(object):
 						if name not in files or size > files[name]['size']:
 							files[name] = {'size': size, 'path': os.path.join(dirpath, filename)}
 
+		compiled = []
+		daily = []
 		single = []
 		multipart = []
 
 		if len(files):
 			for filename, params in files.items():
 				try:
-					episode = self.filesystem_factory.create_filesystem_episode(params['path'], series=self)
+					file = self.filesystem_factory.create_filesystem_episode(params['path'], series=self)
 				except (InvalidEpisodeString, MissingParameterError):
 					logger.warning("unable to determine episode specifics, encountered error while parsing filename. Skipping '%s'" % filename)
 					pass
 				else:
-					try:
-						episode.episodes
-					except AttributeError:
-						if self.config['tv']['quality']['managed']:
-							record = self.meta_ds.get_episode(episode)
-							if record is not None:
-								episode.quality = record['quality']
-						single.append(episode)
-					else:
-						# add to list of multipart episodes
-						multipart.append(episode)
+					# multipart
+					episode = file.episode
+					if hasattr(episode, "episodes"):
+						multipart.append(file)
 
 						# now look at individual parts and determine
-						# if they should be added to single episode list
+						# if they should be added to compiled episode list
 						list = []
 						for ep in episode.episodes:
-							if ep not in single:
+							if ep not in compiled:
 								list.append(ep)
 
 						if len(list) > 0 and self.config['tv']['quality']['managed']:
 							record = self.meta_ds.get_episode(list[0])
 							if record is not None:
 								episode.quality = record['quality']
-						single.extend(list)
+						compiled.extend(list)
 
-		self.__episodes = single
-		self.__multipart_episodes = multipart
+					else:
+						if self.config['tv']['quality']['managed']:
+							record = self.meta_ds.get_episode(episode)
+							if record is not None:
+								episode.quality = record['quality']
+
+						# add to compiled list
+						compiled.append(episode)
+
+						if hasattr(episode, "year"):
+							daily.append(file)
+						else:
+							single.append(file)
+
+		self.__episodes = compiled
+		self.__daily_files = daily
+		self.__single_files = single
+		self.__multipart_files = multipart
+
+	def __check_episode_lists(self):
+		if self.__episodes is None:
+			self.__find_series_episodes()
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -317,16 +364,8 @@ class Series(object):
 		return self.__aliases
 
 	def _episodes_prop(self):
-		if self.__episodes is None:
-			self.__find_series_episodes()
-			
+		self.__check_episode_lists()
 		return self.__episodes
-
-	def _multipart_prop(self):
-		if self.__multipart_episodes is None:
-			self.__find_series_episodes()
-
-		return self.__multipart_episodes
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -334,8 +373,7 @@ class Series(object):
 	name = property(fget=_name_prop, doc="series name")
 	ignores = property(fget=_ignores_prop, fset=_ignores_prop, doc="season ignore list")
 	aliases = property(fget=_aliases_prop, fset=_aliases_prop, doc="aliases for current series")
-	episodes = property(fget=_episodes_prop, doc="list of series episodes found on disk")
-	multipart_episodes = property(fget=_multipart_prop, doc="list of multipart episodes found on disk")
+	episodes = property(fget=_episodes_prop, doc="compiled list of single & daily episodes. Includes individual episodes from all multipart episodes found on disk.")
 
 	def __init__(self, name, path = [], ignores = [], aliases = []):
 
@@ -349,7 +387,9 @@ class Series(object):
 
 		# initialize episode related attributes
 		self.__episodes = None
-		self.__multipart_episodes = None
+		self.__single_files = None
+		self.__daily_files = None
+		self.__multipart_files = None
 
 		# sanitize ignores list
 		self.__ignores = set([int(re.sub("[^\d]", "", str(i))) for i in ignores if i])
