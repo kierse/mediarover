@@ -366,15 +366,7 @@ def _process_download(config, broker, options, args):
 				root = series.path[0]
 
 			# get season folder (if desired)
-			if config['tv']['template']['season'] not in ("", None):
-				try:
-					episode.year
-				except AttributeError:
-					dest_dir = os.path.join(root, file.format_season())
-				else:
-					dest_dir = os.path.join(root, str(file.year))
-			else:
-				dest_dir = root
+			dest_dir = os.path.join(root, file.format_season())
 
 			if not os.path.isdir(dest_dir):
 				try:

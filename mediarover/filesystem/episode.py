@@ -60,15 +60,22 @@ class FilesystemEpisode(Comparable):
 	def format_season(self):
 		""" return formatted pattern using episode data """
 
+		string = ""
+
 		template = self.config['tv']['template']['season']
 		if template not in ("", None):
-			params = self.format_parameters(series=True, season=True)
+			if hasattr(self.episode, "year"):
+				string = str(self.episode.year)
+			else:
+					params = self.format_parameters(series=True, season=True)
 
-			# replace '$(' with '%(' so that variable replacement
-			# will work properly
-			template = template.replace("$(", "%(")
+					# replace '$(' with '%(' so that variable replacement
+					# will work properly
+					template = template.replace("$(", "%(")
 
-		return template % params
+					string = template % params
+
+		return string
 
 	def format_parameters(self, series=False, season=False, episode=False, quality=False, title=False):
 		""" return dict containing supported format parameters.  For use by format_*() methods """
