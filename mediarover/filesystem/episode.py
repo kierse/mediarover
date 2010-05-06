@@ -17,12 +17,13 @@ import logging
 import os.path
 import re
 
+from mediarover.comparable import Comparable
 from mediarover.config import ConfigObj
 from mediarover.error import *
 from mediarover.episode.single import SingleEpisode
 from mediarover.utils.injection import is_instance_of, Dependency
 
-class FilesystemSingleEpisode(SingleEpisode):
+class FilesystemEpisode(Comparable):
 	""" filesystem episode """
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

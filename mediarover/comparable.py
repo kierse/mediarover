@@ -13,19 +13,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from mediarover.comparable import Comparable
-
-class Download(Comparable):
-	""" Download interface class """
+class Comparable(object):
+	""" Comparable interface class """
 
 	# abstract methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def __hash__(self):
+	def __eq__(self, other):
 		raise NotImplementedError
 
-	def __repr__(self):
-		raise NotImplementedError
-
-	def __str__(self):
+	def __ne__(self, other):
 		raise NotImplementedError
 

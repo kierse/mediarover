@@ -13,7 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class Item(object):
+from mediarover.comparable import Comparable
+
+class Item(Comparable):
 	""" Source item interface class """
 
 	def type(self):
@@ -44,4 +46,7 @@ class AbstractItem(Item):
 	def __eq__(self, other):
 		""" compare two item objects and check if they are equal or not """
 		return self.download() == other.download()
+
+	def __ne__(self, other):
+		return not self == other
 

@@ -122,6 +122,9 @@ class MultiEpisode(Episode):
 
 		return True
 
+	def __ne__(self, other):
+		return not self == other
+
 	def __repr__(self):
 		episodes = []
 		for episode in self.episodes:
