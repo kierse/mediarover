@@ -347,9 +347,8 @@ def _process_download(config, broker, options, args):
 		result = broker['metadata_data_store'].get_in_progress(job)
 		if result is not None:
 			episode.quality = result['quality']
-
-	# build a filesystem episode object
-	episode = broker['filesystem_factory'].create_filesystem_episode(orig_path, episode=episode)
+		else:
+			logger.info("unable to find quality information in metadata db, assuming default quality level!")
 
 	# move downloaded file to new location and rename
 	if not options.dry_run:
