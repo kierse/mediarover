@@ -70,3 +70,5 @@ x problem: adding something to queue, get ok back from sabnzbd
   permission to set this type of metadata on a file.  
   - look at replacing shutil.move() with a straight copy()
   - write my own move utility that checks for such errors
+  
+  - move code that creates series objects to its own method in mediarover.series
