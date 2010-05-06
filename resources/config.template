@@ -135,7 +135,7 @@
 	#        description: this option allows you to tell Media Rover your preferred quality level for
 	#                     the current series.
 	#
-	#     b) option: accetable
+	#     b) option: acceptable
 	#        values: comma separated list containing one or more of the following: all, low, medium, high
 	#        default: [tv][quality][acceptable]
 	#        description: this option tells Media Rover which quality levels you find acceptable for the 
