@@ -44,7 +44,10 @@ class FilesystemFactory(object):
 			(file, ext) = os.path.splitext(filename)
 
 			# create episode object
-			episode = self.factory.create_episode(file, **kwargs)
+			try:
+				episode = self.factory.create_episode(file, **kwargs)
+			except (InvalidMultiEpisodeData), e:
+				raise InvalidEpisodeString(e)
 
 		# create filesystem episode object
 		file = FilesystemEpisode(path, episode)
