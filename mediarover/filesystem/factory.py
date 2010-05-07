@@ -17,7 +17,7 @@ import os.path
 
 from mediarover.config import ConfigObj
 from mediarover.ds.metadata import Metadata
-from mediarover.error import InvalidEpisodeString
+from mediarover.error import InvalidEpisodeString, InvalidMultiEpisodeData
 from mediarover.factory import EpisodeFactory
 from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.utils.injection import is_instance_of, Dependency
