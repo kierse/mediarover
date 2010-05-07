@@ -80,7 +80,7 @@ class MultiEpisode(Episode):
 			raise InvalidMultiEpisodeData("MultiEpisode parts must be from the same season")
 
 		if None in (params['start_episode'], params['end_episode']):
-			raise InvalidMultiEpisodeData("Unable to determine start and end of multiepisde")
+			raise InvalidMultiEpisodeData("Unable to determine start and end of multiepisode")
 
 		# if we've got a match object, try to set series 
 		if 'series' in kwargs:

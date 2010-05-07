@@ -211,6 +211,7 @@ class Series(object):
 	def __find_series_episodes(self):
 		""" return list of episode objects for current series """
 		logger = logging.getLogger("mediarover.series")
+		logger.info("scanning filesystem for episodes belonging to '%s'..." % self)
 
 		# duplicate episodes are appended with the date and time that 
 		# they were detected.
@@ -241,8 +242,8 @@ class Series(object):
 			for filename, params in files.items():
 				try:
 					file = self.filesystem_factory.create_filesystem_episode(params['path'], series=self)
-				except (InvalidEpisodeString, MissingParameterError):
-					logger.warning("unable to determine episode specifics, encountered error while parsing filename. Skipping '%s'" % filename)
+				except (InvalidEpisodeString, MissingParameterError), e:
+					logger.warning("skipping file, encountered error while parsing filename: %s (%s)" % (e, params['path']))
 					pass
 				else:
 					# multipart

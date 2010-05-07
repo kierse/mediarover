@@ -53,7 +53,6 @@ class EpisodeFactory(Factory):
 				params['series'] = Series(params['series'])
 		else:
 			sanitized_series = Series.sanitize_series_name(series=params['series'])
-			
 
 		if 'quality' not in kwargs:
 			if sanitized_series in self.config['tv']['filter']:
