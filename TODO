@@ -70,5 +70,11 @@ x problem: adding something to queue, get ok back from sabnzbd
   permission to set this type of metadata on a file.  
   - look at replacing shutil.move() with a straight copy()
   - write my own move utility that checks for such errors
-  
-  - move code that creates series objects to its own method in mediarover.series
+
+- determine quality of existing episodes on disk
+  - grab all files in a series
+  - group files by size (group if within 10% of average size)
+  - show users list of average sizes and number of episodes in that range
+  - allow them to set quality for those episodes
+
+- move code that creates series objects to its own method in mediarover.series
