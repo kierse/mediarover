@@ -89,7 +89,7 @@ class Series(object):
 		# get list of episodes that will serve as the test sample.  If a sample
 		# wasn't provided, grab the series episode list
 		if len(args) > 0:
-			sample = args
+			sample = list(args)
 		else:
 			sample = self.episodes
 
