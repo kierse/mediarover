@@ -20,7 +20,8 @@ import re
 from mediarover.config import ConfigObj
 from mediarover.ds.metadata import Metadata
 from mediarover.error import *
-from mediarover.filesystem.factory import FilesystemFactory
+from mediarover.factory import EpisodeFactory
+from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.utils.injection import is_instance_of, Dependency
 from mediarover.utils.quality import compare_quality
 
@@ -31,7 +32,7 @@ class Series(object):
 
 	# declare module dependencies
 	config = Dependency('config', is_instance_of(ConfigObj))
-	filesystem_factory = Dependency('filesystem_factory', is_instance_of(FilesystemFactory))
+	factory = Dependency('episode_factory', is_instance_of(EpisodeFactory))
 	meta_ds = Dependency("metadata_data_store", is_instance_of(Metadata))
 
 	metadata_regex = re.compile("\s*\(.+?\)")
@@ -241,11 +242,17 @@ class Series(object):
 		if len(files):
 			for filename, params in files.items():
 				try:
-					file = self.filesystem_factory.create_filesystem_episode(params['path'], series=self)
-				except (InvalidEpisodeString, MissingParameterError), e:
+					file = FilesystemEpisode(
+						params['path'], 
+						self.factory.create_episode(filename, series=self), 
+						params['size']
+					)
+				except (InvalidEpisodeString, InvalidMultiEpisodeData, MissingParameterError), e:
 					logger.warning("skipping file, encountered error while parsing filename: %s (%s)" % (e, params['path']))
 					pass
 				else:
+					logger.debug("created %r" % file)
+
 					# multipart
 					episode = file.episode
 					if hasattr(episode, "episodes"):

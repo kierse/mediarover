@@ -128,7 +128,7 @@ class FilesystemEpisode(Comparable):
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def __repr__(self):
-		return "FilesystemEpisode(path=%r,episode=%r" % (self.path, self.episode)
+		return "FilesystemEpisode(path=%r,episode=%r,size=%r" % (self.path, self.episode, self.size)
 
 	def __eq__(self, other):
 		""" 
@@ -168,17 +168,25 @@ class FilesystemEpisode(Comparable):
 			
 		return self.__path
 
+	def _size_prop(self):
+		return self.__size
+
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	episode = property(fget=_episode_prop, doc="associated episode object")
 	extension = property(fget=_extension_prop, doc="file extension")
 	path = property(fget=_path_prop, fset=_path_prop, doc="filesystem path to episode file")
+	size = property(fget=_size_prop, doc="size of file (in bytes) at given path")
 
-	def __init__(self, path, episode):
+	def __init__(self, path, episode, size=None):
 
 		if path is None:
 			raise MissingParameterError("missing filesystem path")
 
+		if size is None:
+			size = os.path.getsize(path)
+
 		self.__path = path
 		self.__episode = episode
+		self.__size = size
 

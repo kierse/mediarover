@@ -27,7 +27,7 @@ from mediarover.config import read_config, locate_config_files, build_series_fil
 from mediarover.ds.metadata import Metadata
 from mediarover.episode.factory import EpisodeFactory
 from mediarover.error import *
-from mediarover.filesystem.factory import FilesystemFactory
+from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.source.newzbin.factory import NewzbinFactory
 from mediarover.scripts.error import *
 from mediarover.series import Series
@@ -94,7 +94,6 @@ def sort():
 	# register factory objects
 	broker.register('newzbin', NewzbinFactory())
 	broker.register('episode_factory', EpisodeFactory())
-	broker.register('filesystem_factory', FilesystemFactory())
 
 	# make sure script was passed 6 arguments
 	if not len(args) == 7:
@@ -354,7 +353,7 @@ def _process_download(config, broker, options, args):
 	if not options.dry_run:
 
 		# build a filesystem episode object
-		file = broker['filesystem_factory'].create_filesystem_episode(orig_path, episode=episode)
+		file = FilesystemEpisode(orig_path, episode, size)
 
 		dest_dir = series.locate_season_folder(episode.season)
 		if dest_dir is None:
