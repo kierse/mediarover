@@ -95,13 +95,13 @@ class Series(object):
 
 		# prepare a list of episodes for comparison
 		try:
-			list = episode.episodes
+			parts = episode.episodes
 		except AttributeError:
-			list = [episode]
+			parts = [episode]
 		
 		found = []
 		desirable = []
-		for ep in list:
+		for ep in parts:
 			
 			# found, must compare quality before we can determine desirability
 			if ep in sample:
