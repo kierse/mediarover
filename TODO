@@ -27,7 +27,7 @@ x look at moving daily flag to series object as it is a property of the show
   - update to accept a logging level
 x add all watched series to dict
 x register as a dependency
-- all code that creates episodes uses dict of series objects to find series
+x all code that creates episodes uses dict of series objects to find series
 x update series interface to include methods that
   a) say whether episode exists on disk or not, and
   b) say whether given episode is of better quality than existing episode on disk
@@ -42,9 +42,9 @@ multi-part episodes.
 x update source.py to be an interface rather than an implementation
 	x look at creating a RssSource object
 
-- stop logging from within error objects.  Add logging call before each raise error.  Fatal errors will print stack trace
+x stop logging from within error objects.  Add logging call before each raise error.  Fatal errors will print stack trace
 
-- update config template/spec
+x update config template/spec
 	x update multiepisode options in config template/spec
 	x remove aggressive flag
 	x remove UI options
