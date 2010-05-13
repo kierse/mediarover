@@ -392,6 +392,7 @@ def _process_download(config, broker, options, args):
 		# generate new filename for current episode
 		new_path = os.path.join(dest_dir, file.format(additional))
 
+		logger.info("attempting to move episode file...")
 		try:
 			shutil.move(orig_path, new_path)
 		except OSError, (e):
@@ -400,7 +401,7 @@ def _process_download(config, broker, options, args):
 	
 		# move successful, cleanup download directory
 		else:
-			logger.info("moving downloaded episode '%s' to '%s'", orig_path, new_path)
+			logger.info("downloaded episode moved from '%s' to '%s'", orig_path, new_path)
 
 			# update episode and set new filesystem path
 			file.path = new_path
