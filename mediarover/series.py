@@ -99,6 +99,9 @@ class Series(object):
 		except AttributeError:
 			parts = [episode]
 		
+		series = episode.series
+		sanitized_name = series.sanitize_series_name(series=series)
+
 		found = []
 		desirable = []
 		for ep in parts:
@@ -109,13 +112,17 @@ class Series(object):
 
 			# not found == desirable
 			else:
+				if self.config['tv']['quality']['managed']:
+					if sanitized_name in self.config['tv']['filter']:
+						if ep.quality() not in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
+							continue
+					elif ep.quality() not in self.config['tv']['quality']['acceptable']:
+						continue
 				desirable.append(ep)
 
 		# make sure episode quality is acceptable
 		if self.config['tv']['quality']['managed'] and len(found) > 0:
 
-			series = episode.series
-			sanitized_name = series.sanitize_series_name(series=series)
 			if sanitized_name in self.config['tv']['filter']:
 
 				if episode.quality in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
