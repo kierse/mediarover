@@ -47,24 +47,24 @@ class Series(object):
 
 		# episode is daily
 		if hasattr(episode, "year"):
-			for file in self.__daily_files:
-				ep = file.episode
-				if episode == ep:
+			for i in range(len(self.__daily_files)):
+				file = self.__daily_files[i]
+				if episode == file.episode:
 					list.append(file)
 
 		else:
 			if not hasattr(episode, "episodes"):
-				for file in self.__single_files:
-					ep = file.episode
-					if episode == ep:
+				for i in range(len(self.__single_files)):
+					file = self.__single_files[i]
+					if episode == file.episode:
 						list.append(file)
 
 			if include_multipart:
-				for file in self.__multipart_files:
-					ep = file.episode
-					if episode == ep:
+				for i in range(len(self.__multipart_files)):
+					file = self.__multipart_files[i]
+					if episode == file.episode:
 						list.append(file)
-					elif episode in ep.episodes:
+					elif episode in file.episode.episodes:
 						list.append(file)
 
 		return list
@@ -120,28 +120,28 @@ class Series(object):
 
 				if episode.quality in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
 					desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
-					a_quality = episode.quality.lower()
-					for a, b in found:
-						b_quality = b.quality.lower()
+					given_quality = episode.quality.lower()
+					for given, current in found:
+						current_quality = current.quality.lower()
 
-						# skip if object B already meets desired quality level
-						if b_quality == desired:
+						# skip if current offering already meets desired quality level
+						if current_quality == desired:
 							continue
 
-						# A meets desired level.  Since object B doesn't, add A to 
+						# given meets desired level.  Since current doesn't, add given to 
 						# desirable list
-						elif a_quality == desired:
-							desirable.append(a)
+						elif given_quality == desired:
+							desirable.append(given)
 
 						# intermediate step DOWN in quality
 						if desired == 'low':
-							if b_quality == 'high' and a_quality == 'medium':
-								desirable.append(a)
+							if current_quality == 'high' and given_quality == 'medium':
+								desirable.append(given)
 
 						# intermediate step UP in quality
 						elif desired == 'high':
-							if b_quality == 'low' and a_quality == 'medium':
-								desirable.append(a)
+							if current_quality == 'low' and given_quality == 'medium':
+								desirable.append(given)
 
 						# desired == medium
 						# neither A nor B match desired quality level.  There is no sense 
@@ -202,6 +202,8 @@ class Series(object):
 		return params
 
 	def mark_episode_list_stale(self):
+		logger = logging.getLogger("mediarover.series")
+		logger.debug("clearing series file lists!")
 		self.__episodes = None
 		self.__single_files = None
 		self.__daily_files = None
@@ -218,7 +220,14 @@ class Series(object):
 		# they were detected.
 		dup_regex = re.compile("\.\d{12}$")
 
-		files = {}
+		compiled = []
+		daily = []
+		single = []
+		multipart = []
+
+		sanitized_name = self.sanitize_series_name(series=self)
+		desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
+
 		for root in self.path:
 			for dirpath, dirnames, filenames in os.walk(root):
 				# remove any directories that start with a '.'
@@ -240,65 +249,54 @@ class Series(object):
 
 					ext = ext.lstrip(".")
 					if ext not in self.config['tv']['ignored_extensions']:
-						size = os.path.getsize(os.path.join(dirpath, filename))
-						if name not in files or size > files[name]['size']:
-							files[name] = {'size': size, 'path': os.path.join(dirpath, filename)}
-
-		compiled = []
-		daily = []
-		single = []
-		multipart = []
-
-		sanitized_name = self.sanitize_series_name(series=self)
-
-		if len(files):
-			for filename, params in files.items():
-				try:
-					file = FilesystemEpisode(
-						params['path'], 
-						self.factory.create_episode(filename, series=self), 
-						params['size']
-					)
-				except (InvalidEpisodeString, InvalidMultiEpisodeData, MissingParameterError), e:
-					logger.warning("skipping file, encountered error while parsing filename: %s (%s)" % (e, params['path']))
-					pass
-				else:
-					logger.debug("created %r" % file)
-
-					# multipart
-					episode = file.episode
-					if hasattr(episode, "episodes"):
-						multipart.append(file)
-
-						# now look at individual parts and determine
-						# if they should be added to compiled episode list
-						list = []
-						for ep in episode.episodes:
-							if ep not in compiled:
-								list.append(ep)
-
-						if len(list) > 0 and self.config['tv']['quality']['managed']:
-							record = self.meta_ds.get_episode(list[0])
-							if record is not None:
-								episode.quality = record['quality']
-						compiled.extend(list)
-
-					else:
-						if self.config['tv']['quality']['managed']:
-							record = self.meta_ds.get_episode(episode)
-							if record is None:
-								desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
-								logger.warning("unable to deterine quality of episode '%s', defaulting to desired level of '%s'" % (episode, desired))
-							else:
-								episode.quality = record['quality']
-
-						# add to compiled list
-						compiled.append(episode)
-
-						if hasattr(episode, "year"):
-							daily.append(file)
+						path = os.path.join(dirpath, filename)
+						try:
+							file = FilesystemEpisode(
+								path,
+								self.factory.create_episode(name, series=self), 
+								os.path.getsize(path)
+							)
+						except (InvalidEpisodeString, InvalidMultiEpisodeData, MissingParameterError), e:
+							logger.warning("skipping file, encountered error while parsing filename: %s (%s)" % (e, path))
+							pass
 						else:
-							single.append(file)
+							# multipart
+							episode = file.episode
+							if hasattr(episode, "episodes"):
+								multipart.append(file)
+
+								# now look at individual parts and determine
+								# if they should be added to compiled episode list
+								list = []
+								for ep in episode.episodes:
+									if ep not in compiled:
+										list.append(ep)
+
+								if len(list) > 0 and self.config['tv']['quality']['managed']:
+									record = self.meta_ds.get_episode(list[0])
+									if record is None:
+										logger.warning("unable to deterine quality of episode '%s', defaulting to desired level of '%s'" % (episode, desired))
+									else:
+										episode.quality = record['quality']
+								compiled.extend(list)
+
+							else:
+								if self.config['tv']['quality']['managed']:
+									record = self.meta_ds.get_episode(episode)
+									if record is None:
+										logger.warning("unable to deterine quality of episode '%s', defaulting to desired level of '%s'" % (episode, desired))
+									else:
+										episode.quality = record['quality']
+
+								# add to compiled list
+								compiled.append(episode)
+
+								if hasattr(episode, "year"):
+									daily.append(file)
+								else:
+									single.append(file)
+
+							logger.debug("created %r" % file)
 
 		self.__episodes = compiled
 		self.__daily_files = daily
