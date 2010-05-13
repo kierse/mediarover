@@ -221,7 +221,17 @@ class Series(object):
 		files = {}
 		for root in self.path:
 			for dirpath, dirnames, filenames in os.walk(root):
+				# remove any directories that start with a '.'
+				for i in range(len(dirnames)):
+					if dirnames[i].startswith('.'):
+						del dirnames[i]
+
+				# process files and identify episodes
 				for filename in filenames:
+					# skip any files that start with a '.'
+					if filename.startswith('.'):
+						continue
+
 					(name, ext) = os.path.splitext(filename)
 
 					# skip duplicates when building list of episodes

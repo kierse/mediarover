@@ -272,7 +272,7 @@ def build_series_filters(path, quality_defaults, seed=None):
 
 			file_ignores = []
 			with open(os.path.join(path, ".ignore")) as file:
-				line = file.next().rstrip("\n")
+				line = file.readline().rstrip("\n")
 				if line == "*":
 					seed['skip'] = True
 				else:
