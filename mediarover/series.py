@@ -249,6 +249,8 @@ class Series(object):
 		single = []
 		multipart = []
 
+		sanitized_name = self.sanitize_series_name(series=self)
+
 		if len(files):
 			for filename, params in files.items():
 				try:
@@ -284,7 +286,10 @@ class Series(object):
 					else:
 						if self.config['tv']['quality']['managed']:
 							record = self.meta_ds.get_episode(episode)
-							if record is not None:
+							if record is None:
+								desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
+								logger.warning("unable to deterine quality of episode '%s', defaulting to desired level of '%s'" % (episode, desired))
+							else:
 								episode.quality = record['quality']
 
 						# add to compiled list
