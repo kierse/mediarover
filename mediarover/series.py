@@ -114,9 +114,9 @@ class Series(object):
 			else:
 				if self.config['tv']['quality']['managed']:
 					if sanitized_name in self.config['tv']['filter']:
-						if ep.quality() not in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
+						if ep.quality not in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
 							continue
-					elif ep.quality() not in self.config['tv']['quality']['acceptable']:
+					elif ep.quality not in self.config['tv']['quality']['acceptable']:
 						continue
 				desirable.append(ep)
 
@@ -291,7 +291,7 @@ class Series(object):
 								if self.config['tv']['quality']['managed']:
 									record = self.meta_ds.get_episode(episode)
 									if record is None:
-										logger.warning("unable to deterine quality of episode '%s', defaulting to desired level of '%s'" % (episode, desired))
+										logger.warning("quality level of '%s' unknown, defaulting to desired level of '%s'" % (episode, desired))
 									else:
 										episode.quality = record['quality']
 
