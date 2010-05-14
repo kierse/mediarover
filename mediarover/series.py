@@ -256,12 +256,19 @@ class Series(object):
 
 					ext = ext.lstrip(".")
 					if ext not in self.config['tv']['ignored_extensions']:
+
 						path = os.path.join(dirpath, filename)
+						size = os.path.getsize(path)
+
+						# skip this file if it is less than 50 MB
+						if size < 52428800:
+							continue
+
 						try:
 							file = FilesystemEpisode(
 								path,
 								self.factory.create_episode(name, series=self), 
-								os.path.getsize(path)
+								size
 							)
 						except (InvalidEpisodeString, InvalidMultiEpisodeData, MissingParameterError), e:
 							logger.warning("skipping file, encountered error while parsing filename: %s (%s)" % (e, path))
