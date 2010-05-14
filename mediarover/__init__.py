@@ -26,7 +26,6 @@ from mediarover.config import read_config, generate_config_files, build_series_f
 from mediarover.ds.metadata import Metadata
 from mediarover.episode.factory import EpisodeFactory
 from mediarover.error import *
-from mediarover.filesystem.factory import FilesystemFactory
 from mediarover.series import Series
 from mediarover.source.tvnzb.factory import TvnzbFactory
 from mediarover.source.mytvnzb.factory import MytvnzbFactory
@@ -100,7 +99,6 @@ def main():
 	broker.register('resources_dir', resources_dir)
 	broker.register('metadata_data_store', Metadata())
 	broker.register('episode_factory', EpisodeFactory())
-	broker.register('filesystem_factory', FilesystemFactory())
 
 	# register the source objects
 	broker.register('newzbin', NewzbinFactory())
