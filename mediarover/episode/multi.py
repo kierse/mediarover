@@ -135,9 +135,8 @@ class MultiEpisode(Episode):
 	def __str__(self):
 		first = self.episodes[0]
 		last = self.episodes[len(self.episodes)-1]
-		series = first.series
 
-		return "%s %dx%02d-%dx%02d" % (series.sanitize_series_name(series=series), first.season, first.episode, last.season, last.episode)
+		return "%s %dx%02d-%dx%02d" % (self.series.name, first.season, first.episode, last.season, last.episode)
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
