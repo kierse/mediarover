@@ -282,7 +282,7 @@ class Series(object):
 								if len(list) > 0 and self.config['tv']['quality']['managed']:
 									record = self.meta_ds.get_episode(list[0])
 									if record is None:
-										logger.warning("unable to deterine quality of episode '%s', defaulting to desired level of '%s'" % (episode, desired))
+										logger.warning("quality level of '%s' unknown, defaulting to desired level of '%s'" % (episode, desired))
 									else:
 										episode.quality = record['quality']
 								compiled.extend(list)
