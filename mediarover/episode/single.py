@@ -25,20 +25,23 @@ class SingleEpisode(Episode):
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	supported_patterns = (
+	__supported_patterns = (
 		# episode 1 regex, ie. s03e10
-		re.compile("[a-zA-Z]{1}(\d{1,2})[a-zA-Z]{1}(\d{1,2})"),
+		re.compile("[a-zA-Z]{1}(?P<season>\d{1,2})[a-zA-Z]{1}(?P<episode>\d{1,2})"),
 
 		# episode 2 regex, ie. 3x10
-		re.compile("(\d{1,2})[a-zA-Z]{1}(\d{1,2})")
+		re.compile("(?P<season>\d{1,2})[a-zA-Z]{1}(?P<episode>\d{1,2})")
 	)
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	@classmethod
-	def handle(cls, string):
+	def get_supported_patterns(cls):
+		return cls.__supported_patterns
 
-		for pattern in cls.supported_patterns:
+	@classmethod
+	def handle(cls, string):
+		for pattern in cls.get_supported_patterns():
 			if pattern.search(string):
 				return True
 
@@ -63,11 +66,11 @@ class SingleEpisode(Episode):
 		}
 
 		# check if given string contains season and episode numbers
-		for pattern in cls.supported_patterns:
+		for pattern in cls.get_supported_patterns():
 			match = pattern.search(string)
 			if match:
-				params['season'] = kwargs['season'] if 'season' in kwargs else match.group(1)
-				params['episode'] = kwargs['episode'] if 'episode' in kwargs else match.group(2)
+				params['season'] = kwargs['season'] if 'season' in kwargs else match.group('season')
+				params['episode'] = kwargs['episode'] if 'episode' in kwargs else match.group('episode')
 				break
 
 		# if we've got a match object, try to set series 

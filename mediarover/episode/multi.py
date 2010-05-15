@@ -26,20 +26,23 @@ class MultiEpisode(Episode):
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	supported_patterns = (
+	__supported_patterns = (
 		# multiepisode 1 regex, ie. s03e20s03e21, s03e20e21
-		re.compile("[a-zA-Z](\d{1,2})[a-zA-Z](\d{1,2})(?:[a-zA-Z]?(\d{1,2}))?[a-zA-Z](\d{1,2})"),
+		re.compile("[a-zA-Z](?P<start_season>\d{1,2})[a-zA-Z](?P<start_episode>\d{1,2})(?:[a-zA-Z]?(?P<end_season>\d{1,2}))?[a-zA-Z](?P<end_episode>\d{1,2})"),
 
 		# multiepisode 2 regex, ie. s03e20-s03e21, s03e20-e21, s03e20-21, 3x20-3x21, 3x20-21
-		re.compile("[a-zA-Z]?(\d{1,2})[a-zA-Z](\d{1,2})-(?:[a-zA-Z]?(\d{1,2}))?[a-zA-Z]?(\d{1,2})")
+		re.compile("[a-zA-Z]?(?P<start_season>\d{1,2})[a-zA-Z](?P<start_episode>\d{1,2})-(?:[a-zA-Z]?(?P<end_season>\d{1,2}))?[a-zA-Z]?(?P<end_episode>\d{1,2})")
 	)
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	@classmethod
-	def handle(cls, string):
+	def get_supported_patterns(cls):
+		return cls.__supported_patterns
 
-		for pattern in MultiEpisode.supported_patterns:
+	@classmethod
+	def handle(cls, string):
+		for pattern in cls.get_supported_patterns():
 			if pattern.search(string):
 				return True
 
@@ -57,17 +60,17 @@ class MultiEpisode(Episode):
 			'quality':None,
 		}
 
-		for pattern in cls.supported_patterns:
+		for pattern in cls.get_supported_patterns():
 			match = pattern.search(string)
 			if match:
-				params['start_episode'] = match.group(2)
-				params['end_episode'] = match.group(4)
+				params['start_episode'] = match.group('start_episode')
+				params['end_episode'] = match.group('end_episode')
 				if 'season' in kwargs:
 					params['start_season'] = params['end_season'] = kwargs['season']
 				else:
-					params['start_season'] = match.group(1)
-					if match.group(3) is not None:
-						params['end_season'] = match.group(3)
+					params['start_season'] = match.group('start_season')
+					if match.group('end_season') is not None:
+						params['end_season'] = match.group('end_season')
 					else:
 						params['end_season'] = params['start_season']
 				break

@@ -25,17 +25,20 @@ class DailyEpisode(Episode):
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	supported_patterns = (
+	__supported_patterns = (
 		# daily regex: <year>-<month>-<day>
-		re.compile("(\d{4})[\.\-\/\_]?(\d{2})[\.\-\/\_]?(\d{2})"),
+		re.compile("(?P<year>\d{4})[\.\-\/\_]?(?P<month>\d{2})[\.\-\/\_]?(?P<day>\d{2})"),
 	)
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	@classmethod
-	def handle(cls, string):
+	def get_supported_patterns(cls):
+		return cls.__supported_patterns
 
-		for pattern in DailyEpisode.supported_patterns:
+	@classmethod
+	def handle(cls, string):
+		for pattern in cls.get_supported_patterns():
 			if pattern.search(string):
 				return True
 
@@ -61,12 +64,12 @@ class DailyEpisode(Episode):
 		}
 
 		# daily shows
-		for pattern in DailyEpisode.supported_patterns:
+		for pattern in cls.get_supported_patterns():
 			match = pattern.search(string)
 			if match:
-				params['year'] = kwargs['year'] if 'year' in kwargs else match.group(1)
-				params['month'] = kwargs['month'] if 'month' in kwargs else match.group(2)
-				params['day'] = kwargs['day'] if 'day' in kwargs else match.group(3)
+				params['year'] = kwargs['year'] if 'year' in kwargs else match.group('year')
+				params['month'] = kwargs['month'] if 'month' in kwargs else match.group('month')
+				params['day'] = kwargs['day'] if 'day' in kwargs else match.group('day')
 				break
 
 		# if we've got a match object, try to set series 
