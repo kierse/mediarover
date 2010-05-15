@@ -23,6 +23,7 @@ from optparse import OptionParser
 from mediarover.config import read_config, generate_config_files, locate_config_files
 from mediarover.ds.metadata import Metadata
 from mediarover.episode.factory import EpisodeFactory
+from mediarover.filesystem.factory import FilesystemFactory
 from mediarover.utils.injection import initialize_broker
 from mediarover.version import __app_version__
 
@@ -89,6 +90,7 @@ def run():
 
 		broker.register('metadata_data_store', Metadata())
 		broker.register('episode_factory', EpisodeFactory())
+		broker.register('filesystem_factory', FilesystemFactory())
 
 		# sanitize tv series filter subsection names for 
 		# consistent lookups

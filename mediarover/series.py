@@ -32,7 +32,7 @@ class Series(object):
 
 	# declare module dependencies
 	config = Dependency('config', is_instance_of(ConfigObj))
-	factory = Dependency('episode_factory', is_instance_of(EpisodeFactory))
+	factory = Dependency('filesystem_factory', is_instance_of(EpisodeFactory))
 	meta_ds = Dependency("metadata_data_store", is_instance_of(Metadata))
 
 	metadata_regex = re.compile("\s*\(.+?\)")

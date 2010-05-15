@@ -28,6 +28,7 @@ from mediarover.ds.metadata import Metadata
 from mediarover.episode.factory import EpisodeFactory
 from mediarover.error import *
 from mediarover.filesystem.episode import FilesystemEpisode
+from mediarover.filesystem.factory import FilesystemFactory
 from mediarover.source.newzbin.factory import NewzbinFactory
 from mediarover.scripts.error import *
 from mediarover.series import Series
@@ -94,6 +95,7 @@ def sort():
 	# register factory objects
 	broker.register('newzbin', NewzbinFactory())
 	broker.register('episode_factory', EpisodeFactory())
+	broker.register('filesystem_factory', FilesystemFactory())
 
 	# make sure script was passed 6 arguments
 	if not len(args) == 7:

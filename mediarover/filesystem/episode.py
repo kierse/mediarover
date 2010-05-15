@@ -274,7 +274,7 @@ class FilesystemSingleEpisode(SingleEpisode):
 	def get_supported_patterns(cls):
 		""" return list of supported naming patterns """
 		patterns = list(cls.__supported_patterns)
-		patterns.extend(SingleEpisode.get_supported_patterns())
+		patterns.extend(super(FilesystemSingleEpisode, cls).get_supported_patterns())
 		return patterns
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -305,6 +305,6 @@ class FilesystemMultiEpisode(MultiEpisode):
 	def get_supported_patterns(cls):
 		""" return list of supported naming patterns """
 		patterns = list(cls.supported_patterns)
-		patterns.extend(MultiEpisode.get_supported_patterns())
+		patterns.extend(super(FilesystemMultiEpisode, cls).get_supported_patterns())
 		return patterns
 
