@@ -254,3 +254,57 @@ class FilesystemEpisode(Comparable):
 		self.__episode = episode
 		self.__size = size
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+from mediarover.episode.single import SingleEpisode
+
+class FilesystemSingleEpisode(SingleEpisode):
+	""" filesystem single episode """
+
+	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	__supported_patterns = (
+		# episode 1 regex, ie 310
+		re.compile("(?P<season>\d{1,2})(?P<episode>\d{2})[^ip]?"),
+	)
+
+	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	@classmethod
+	def get_supported_patterns(cls):
+		""" return list of supported naming patterns """
+		patterns = list(cls.__supported_patterns)
+		patterns.extend(SingleEpisode.get_supported_patterns())
+		return patterns
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+from mediarover.episode.daily import DailyEpisode
+
+class FilesystemDailyEpisode(DailyEpisode):
+	""" filesystem daily episode """
+	pass
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+from mediarover.episode.multi import MultiEpisode
+
+class FilesystemMultiEpisode(MultiEpisode):
+	""" filesystem multipart episode """
+
+	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	supported_patterns = (
+		# multiepisode 1 regex, 301-302
+		re.compile("(?P<start_season>\d{1,2})(?P<start_episode>\d{2})-(?P<end_season>\d{1,2})(?P<end_episode>\d{2})"),
+	)
+
+	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	@classmethod
+	def get_supported_patterns(cls):
+		""" return list of supported naming patterns """
+		patterns = list(cls.supported_patterns)
+		patterns.extend(MultiEpisode.get_supported_patterns())
+		return patterns
+
