@@ -133,7 +133,7 @@ class SingleEpisode(Episode):
 		return hash.__hash__()
 
 	def __repr__(self):
-		return "Episode(series=%r,season=%r,episode=%r,quality=%r,title=%r)" % (self.series,self.season,self.episode,self.quality,self.title)
+		return "%s(series=%r,season=%r,episode=%r,quality=%r,title=%r)" % (self.__class__.__name__,self.series,self.season,self.episode,self.quality,self.title)
 
 	def __str__(self):
 		return "%s %dx%02d" % (self.series.name, self.season, self.episode)

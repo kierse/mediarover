@@ -324,7 +324,7 @@ class Series(object):
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def __repr__(self):
-		return "Series(name=%r,path=%r,ignores=%r,aliases=%r)" % (self.name, self.path, self.ignores, self.aliases)
+		return "%s(name=%r,path=%r,ignores=%r,aliases=%r)" % (self.__class__.__name__,self.name, self.path, self.ignores, self.aliases)
 
 	def __str__(self):
 		return "%s" % self.name

@@ -130,7 +130,7 @@ class MultiEpisode(Episode):
 		for episode in self.episodes:
 			episodes.append(episode.__repr__())
 
-		return "MultiEpisode([%r],title=%r,quality=%r)" % (",".join(episodes), self.title, self.quality)
+		return "%s([%r],title=%r,quality=%r)" % (self.__class__.__name__,",".join(episodes), self.title, self.quality)
 
 	def __str__(self):
 		first = self.episodes[0]
