@@ -144,6 +144,12 @@ def _process(config, broker, options, args):
 
 	logger = logging.getLogger("mediarover")
 
+	# grab quality management flag.  This will determine if Media Rover
+	# will actively manage the quality of filesystem episodes or not
+	manage_quality = config['tv']['quality']['managed']
+	if manage_quality and config['tv']['quality']['desired'] is None:
+		raise ConfigurationError("when quality management is on you must indicate a desired quality level at [tv] [[quality]] desired =")
+
 	# check if user has requested a dry-run
 	if options.dry_run:
 		logger.info("--dry-run flag detected!  No new downloads will be queued during execution!")
@@ -234,11 +240,6 @@ def _process(config, broker, options, args):
 	broker.register('watched_series', watched_list)
 
 	logger.debug("finished processing watched tv")
-
-	# grab quality management flag.  This will determine if Media Rover
-	# will actively manage the quality of filesystem episodes or not
-	manage_quality = config['tv']['quality']['managed']
-
 	logger.info("begin processing sources")
 
 	# grab list of source url's from config file and build appropriate Source objects

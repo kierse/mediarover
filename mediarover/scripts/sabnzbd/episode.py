@@ -167,6 +167,10 @@ def _process_download(config, broker, options, args):
 
 	logger = logging.getLogger("mediarover.scripts.sabnzbd.episode")
 
+	# ensure user has indicated a desired quality level if quality management is turned on
+	if config['tv']['quality']['managed'] and config['tv']['quality']['desired'] is None:
+		raise ConfigurationError("when quality management is on you must indicate a desired quality level at [tv] [[quality]] desired =")
+
 	logger.debug(sys.argv[0] + " '%s' '%s' '%s' '%s' '%s' '%s' '%s'" % tuple(args))
 
 	"""
