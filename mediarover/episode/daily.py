@@ -27,7 +27,7 @@ class DailyEpisode(Episode):
 
 	__supported_patterns = (
 		# daily regex: <year>-<month>-<day>
-		re.compile("(?P<year>\d{4})[\.\-\/\_]?(?P<month>\d{2})[\.\-\/\_]?(?P<day>\d{2})"),
+		re.compile("(?P<year>\d{4})[\.\-\/\_ ]?(?P<month>\d{2})[\.\-\/\_ ]?(?P<day>\d{2})"),
 	)
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
