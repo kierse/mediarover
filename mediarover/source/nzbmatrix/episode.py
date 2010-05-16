@@ -23,68 +23,16 @@ class NzbmatrixDailyEpisode(DailyEpisode):
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	supported_patterns = (
+	__supported_patterns = (
 		# daily regex: <year> <month> <day>
-		re.compile("(\d{4})\s+(\d{2})\s+(\d{2})"),
+		re.compile("(?P<year>\d{4})\s+(?P<month>\d{2})\s+(?P<day>\d{2})"),
 	)
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	@classmethod
-	def handle(cls, string):
-
-		for pattern in cls.supported_patterns:
-			if pattern.search(string):
-				return True
-
-		return DailyEpisode.handle(string)
-
-	@classmethod
-	def extract_from_string(cls, string, **kwargs):
-		"""
-			parse given string and attempt to extract episode values
-
-			attempt to handle various report formats, ie.
-				<series>.[sS]<season>[eE]<episode>
-				<series>.<season>[xX]<episode>
-				<series>.<year>.<day>.<month>
-		"""
-		params = {
-			'series':None,
-			'year':None,
-			'month':None,
-			'day':None,
-			'title':None,
-			'quality':None,
-		}
-
-		for pattern in cls.supported_patterns:
-			match = pattern.search(string)
-			if match:
-				params['year'] = kwargs['year'] if 'year' in kwargs else match.group(1)
-				params['month'] = kwargs['month'] if 'month' in kwargs else match.group(2)
-				params['day'] = kwargs['day'] if 'day' in kwargs else match.group(3)
-
-				if 'series' in kwargs:
-					params['series'] = kwargs['series']
-				else:
-					start = 0 
-					end = match.start()
-					params['series'] = match.string[start:end]
-
-				if 'title' in kwargs:
-					params['title'] = title
-
-				if 'quality' in kwargs:
-					params['quality'] = kwargs['quality']
-
-				break
-		else:
-			params = DailyEpisode.extract_from_string(string, **kwargs)
-
-		return params
-
-	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	def get_supported_patterns(cls):
+		patterns = list(cls.__supported_patterns)
+		patterns.extend(super(NzbmatrixDailyEpisode, cls).get_supported_patterns())
+		return patterns
 
