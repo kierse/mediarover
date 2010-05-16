@@ -102,8 +102,11 @@ class FilesystemEpisode(Comparable):
 			params['SEASON_EPISODE_2'] = params['season_episode_2'].upper()
 
 		if quality:
-			params['quality'] = episode.quality
-			params['QUALITY'] = episode.quality.upper()
+			if episode.quality is None:
+				params['quality'] = params['QUALITY'] = ""
+			else:
+				params['quality'] = episode.quality
+				params['QUALITY'] = episode.quality.upper()
 
 		# prepare title parameters
 		if title:
