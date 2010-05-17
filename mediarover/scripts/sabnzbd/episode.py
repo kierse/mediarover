@@ -338,8 +338,8 @@ def _process_download(config, broker, options, args):
 	# build episode object using job name
 	try:
 		episode = factory.create_episode(job)
-	except (InvalidMultiEpisodeData, MissingParameterError):
-		raise InvalidJobTitle("unable to parse job title and create Episode object: %s" % title)
+	except (InvalidMultiEpisodeData, MissingParameterError), e:
+		raise InvalidJobTitle("unable to parse job title and create Episode object: %s" % e)
 
 	# sanitize series name for later use
 	series = episode.series
