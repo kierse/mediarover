@@ -265,7 +265,17 @@ class FilesystemSingleEpisode(SingleEpisode):
 
 	__supported_patterns = (
 		# episode 1 regex, ie 310
-		re.compile("(?P<season>\d{1,2})(?P<episode>\d{2})[^ip]?"),
+		#
+		# this pattern is pretty tricky.  First we don't want to match 1080i or 720p so we must ignore all groupings
+		# of numbers that are followed by an 'i' or a 'p'.  Second, we don't want to match against any series metadata
+		# (ie. Show Name (2004)) so we need to ignore any groupings of number found between ( and ).
+		#
+		# (?<![\(])  - this is a negative lookbehind assertion. It matches if the current position in the string
+		#              is NOT preceded by a match for a '('
+		#
+		# (?![ip\)]) - this is a negative lookahead assertion. It matches if the current position in the string
+		#              is NOT followed by a match for an 'i', 'p', or ')'
+		re.compile("(?<![\(])(?P<season>\d{1,2})(?P<episode>\d{2})(?![ip\)])"),
 	)
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
