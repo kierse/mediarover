@@ -27,11 +27,14 @@ class MultiEpisode(Episode):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	__supported_patterns = (
-		# multiepisode 1 regex, ie. s03e20s03e21, s03e20e21
-		re.compile("[a-zA-Z](?P<start_season>\d{1,2})[a-zA-Z](?P<start_episode>\d{1,2})(?:[a-zA-Z]?(?P<end_season>\d{1,2}))?[a-zA-Z](?P<end_episode>\d{1,2})"),
+		# multiepisode 1 regex, ie. s03e20s03e21, s03e20-s03e21, s03e20e21, s03e20-e21
+		re.compile("s(?P<start_season>\d{1,2})e(?P<start_episode>\d{1,3})-?(?:s?(?P<end_season>\d{1,2}))?e(?P<end_episode>\d{1,3})", re.IGNORECASE),
 
-		# multiepisode 2 regex, ie. s03e20-s03e21, s03e20-e21, s03e20-21, 3x20-3x21, 3x20-21
-		re.compile("[a-zA-Z]?(?P<start_season>\d{1,2})[a-zA-Z](?P<start_episode>\d{1,2})-(?:[a-zA-Z]?(?P<end_season>\d{1,2}))?[a-zA-Z]?(?P<end_episode>\d{1,2})")
+		# multiepisode 2 regex, ie. s03e20-21
+		re.compile("s(?P<start_season>\d{1,2})e(?P<start_episode>\d{1,3})-(?P<end_episode>\d{1,3})", re.IGNORECASE),
+
+		# multiepisode 3 regex, ie. 3x20-3x21, 3x20-21
+		re.compile("(?P<start_season>\d{1,2})x(?P<start_episode>\d{1,3})-(?:(?P<end_season>\d{1,2})x)?(?P<end_episode>\d{1,3})", re.IGNORECASE)
 	)
 
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
