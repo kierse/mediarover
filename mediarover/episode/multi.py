@@ -63,16 +63,17 @@ class MultiEpisode(Episode):
 		for pattern in cls.get_supported_patterns():
 			match = pattern.search(string)
 			if match:
-				params['start_episode'] = match.group('start_episode')
-				params['end_episode'] = match.group('end_episode')
+				group = match.groupdict()
 				if 'season' in kwargs:
 					params['start_season'] = params['end_season'] = kwargs['season']
 				else:
-					params['start_season'] = match.group('start_season')
-					if match.group('end_season') is not None:
-						params['end_season'] = match.group('end_season')
-					else:
+					params['start_season'] = group['start_season']
+					if group.get('end_season') is None:
 						params['end_season'] = params['start_season']
+					else:
+						params['end_season'] = group['end_season']
+				params['start_episode'] = group['start_episode']
+				params['end_episode'] = group['end_episode']
 				break
 
 		if params['start_season'] == params['end_season']:
