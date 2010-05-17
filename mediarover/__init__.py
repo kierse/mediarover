@@ -17,28 +17,16 @@ import logging
 import logging.config
 import os
 import os.path
-import re
 import sys
 from optparse import OptionParser
-from urllib2 import URLError
 
-from mediarover.config import read_config, generate_config_files, build_series_filters, locate_config_files
+from mediarover.config import read_config, generate_config_files, locate_config_files
 from mediarover.ds.metadata import Metadata
 from mediarover.episode.factory import EpisodeFactory
-from mediarover.error import *
-from mediarover.series import Series
-from mediarover.source.tvnzb.factory import TvnzbFactory
-from mediarover.source.mytvnzb.factory import MytvnzbFactory
-from mediarover.source.newzbin.factory import NewzbinFactory
-from mediarover.source.nzbmatrix.factory import NzbmatrixFactory
-from mediarover.source.nzbs.factory import NzbsFactory
-from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.injection import initialize_broker
 from mediarover.version import __app_version__
 
-# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-def main():
+def run():
 
 	""" parse command line options """
 
@@ -73,53 +61,74 @@ def main():
 	if options.config:
 		config_dir = options.config
 
-	# if user has requested that app or log config files be generated
+	# user has requested that app or log config files be generated
 	if options.write_configs:
 		generate_config_files(resources_dir, config_dir)
-		exit(0)
 
-	# make sure application config file exists and is readable
-	locate_config_files(config_dir)
+	else:
 
-	# create config object using user config values
-	config = read_config(resources_dir, config_dir)
+		# make sure application config file exists and is readable
+		locate_config_files(config_dir)
 
-	""" logging setup """
+		# create config object using user config values
+		config = read_config(resources_dir, config_dir)
 
-	# initialize and retrieve logger for later use
-	logging.config.fileConfig(open(os.path.join(config_dir, "logging.conf")))
+		""" logging setup """
+
+		# initialize and retrieve logger for later use
+		logging.config.fileConfig(open(os.path.join(config_dir, "logging.conf")))
+		logger = logging.getLogger("mediarover")
+
+		""" post configuration setup """
+
+		# initialize dependency broker and register resources
+		broker = initialize_broker()
+		broker.register('config', config)
+		broker.register('config_dir', config_dir)
+		broker.register('resources_dir', resources_dir)
+
+		broker.register('metadata_data_store', Metadata())
+		broker.register('episode_factory', EpisodeFactory())
+
+		# sanitize tv series filter subsection names for 
+		# consistent lookups
+		for name, filters in config['tv']['filter'].items():
+			del config['tv']['filter'][name]
+			config['tv']['filter'][Series.sanitize_series_name(name=name)] = filters
+
+		scheduler(broker, options)
+
+	exit(0)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+import re
+from urllib2 import URLError
+
+from mediarover.config import build_series_filters
+from mediarover.error import *
+from mediarover.series import Series
+from mediarover.source.tvnzb.factory import TvnzbFactory
+from mediarover.source.mytvnzb.factory import MytvnzbFactory
+from mediarover.source.newzbin.factory import NewzbinFactory
+from mediarover.source.nzbmatrix.factory import NzbmatrixFactory
+from mediarover.source.nzbs.factory import NzbsFactory
+
+def scheduler(broker, options):
+
 	logger = logging.getLogger("mediarover")
+	logger.info("--- STARTING ---")
+	logger.debug("using config directory: %s", broker['config_dir'])
 
-	""" post configuration setup """
-
-	# initialize dependency broker and register resources
-	broker = initialize_broker()
-	broker.register('config', config)
-	broker.register('config_dir', config_dir)
-	broker.register('resources_dir', resources_dir)
-	broker.register('metadata_data_store', Metadata())
-	broker.register('episode_factory', EpisodeFactory())
-
-	# register the source objects
+	# register source dependencies
 	broker.register('newzbin', NewzbinFactory())
 	broker.register('tvnzb', TvnzbFactory())
 	broker.register('mytvnzb', MytvnzbFactory())
 	broker.register('nzbs', NzbsFactory())
 	broker.register('nzbmatrix', NzbmatrixFactory())
 
-	# sanitize tv series filter subsection names for 
-	# consistent lookups
-	for name, filters in config['tv']['filter'].items():
-		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = filters
-
-	""" main """
-
-	logger.info("--- STARTING ---")
-	logger.debug("using config directory: %s", config_dir)
-
 	try:
-		_process(config, broker, options, args)
+		__scheduler(broker, options)
 	except Exception, e:
 		logger.exception(e)
 		raise
@@ -137,12 +146,12 @@ def main():
 	else:
 		logger.info("DONE")
 
-
-# private methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-def _process(config, broker, options, args):
+def __scheduler(broker, options):
 
 	logger = logging.getLogger("mediarover")
+
+	# grab config object
+	config = broker['config']
 
 	# grab quality management flag.  This will determine if Media Rover
 	# will actively manage the quality of filesystem episodes or not
@@ -154,6 +163,7 @@ def _process(config, broker, options, args):
 	if options.dry_run:
 		logger.info("--dry-run flag detected!  No new downloads will be queued during execution!")
 
+	config = broker['config']
 	tv_root = config['tv']['tv_root']
 
 	if not len(tv_root):

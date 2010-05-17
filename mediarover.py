@@ -16,5 +16,5 @@
 
 import mediarover
 
-mediarover.main()
+mediarover.run()
 
