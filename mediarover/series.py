@@ -233,7 +233,10 @@ class Series(object):
 		multipart = []
 
 		sanitized_name = self.sanitize_series_name(series=self)
-		desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
+		if sanitized_name in self.config['tv']['filter']:
+			desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
+		else:
+			desired = self.config['tv']['quality']['desired']
 
 		for root in self.path:
 			for dirpath, dirnames, filenames in os.walk(root):
