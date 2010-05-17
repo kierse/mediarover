@@ -16,6 +16,7 @@
 import logging
 import os.path
 import re
+from datetime import date
 
 from mediarover.comparable import Comparable
 from mediarover.config import ConfigObj
@@ -34,19 +35,44 @@ class FilesystemEpisode(Comparable):
 	def format(self, additional=""):
 		""" return formatted pattern using episode data """
 
-		params = self.format_parameters(series=True, season=True, episode=True, quality=True, title=True)
-		template = self.config['tv']['template']['single_episode']
+		# multipart 
+		if hasattr(self.episode, 'episodes'):
+			template = self.config['tv']['template']['single_episode']
+			params = self.format_parameters(series=True, season=True, quality=True, title=True)
 
-		# replace '$(' with '%(' so that variable replacement
-		# will work properly
-		template = template.replace("$(", "%(")
+			# modify episode template to reflect multiepisode nature of file...
+			first = self.format_parameters(source=self.episode.episodes[0], episode=True)
+			last = self.format_parameters(source=self.episode.episodes[-1], episode=True)
+			params['season_episode_1'] = "%s-%s" % (first['season_episode_1'],last['season_episode_1'])
+			params['season_episode_2'] = "%s-%s" % (first['season_episode_2'],last['season_episode_2'])
+			params['SEASON_EPISODE_1'] = "%s-%s" % (first['SEASON_EPISODE_1'],last['SEASON_EPISODE_1'])
+			params['SEASON_EPISODE_2'] = "%s-%s" % (first['SEASON_EPISODE_2'],last['SEASON_EPISODE_2'])
 
-		# format smart_title pattern (if set)
-		if self.config['tv']['template']['smart_title'] not in ("", None) and params['title'] != "":
-			smart_title_template = self.config['tv']['template']['smart_title'].replace("$(", "%(")
-			params['smart_title'] = params['SMART_TITLE'] = smart_title_template % params
+			padding = ""
+			match = re.search("^\$\(episode\)(\d+)d", template)
+			if match:
+				padding = match.group(1)
+
+			episode = "%%%sd-%%%sd" % (padding, padding)
+			params['episode'] = episode % (first['episode'],last['episode'])
+			params['EPISODE'] = episode % (first['EPISODE'],last['EPISODE'])
+
+			# cleanup template a bit so that it can be
+			# processed...
+			template = re.sub("\)(\d*)d", ")\\1s", template.replace("$(", "%("))
+
+		# single/daily 
 		else:
-			params['smart_title'] = params['SMART_TITLE'] = ""
+			if hasattr(self.episode, 'year'):
+				template = self.config['tv']['template']['daily_episode']
+			else:
+				template = self.config['tv']['template']['single_episode']
+
+			params = self.format_parameters()
+
+			# replace '$(' with '%(' so that variable replacement
+			# will work properly
+			template = template.replace("$(", "%(")
 
 		# if additional was provided, append to end of new filename
 		if additional is not None and additional != "":
@@ -77,41 +103,68 @@ class FilesystemEpisode(Comparable):
 
 		return string
 
-	def format_parameters(self, series=False, season=False, episode=False, quality=False, title=False):
-		""" return dict containing supported format parameters.  For use by format_*() methods """
+	def format_parameters(self, source = None, **kwargs):
+		""" return dict containing supported format parameters """
 
 		params = {}
+		if len(kwargs) == 0:
+			all = True
+		else:
+			all = False
+
+		if source is None:
+			source = self.episode
 
 		# fetch series parameters
-		episode = self.episode
-		if series:
-			params.update(episode.series.format_parameters())
+		if all or kwargs.get('series', False):
+			params.update(source.series.format_parameters())
 
-		# prepare season parameters
-		if season:
-			params['season'] = params['SEASON'] = episode.season
+		if hasattr(source, "year"):
+			# prepare season/year parameters
+			if all or kwargs.get('season', False) or kwargs.get('year', False):
+				params['season'] = params['SEASON'] = source.season
+				params['year'] = params['YEAR'] = source.year
 
-		# prepare episode parameters
-		if episode:
-			params['episode'] = episode.episode
-			params['season_episode_1'] = "s%02de%02d" % (episode.season, episode.episode)
-			params['season_episode_2'] = "%dx%02d" % (episode.season, episode.episode)
+			# prepare month parameters
+			if all or kwargs.get('month', False):
+				params['month'] = params['MONTH'] = source.month
 
-			params['EPISODE'] = params['episode']
-			params['SEASON_EPISODE_1'] = params['season_episode_1'].upper()
-			params['SEASON_EPISODE_2'] = params['season_episode_2'].upper()
+			# prepare day parameters
+			if all or kwargs.get('day', False):
+				params['day'] = params['DAY'] = source.day
 
-		if quality:
-			if episode.quality is None:
+			# prepare daily episode template variables
+			if all:
+				broadcast = date(source.year, source.month, source.day)
+				params['daily'] = params['DAILY'] = broadcast.strftime("%Y%m%d")
+				params['daily.'] = params['DAILY.'] = broadcast.strftime("%Y.%m.%d")
+				params['daily-'] = params['DAILY-'] = broadcast.strftime("%Y-%m-%d")
+				params['daily_'] = params['DAILY_'] = broadcast.strftime("%Y_%m_%d")
+
+		else:
+			# prepare season parameters
+			if all or kwargs.get('season', False) or kwargs.get('year', False):
+				params['season'] = params['SEASON'] = source.season
+
+			# prepare episode parameters
+			if all or kwargs.get('episode', False):
+				params['episode'] = params['EPISODE'] = source.episode
+				params['season_episode_1'] = "s%02de%02d" % (source.season, source.episode)
+				params['season_episode_2'] = "%dx%02d" % (source.season, source.episode)
+				params['SEASON_EPISODE_1'] = params['season_episode_1'].upper()
+				params['SEASON_EPISODE_2'] = params['season_episode_2'].upper()
+
+		if all or kwargs.get('quality', False):
+			if source.quality is None:
 				params['quality'] = params['QUALITY'] = ""
 			else:
-				params['quality'] = episode.quality
-				params['QUALITY'] = episode.quality.upper()
+				params['quality'] = source.quality
+				params['QUALITY'] = source.quality.upper()
 
 		# prepare title parameters
-		if title:
-			if episode.title is not None and episode.title != "":
-				value = episode.title
+		if all or kwargs.get('title', False):
+			if source.title is not None and source.title != "":
+				value = source.title
 				params['title'] = value 
 				params['title.'] = re.sub("\s", ".", value)
 				params['title_'] = re.sub("\s", "_", value)
@@ -119,10 +172,18 @@ class FilesystemEpisode(Comparable):
 				params['TITLE'] = params['title'].upper()
 				params['TITLE.'] = params['title.'].upper()
 				params['TITLE_'] = params['title_'].upper()
+
+				# build smart title templates
+				if self.config['tv']['template']['smart_title'] not in ("", None):
+					smart_title_template = self.config['tv']['template']['smart_title'].replace("$(", "%(")
+					params['smart_title'] = params['SMART_TITLE'] = smart_title_template % params
+				else:
+					params['smart_title'] = params['SMART_TITLE'] = ""
 			else:
 				params['title'] = params['TITLE'] = ""
 				params['title.'] = params['TITLE.'] = ""
 				params['title_'] = params['TITLE_'] = ""
+				params['smart_title'] = params['SMART_TITLE'] = ""
 
 		return params
 

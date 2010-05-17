@@ -358,6 +358,7 @@ def _process_download(config, broker, options, args):
 
 		# build a filesystem episode object
 		file = FilesystemEpisode(orig_path, episode, size)
+		logger.debug("created %r" % file)
 
 		dest_dir = series.locate_season_folder(episode.season)
 		if dest_dir is None:
