@@ -282,7 +282,7 @@ def __scheduler(broker, options):
 			logger.error(error)
 			continue
 		except InvalidRemoteData, (e):
-			logger.error("skipping source %r, unable to process remote data: %r", name, e.reason)
+			logger.error("skipping source %r, unable to process remote data: %s", name, e)
 			continue
 		else:
 			logger.info("created source %r" % name)
