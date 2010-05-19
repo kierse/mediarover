@@ -201,21 +201,24 @@ def _process_download(config, broker, options, args):
 	# check to ensure we have the necessary data to proceed
 	if path is None or path == "":
 		raise InvalidArgument("path to completed job is missing or null")
-	elif os.path.basename(path).startswith("_FAILED_"):
-		logger.warning("download is marked as failed, moving to trash...")
+	elif os.path.basename(path).startswith("_FAILED_") or int(status) > 0:
+		logger.warning("download failed, moving to trash...")
 		try:
 			args[0] = _move_to_trash(tv_root[0], path)
 		except OSError, (e):
 			logger.error("unable to move download directory to %r: %s", args[0], e.strerror)
 			raise FailedDownload("unable to sort failed download")
-	elif job is None or job == "":
-		raise InvalidArgument("job name is missing or null")
-	elif status == 1:
-		raise FailedDownload("download failed verification")
-	elif status == 2:
-		raise FailedDownload("download failed unpack")
-	elif status == 3:
-		raise FailedDownload("download failed verification and unpack")
+		else:
+			if job is None or job == "":
+				raise InvalidArgument("job name is missing or null")
+			elif int(status) == 1:
+				raise FailedDownload("download failed verification")
+			elif int(status) == 2:
+				raise FailedDownload("download failed unpack")
+			elif int(status) == 3:
+				raise FailedDownload("download failed verification and unpack")
+			else:
+				raise FailedDownload("download failed")
 
 	watched_list = {}
 	skip_list = {}
