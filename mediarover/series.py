@@ -384,7 +384,7 @@ class Series(object):
 
 	def _ignores_prop(self, ignores = None):
 		if ignores is not None:
-			self.__ignores = ignores
+			self.__ignores = [int(i) for i in ignores]
 		return self.__ignores
 
 	def _aliases_prop(self, aliases = None):
