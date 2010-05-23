@@ -23,7 +23,7 @@ from optparse import OptionParser
 from tempfile import TemporaryFile
 from time import strftime
 
-from mediarover.config import read_config, locate_config_files, build_series_filters
+from mediarover.config import read_config, build_series_filters
 from mediarover.ds.metadata import Metadata
 from mediarover.episode.factory import EpisodeFactory
 from mediarover.error import *
@@ -70,11 +70,12 @@ def sort():
 	# grab location of resources folder
 	resources_dir = os.path.join(sys.path[0], "resources")
 
-	# make sure application config file exists and is readable
-	locate_config_files(config_dir)
-
 	# create config object using user config values
-	config = read_config(resources_dir, config_dir)
+	try:
+		config = read_config(resources_dir, config_dir)
+	except (ConfigurationError), e:
+		print e
+		exit(1)
 
 	""" logging setup """
 
