@@ -53,6 +53,7 @@
 		password = string(default=None)
 		api_key = string(default=None)
 		backup_dir = path(default="")
+		__check_version__ = boolean(default=True)
 
 [__SYSTEM__]
 	__version__ = integer(default=0)

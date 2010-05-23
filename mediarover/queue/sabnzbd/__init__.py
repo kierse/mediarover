@@ -266,5 +266,6 @@ class SabnzbdQueue(Queue):
 		super(SabnzbdQueue, self).__init__(root, supported_categories, params)
 
 		# try to determine sabnzbd version
-		self.__version_check()
+		if self._params['__check_version__']:
+			self.__version_check()
 
