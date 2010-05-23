@@ -314,7 +314,7 @@ def __scheduler(broker, options):
 	# loop through list of available queues and find one that the user
 	# has configured
 	queue = None
-	for client in config['__SYSTEM__']['__available_queues']:
+	for client in config['__SYSTEM__']['__available_queues__']:
 
 			logger.debug("looking for configured queue: %s", client)
 			if client in config['queue']:

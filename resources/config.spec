@@ -56,4 +56,4 @@
 
 [__SYSTEM__]
 	__version__ = integer(default=0)
-	__available_queues = list(default=list('sabnzbd'))
+	__available_queues__ = list(default=list('sabnzbd'))
