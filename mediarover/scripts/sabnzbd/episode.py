@@ -153,11 +153,7 @@ def sort():
 			sort_log.close()
 	finally:
 		# close db handler
-		try:
-			broker['metadata_data_store']
-		except KeyError:
-			pass
-		else:
+		if 'metadata_data_store' in broker:
 			if broker['metadata_data_store'] is not None:
 				broker['metadata_data_store'].cleanup()
 

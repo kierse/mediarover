@@ -57,28 +57,32 @@ def initialize_broker():
 
 class DependencyBroker(object):
 
-   def register(self, feature, provider, *args, **kwargs):
-      if not self.allowReplace:
-         assert not self.providers.has_key(feature), "Duplicate feature: %r" % feature
+	def register(self, feature, provider, *args, **kwargs):
+		if not self.allowReplace:
+			assert not self.providers.has_key(feature), "Duplicate feature: %r" % feature
 
-      if callable(provider):
-         def call(): return provider(*args, **kwargs)
-      else:
-         def call(): return provider
+		if callable(provider):
+			def call(): return provider(*args, **kwargs)
+		else:
+			def call(): return provider
 
-      self.providers[feature] = call
+		self.providers[feature] = call
 
-   def __getitem__(self, feature):
-      try:
-         provider = self.providers[feature]
-      except KeyError:
-         raise KeyError, "Unknown feature named %r" % feature
+	def __getitem__(self, feature):
+		try:
+			provider = self.providers[feature]
+		except KeyError:
+			raise KeyError, "Unknown feature named %r" % feature
+		return provider()
 
-      return provider()
+	def __contains__(self, key):
+		if key in self.providers:
+			return True
+		return False
 
-   def __init__(self, allowReplace=False):
-      self.providers = {}
-      self.allowReplace = allowReplace
+	def __init__(self, allowReplace=False):
+		self.providers = {}
+		self.allowReplace = allowReplace
 
 class Dependency(object):
 
