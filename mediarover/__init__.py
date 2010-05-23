@@ -88,7 +88,12 @@ def run():
 		broker.register('config_dir', config_dir)
 		broker.register('resources_dir', resources_dir)
 
-		broker.register('metadata_data_store', Metadata())
+		if config['tv']['quality']['managed']:
+			metadata = Metadata()
+		else:
+			metadata = None
+
+		broker.register('metadata_data_store', metadata)
 		broker.register('episode_factory', EpisodeFactory())
 		broker.register('filesystem_factory', FilesystemFactory())
 
@@ -141,7 +146,8 @@ def scheduler(broker, options):
 		except KeyError:
 			pass
 		else:
-			broker['metadata_data_store'].cleanup()
+			if broker['metadata_data_store'] is not None:
+				broker['metadata_data_store'].cleanup()
 
 	if options.dry_run:
 		logger.info("DONE, dry-run flag set...nothing to do!")

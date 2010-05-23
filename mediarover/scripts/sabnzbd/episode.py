@@ -90,7 +90,13 @@ def sort():
 	broker.register('config', config)
 	broker.register('config_dir', config_dir)
 	broker.register('resources_dir', resources_dir)
-	broker.register('metadata_data_store', Metadata())
+
+	if config['tv']['quality']['managed']:
+		metadata = Metadata()
+	else:
+		metadata = None
+
+	broker.register('metadata_data_store', metadata)
 
 	# register factory objects
 	broker.register('newzbin', NewzbinFactory())
@@ -152,7 +158,8 @@ def sort():
 		except KeyError:
 			pass
 		else:
-			broker['metadata_data_store'].cleanup()
+			if broker['metadata_data_store'] is not None:
+				broker['metadata_data_store'].cleanup()
 
 	if fatal:
 		print "FAILURE, unable to sort downloaded episode! See log file at %r for more details!" % os.path.join(config_dir, "logs", "sabnzbd_episode_sort.log")
