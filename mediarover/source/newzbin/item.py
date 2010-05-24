@@ -78,7 +78,11 @@ class NewzbinItem(AbstractItem):
 
 	def _report_category(self):
 		""" report category from source item """
-		return self.__item.getElementsByTagName("report:category")[0].childNodes[0].data
+		categories = self.__item.getElementsByTagName("report:category")
+		if categories:
+			return categories[0].childNodes[0].data
+		else:
+			raise InvalidRemoteData("report does not have a category")
 
 	def __init__(self, item, type, priority, quality):
 		""" init method expects a DOM Element object (xml.dom.Element) """
@@ -88,9 +92,23 @@ class NewzbinItem(AbstractItem):
 		self.__priority = priority
 		self.__quality = quality
 
-		self.__id = self.__item.getElementsByTagName("report:id")[0].childNodes[0].data
-		self.__title = self.__item.getElementsByTagName("title")[0].childNodes[0].data
-		self.__url = self.__item.getElementsByTagName("report:nzb")[0].childNodes[0].data
+		ids = self.__item.getElementsByTagName("report:id")
+		if ids:
+			self.__id = ids[0].childNodes[0].data
+		else:
+			raise InvalidRemoteData("report does not have an id")
+
+		titles = self.__item.getElementsByTagName("title")
+		if titles:
+			self.__title = titles[0].childNodes[0].data
+		else:
+			raise InvalidRemoteData("report does not have a title")
+
+		links = self.__item.getElementsByTagName("report:nzb")
+		if links:
+			self.__url = links[0].childNodes[0].data
+		else:
+			raise InvalidRemoteData("report does not have a url")
 
 		self.__download = self.__parseItem()
 

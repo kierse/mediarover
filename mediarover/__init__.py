@@ -377,7 +377,14 @@ def __scheduler(broker, options):
 	drop_from_queue = []
 	for source in sources:
 		logger.info("processing '%s' items", source.name())
-		for item in source.items():
+
+		try:
+			items = source.items()
+		except (InvalidRemoteData), e:
+			logger.warning(e)
+			continue
+			
+		for item in items:
 
 			logger.debug("begin processing item '%s'", item.title())
 

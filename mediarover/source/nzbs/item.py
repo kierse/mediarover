@@ -59,7 +59,11 @@ class NzbsItem(AbstractItem):
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def _report_category(self):
-		return re.match("(\w+)-", self.__item.getElementsByTagName("category")[0].childNodes[0].data).group(1)
+		categories = self.__item.getElementsByTagName("category")
+		if categories:
+			return re.match("(\w+)-", categories[0].childNodes[0].data).group(1)
+		else:
+			raise InvalidRemoteData("report does not have a category")
 
 	def __parseItem(self):
 		""" parse item data and build appropriate download object """
@@ -85,8 +89,17 @@ class NzbsItem(AbstractItem):
 		self.__priority = priority
 		self.__quality = quality
 
-		self.__title = self.__item.getElementsByTagName("title")[0].childNodes[0].data
-		self.__url = self.__item.getElementsByTagName("link")[0].childNodes[0].data
+		titles = self.__item.getElementsByTagName("title")
+		if titles:
+			self.__title = titles[0].childNodes[0].data
+		else:
+			raise InvalidRemoteData("report does not have a title")
+
+		links = self.__item.getElementsByTagName("link")
+		if links:
+			self.__url = links[0].childNodes[0].data
+		else:
+			raise InvalidRemoteData("report does not have a url")
 
 		self.__download = self.__parseItem()
 

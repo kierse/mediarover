@@ -74,7 +74,11 @@ class NzbmatrixItem(AbstractItem):
 
 	def _report_category(self):
 		""" report category id from source item """
-		return re.match("(\w+):", self.__item.getElementsByTagName("category")[0].childNodes[0].data).group(1)
+		categories = self.__item.getElementsByTagName("category")
+		if categories:
+			return re.match("(\w+):", categories[0].childNodes[0].data).group(1)
+		else:
+			raise InvalidRemoteData("report does not have a category")
 
 	def __init__(self, item, type, priority, quality):
 		""" init method expects a DOM Element object (xml.dom.Element) """
@@ -84,8 +88,17 @@ class NzbmatrixItem(AbstractItem):
 		self.__priority = priority
 		self.__quality = quality
 
-		self.__title = self.__item.getElementsByTagName("title")[0].childNodes[0].data
-		self.__url = self.__item.getElementsByTagName("link")[0].childNodes[0].data
+		titles = self.__item.getElementsByTagName("title")
+		if titles:
+			self.__title = titles[0].childNodes[0].data
+		else:
+			raise InvalidRemoteData("report does not have a title")
+
+		links = self.__item.getElementsByTagName("link")
+		if links:
+			self.__url = links[0].childNodes[0].data
+		else:
+			raise InvalidRemoteData("report does not have a url")
 
 		self.__download = self.__parseItem()
 
