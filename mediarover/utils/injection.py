@@ -80,7 +80,7 @@ class DependencyBroker(object):
 			return True
 		return False
 
-	def __init__(self, allowReplace=False):
+	def __init__(self, allowReplace=True):
 		self.providers = {}
 		self.allowReplace = allowReplace
 
