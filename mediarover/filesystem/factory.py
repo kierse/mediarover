@@ -37,10 +37,10 @@ class FilesystemFactory(EpisodeFactory):
 		# parse given string and extract episode attributes
 		if FilesystemMultiEpisode.handle(string):
 			params = FilesystemMultiEpisode.extract_from_string(string, **kwargs)
-		elif FilesystemSingleEpisode.handle(string):
-			params = FilesystemSingleEpisode.extract_from_string(string, **kwargs)
 		elif FilesystemDailyEpisode.handle(string):
 			params = FilesystemDailyEpisode.extract_from_string(string, **kwargs)
+		elif FilesystemSingleEpisode.handle(string):
+			params = FilesystemSingleEpisode.extract_from_string(string, **kwargs)
 		else:
 			raise InvalidEpisodeString("unable to identify episode type: %r" % string)
 

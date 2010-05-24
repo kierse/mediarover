@@ -37,10 +37,10 @@ class EpisodeFactory(Factory):
 		# parse given string and extract episode attributes
 		if MultiEpisode.handle(string):
 			params = MultiEpisode.extract_from_string(string, **kwargs)
-		elif SingleEpisode.handle(string):
-			params = SingleEpisode.extract_from_string(string, **kwargs)
 		elif DailyEpisode.handle(string):
 			params = DailyEpisode.extract_from_string(string, **kwargs)
+		elif SingleEpisode.handle(string):
+			params = SingleEpisode.extract_from_string(string, **kwargs)
 		else:
 			raise InvalidEpisodeString("unable to identify episode type: %r" % string)
 
