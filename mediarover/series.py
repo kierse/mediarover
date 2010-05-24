@@ -20,7 +20,7 @@ import re
 
 from mediarover.config import ConfigObj
 from mediarover.ds.metadata import Metadata
-from mediarover.error import *
+from mediarover.error import FilesystemError, InvalidData, InvalidEpisodeString, InvalidMultiEpisodeData, MissingParameterError, TooManyParametersError
 from mediarover.factory import EpisodeFactory
 from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.utils.injection import is_instance_of, Dependency
@@ -435,4 +435,89 @@ class Series(object):
 
 		# sanitize ignores list
 		self.__ignores = set([int(re.sub("[^\d]", "", str(i))) for i in ignores if i])
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+from mediarover.config import build_series_filters
+
+def build_watch_list(config, process_aliases=True):
+	""" use given config object and build a dictionary of watched series """
+	logger = logging.getLogger("mediarover.series")
+
+	watched_list = {}
+	skip_list = {}
+	for root in config['tv']['tv_root']:
+
+		# first things first, check that tv root directory exists and that we
+		# have read access to it
+		if not os.access(root, os.F_OK):
+			raise FilesystemError("TV root rootectory (%s) does not exist!", root)
+		if not os.access(root, os.R_OK):
+			raise FilesystemError("Missing read access to tv root directory (%s)", root)
+
+		logger.info("begin processing tv directory: %s", root)
+	
+		# grab list of shows
+		dir_list = os.listdir(root)
+		dir_list.sort()
+		for name in dir_list:
+
+			# skip hidden directories
+			if name.startswith("."):
+				continue
+
+			dir = os.path.join(root, name)
+			if os.path.isdir(dir):
+				
+				sanitized_name = Series.sanitize_series_name(name=name)
+
+				# already seen this series and have determined that user wants to skip it
+				if sanitized_name in skip_list:
+					continue
+
+				# we've already seen this series.  Append new directory to list of series paths
+				elif sanitized_name in watched_list:
+					series = watched_list[sanitized_name]
+					series.path.append(dir)
+
+				# new series, create new Series object and add to the watched list
+				else:
+					series = Series(name, path=dir)
+					additions = dict({sanitized_name: series})
+
+					# locate and process any filters for current series.  If no user defined filters for 
+					# current series exist, build dict using default values
+					if sanitized_name in config['tv']['filter']:
+						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'], config['tv']['filter'][sanitized_name])
+					else:
+						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'])
+
+					# check filters to see if user wants this series skipped...
+					if config['tv']['filter'][sanitized_name]["skip"]:
+						skip_list[sanitized_name] = series
+						logger.debug("found skip filter, ignoring series: %s", series.name)
+						continue
+
+					# set season ignore list for current series
+					if len(config['tv']['filter'][sanitized_name]['ignore']):
+						logger.debug("ignoring the following seasons of %s: %s", series.name, config['tv']['filter'][sanitized_name]['ignore'])
+						series.ignores = config['tv']['filter'][sanitized_name]['ignore']
+
+					# process series aliases.  For each new alias, register series in watched_list
+					if process_aliases and len(config['tv']['filter'][sanitized_name]['alias']) > 0:
+						series.aliases = config['tv']['filter'][sanitized_name]['alias']
+						count = 0
+						for alias in series.aliases:
+							sanitized_alias = Series.sanitize_series_name(name=alias)
+							if sanitized_alias in watched_list:
+								logger.warning("duplicate series alias found for '%s'! Duplicate aliases can/will result in incorrect downloads and improper sorting! You've been warned..." % series)
+							additions[sanitized_alias] = series
+							count += 1
+						logger.debug("%d alias(es) identified for series '%s'" % (count, series))
+
+					# finally, add additions to watched list
+					logger.debug("watching series: %s", series)
+					watched_list.update(additions)
+	
+	return watched_list
 
