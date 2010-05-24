@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+import os
 import os.path
 import re
 
@@ -358,7 +359,7 @@ class Series(object):
 			name = kwargs['name']
 			
 		if name is None:
-			raise InvalidDataError("value given to sanitize_series_name must not be None")
+			raise InvalidData("value given to sanitize_series_name must not be None")
 
 		return re.sub("[^a-z0-9]", "", name.lower())
 
@@ -400,6 +401,13 @@ class Series(object):
 		self.__check_episode_lists()
 		return self.__episodes
 
+	def _files_prop(self):
+		self.__check_episode_lists()
+		files = list(self.__single_files)
+		files.extend(self.__daily_files)
+		files.extend(self.__multipart_files)
+		return files
+
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	path = property(fget=_path_prop, fset=_path_prop, doc="series filesystem path")
@@ -407,6 +415,7 @@ class Series(object):
 	ignores = property(fget=_ignores_prop, fset=_ignores_prop, doc="season ignore list")
 	aliases = property(fget=_aliases_prop, fset=_aliases_prop, doc="aliases for current series")
 	episodes = property(fget=_episodes_prop, doc="compiled list of single & daily episodes. Includes individual episodes from all multipart episodes found on disk.")
+	files = property(fget=_files_prop, doc="list of FilesystemEpisode objects found on disk for the current series.")
 
 	def __init__(self, name, path = [], ignores = [], aliases = []):
 
