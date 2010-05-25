@@ -42,6 +42,7 @@ def run():
 		print 
 		print """Available commands are:
    schedule       Process configured sources and schedule nzb's for download
+   episode-sort   Sort downloaded episode
    set-quality    Register quality of series episodes on disk
    write-configs  Generate default configuration and logging files
 		"""
@@ -72,10 +73,12 @@ def run():
 
 	if command == 'schedule':
 		scheduler(broker, args)
+	elif command == 'episode-sort':
+		episode_sort(broker, args)
 	elif command == 'set-quality':
 		set_quality(broker, args)
 	elif command == 'write-configs':
-		write_configs(args, broker)
+		write_configs(broker, args)
 	else:
 		parser.print_usage()
 		print "%s: error: no such command: %s" % (os.path.basename(sys.argv[0]), command)
@@ -85,7 +88,7 @@ def run():
 
 from mediarover.config import generate_config_files
 
-def write_configs(args, broker):
+def write_configs(broker, args):
 
 	usage = "%prog write-configs [options]"
 	description = "description goes here!"
@@ -451,6 +454,458 @@ def __scheduler(broker, options):
 			logger.info("the following items would have been scheduled for download:")
 			for item in scheduled:
 				logger.info(item.title())
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+import shutil
+
+from tempfile import TemporaryFile
+from time import strftime
+
+from mediarover.config import build_series_filters
+from mediarover.filesystem.episode import FilesystemEpisode
+from mediarover.scripts.error import *
+from mediarover.utils.filesystem import clean_path
+
+def episode_sort(broker, args):
+
+	usage = "%prog episode-sort [options] result_dir [nzb_name nice_name newzbin_id category newsgroup status] [quality]"
+	description = "description goes here!"
+	parser = OptionParser(usage=usage, description=description)
+
+	# location of config dir
+	parser.add_option("-c", "--config", metavar="/PATH/TO/CONFIG/DIR", help="path to application configuration directory")
+
+	# dry run
+	parser.add_option("-d", "--dry-run", action="store_true", default=False, help="simulate downloading nzb's from configured sources")
+
+	(options, args) = parser.parse_args(args)
+
+	# gather command line arguments
+	params = {'path': args[0]}
+	if len(args) == 2:
+		params['quality'] = args[1]
+	elif len(args) in (7,8):
+		params['nzb'] = args[1]
+		params['job'] = args[2]
+		params['report_id'] = args[3]
+		params['category'] = args[4]
+		params['group'] = args[5]
+		params['status'] = args[6]
+	else:
+		print "ERROR: incorrect number of arguments!"
+		parser.print_help()
+		exit(1)
+
+	if options.config:
+		broker.register('config_dir', options.config)
+
+	# create config object using user config values
+	try:
+		config = read_config(broker['resources_dir'], broker['config_dir'])
+	except (ConfigurationError), e:
+		print e
+		exit(1)
+
+	# sanitize tv series filter subsection names for 
+	# consistent lookups
+	for name, filters in config['tv']['filter'].items():
+		del config['tv']['filter'][name]
+		config['tv']['filter'][Series.sanitize_series_name(name=name)] = filters
+
+	""" logging setup """
+
+	# initialize and retrieve logger for later use
+	# set logging path using default_log_dir from config file
+	logging.config.fileConfig(open(os.path.join(broker['config_dir'], "sabnzbd_episode_sort_logging.conf")))
+	logger = logging.getLogger("mediarover.scripts.sabnzbd.episode")
+
+	""" post configuration setup """
+
+	if config['tv']['quality']['managed']:
+		metadata = Metadata()
+	else:
+		metadata = None
+
+	broker.register('metadata_data_store', metadata)
+	broker.register('config', config)
+
+	# register factory objects
+	broker.register('newzbin', NewzbinFactory())
+	broker.register('episode_factory', EpisodeFactory())
+	broker.register('filesystem_factory', FilesystemFactory())
+
+	# capture all logging output in local file.  If sorting script exits unexpectedly,
+	# or encounters an error and gracefully exits, the log file will be placed in
+	# the download directory for debugging
+	tmp_file = None
+	if config['logging']['generate_sorting_log']:
+		tmp_file = TemporaryFile()
+		handler = logging.StreamHandler(tmp_file)
+		formatter = logging.Formatter('%(asctime)s %(levelname)s - %(message)s - %(filename)s:%(lineno)s')
+		handler.setFormatter(formatter)
+		logger.addHandler(handler)
+
+	# sanitize tv series filter subsection names for 
+	# consistent lookups
+	for name, filters in config['tv']['filter'].items():
+		del config['tv']['filter'][name]
+		config['tv']['filter'][Series.sanitize_series_name(name=name)] = filters
+
+	""" main """
+
+	logger.info("--- STARTING ---")
+	logger.debug("using config directory: %s", broker['config_dir'])
+
+	logger.debug(sys.argv[0] + " " + " ".join(map(lambda x: "'" + x + "'", args)))
+
+	# check if user has requested a dry-run
+	if options.dry_run:
+		logger.info("--dry-run flag detected!  Download will not be sorted during execution!")
+
+	fatal = 0
+	try:
+		__episode_sort(broker, options, **params)
+	except Exception, e:
+		fatal = 1
+		logger.exception(e)
+
+		if config['logging']['generate_sorting_log']:
+
+			# reset current position to start of file for reading...
+			tmp_file.seek(0)
+
+			# flush log data in temporary file handler to disk 
+			sort_log = open(os.path.join(params['path'], "sort.log"), "w")
+			shutil.copyfileobj(tmp_file, sort_log)
+			sort_log.close()
+	finally:
+		# close db handler
+		if 'metadata_data_store' in broker:
+			if broker['metadata_data_store'] is not None:
+				broker['metadata_data_store'].cleanup()
+
+	if fatal:
+		print "FAILURE, unable to sort downloaded episode! See log file at %r for more details!" % os.path.join(broker['config_dir'], "logs", "sabnzbd_episode_sort.log")
+	else:
+		if options.dry_run:
+			print "DONE, dry-run flag set...nothing to do!"
+		else:
+			print "SUCCESS, downloaded episode sorted!"
+	exit(fatal)
+
+def __episode_sort(broker, options, **kwargs):
+
+	logger = logging.getLogger("mediarover.scripts.sabnzbd.episode")
+
+	# ensure user has indicated a desired quality level if quality management is turned on
+	config = broker['config']
+	if config['tv']['quality']['managed'] and config['tv']['quality']['desired'] is None:
+		raise ConfigurationError("when quality management is on you must indicate a desired quality level at [tv] [[quality]] desired =")
+
+	"""
+	arguments:
+	  1. The final directory of the job (full path)
+	  2. The name of the NZB file
+	  3. User modifiable job name
+	  4. Newzbin report number (may be empty)
+	  5. Newzbin or user-defined category
+	  6. Group that the NZB was posted in e.g. alt.binaries.x
+	  7. Status
+	"""
+	path = kwargs['path'].rstrip("/\ ")
+	job = kwargs.get('job', os.path.basename(path))
+	nzb = kwargs.get('nzb', job + ".nzb")
+	report_id = kwargs.get('report_id', '')
+	category = kwargs.get('category', '')
+	group = kwargs.get('group', '')
+	status = kwargs.get('status', 0)
+
+	tv_root = config['tv']['tv_root']
+
+	# check to ensure we have the necessary data to proceed
+	if path is None or path == "":
+		raise InvalidArgument("path to completed job is missing or null")
+	elif os.path.basename(path).startswith("_FAILED_") or int(status) > 0:
+		logger.warning("download failed, moving to trash...")
+		try:
+			args[0] = _move_to_trash(tv_root[0], path)
+		except OSError, (e):
+			logger.error("unable to move download directory to %r: %s", args[0], e.strerror)
+			raise FailedDownload("unable to sort failed download")
+		else:
+			if job is None or job == "":
+				raise InvalidArgument("job name is missing or null")
+			elif int(status) == 1:
+				raise FailedDownload("download failed verification")
+			elif int(status) == 2:
+				raise FailedDownload("download failed unpack")
+			elif int(status) == 3:
+				raise FailedDownload("download failed verification and unpack")
+			else:
+				raise FailedDownload("download failed")
+
+	watched_list = {}
+	skip_list = {}
+	for root in tv_root:
+
+		# make sure tv root directory exists and that we have read and 
+		# write access to it
+		if not os.path.exists(root):
+			raise FilesystemError("TV root directory (%s) does not exist!", (root))
+		if not os.access(root, os.R_OK | os.W_OK):
+			raise FilesystemError("Missing read/write access to tv root directory (%s)", (root))
+
+		logger.info("begin processing tv directory: %s", root)
+
+		# set umask for files and directories created during this session
+		os.umask(config['tv']['umask'])
+
+		# get list of shows in root tv directory
+		dir_list = os.listdir(root)
+		dir_list.sort()
+		for name in dir_list:
+
+			# skip hidden directories
+			if name.startswith("."):
+				continue
+
+			dir = os.path.join(root, name)
+			if os.path.isdir(dir):
+
+				sanitized_name = Series.sanitize_series_name(name=name)
+
+				# already seen this series and have determined that user wants to skip it
+				if sanitized_name in skip_list:
+					continue
+
+				# we've already seen this series.  Append new directory to list of series paths
+				elif sanitized_name in watched_list:
+					series = watched_list[sanitized_name]
+					series.path.append(dir)
+
+				# new series, create new Series object and add to the watched list
+				else:
+					series = Series(name, path=dir)
+					additions = {sanitized_name: series}
+
+					# locate and process any filters for current series.  If no user defined filters for 
+					# current series exist, build dict using default values
+					if sanitized_name in config['tv']['filter']:
+						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'], config['tv']['filter'][sanitized_name])
+					else:
+						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'])
+
+					# check filters to see if user wants this series skipped...
+					if config['tv']['filter'][sanitized_name]["skip"]:
+						skip_list[sanitized_name] = series
+						logger.debug("found skip filter, ignoring series: %s", series.name)
+						continue
+
+					# set season ignore list for current series
+					if len(config['tv']['filter'][sanitized_name]['ignore']):
+						logger.debug("ignoring the following seasons of %s: %s", series.name, config['tv']['filter'][sanitized_name]['ignore'])
+						series.ignores = config['tv']['filter'][sanitized_name]['ignore']
+
+					# process series aliases.  For each new alias, register series in watched_list
+					if config['tv']['filter'][sanitized_name]['alias']:
+						series.aliases = config['tv']['filter'][sanitized_name]['alias'];
+						count = 0
+						for alias in series.aliases:
+							sanitized_alias = Series.sanitize_series_name(name=alias)
+							if sanitized_alias in watched_list:
+								logger.warning("duplicate series alias found for '%s'! Duplicate aliases can/will result in incorrect downloads and improper sorting! You've been warned..." % series)
+							additions[sanitized_alias] = series
+							count += 1
+						logger.debug("%d alias(es) identified for series '%s'" % (count, series))
+
+					# finally, add additions to watched list
+					logger.debug("watching series: %s", series)
+					watched_list.update(additions)
+
+	# register series dictionary with dependency broker
+	broker.register('watched_series', watched_list)
+
+	logger.info("watching %d tv show(s)", len(watched_list))
+	logger.debug("finished processing watched tv")
+
+	ignored = [ext.lower() for ext in config['tv']['ignored_extensions']]
+
+	# locate episode file in given download directory
+	orig_path = None
+	filename = None
+	extension = None
+	size = 0
+	for dirpath, dirnames, filenames in os.walk(path):
+		for file in filenames:
+			# check if current file's extension is in list
+			# of ignored extensions
+			(name, ext) = os.path.splitext(file)
+			ext = ext.lstrip(".")
+			if ext.lower() in ignored:
+				continue
+
+			# get size of current file (in bytes)
+			stat = os.stat(os.path.join(dirpath, file))
+			if stat.st_size > size:
+				filename = file
+				extension = ext
+				size = stat.st_size
+				logger.debug("identified possible download: filename => %s, size => %d", filename, size)
+
+	if filename is None:
+		raise FilesystemError("unable to find episode file in given download path %r" % path)
+
+	orig_path = os.path.join(path, filename)
+	logger.info("found download file at '%s'", orig_path)
+
+	# retrieve the proper factory object
+	if report_id is not None and report_id != "":
+		factory = broker['newzbin']
+	else:
+		factory = broker['episode_factory']
+
+	# build episode object using job name
+	try:
+		episode = factory.create_episode(job)
+	except (InvalidMultiEpisodeData, MissingParameterError), e:
+		raise InvalidJobTitle("unable to parse job title and create Episode object: %s" % e)
+
+	# sanitize series name for later use
+	series = episode.series
+	sanitized_name = series.sanitize_series_name(series=series)
+
+	# determine quality of given job if quality management is turned on
+	if config['tv']['quality']['managed']:
+		if 'quality' in kwargs:
+			episode.quality = kwargs['quality']
+		else:
+			result = broker['metadata_data_store'].get_in_progress(job)
+			if result is not None:
+				episode.quality = result['quality']
+			else:
+				logger.info("unable to find quality information in metadata db, assuming default quality level!")
+
+	# move downloaded file to new location and rename
+	if not options.dry_run:
+
+		# build a filesystem episode object
+		file = FilesystemEpisode(orig_path, episode, size)
+		logger.debug("created %r" % file)
+
+		dest_dir = series.locate_season_folder(episode.season)
+		if dest_dir is None:
+			
+			# determine series path
+			if len(series.path) == 0:
+				root = os.path.join(tv_root[0], series.format(config['tv']['template']['series']))
+			else:
+				root = series.path[0]
+
+			# get season folder (if desired)
+			dest_dir = os.path.join(root, file.format_season())
+
+			if not os.path.isdir(dest_dir):
+				try:
+					os.makedirs(dest_dir)
+				except OSError, (e):
+					logger.error("unable to create directory %r: %s", dest_dir, e.strerror)
+					raise
+				else:
+					logger.debug("created directory '%s'", dest_dir)
+
+			# now that the series folder has been created
+			# set the series path
+			if len(series.path) == 0:
+				series.path = root
+				
+		# build list of episode(s) (either SingleEpisode or DailyEpisode) that are desirable
+		# ie. missing or of more desirable quality than current offering
+		desirables = series.filter_undesirables(episode)
+		additional = None
+		if len(desirables) == 0:
+			logger.warning("duplicate episode detected: %s", filename)
+			additional = "[%s].%s" % (episode.quality, strftime("%Y%m%d%H%M"))
+
+		# generate new filename for current episode
+		new_path = os.path.join(dest_dir, file.format(additional))
+
+		logger.info("attempting to move episode file...")
+		try:
+			shutil.move(orig_path, new_path)
+		except OSError, (e):
+			logger.error("unable to move downloaded episode to %r: %s", new_path, e.strerror)
+			raise
+	
+		# move successful, cleanup download directory
+		else:
+			logger.info("downloaded episode moved from '%s' to '%s'", orig_path, new_path)
+
+			# update episode and set new filesystem path
+			file.path = new_path
+
+			# remove job from in_progress
+			if config['tv']['quality']['managed']:
+				broker['metadata_data_store'].delete_in_progress(job)
+
+			if additional is None:
+
+				# mark series episode list stale
+				series.mark_episode_list_stale()
+
+				# update metadata db with newly sorted episode information
+				if config['tv']['quality']['managed']:
+					for ep in desirables:
+						broker['metadata_data_store'].add_episode(ep)
+
+				remove = []
+				files = series.find_episode_on_disk(episode)
+
+				# remove any duplicate or multipart episodes on disk that are no longer
+				# needed...
+				logger.info("checking filesystem for duplicate or multipart episode redundancies...")
+				for found in files:
+					object = found.episode
+					if hasattr(object, "episodes"):
+						for ep in object.episodes:
+							list = series.find_episode_on_disk(ep, False)
+							if len(list) == 0: # individual part not found on disk, can't delete this multi
+								break
+						else:
+							remove.append(found)
+
+					elif file != found:
+						remove.append(found)
+
+				if len(remove) > 0:
+					for old in remove:
+						try:
+							os.remove(old.path)
+						except OSError, (e):
+							logger.error("unable to delete file %r: %s", old.path, e.strerror)
+							raise
+						else:
+							logger.info("removing file %r", old.path)
+					
+			# clean up download directory by removing all files matching ignored extensions list.
+			# if unable to delete download directory (because it's not empty), move it to .trash
+			try:
+				clean_path(path, ignored)
+			except (OSError, FilesystemError):
+				logger.error("unable to remove download directory '%s'", path)
+
+				args[0] = _move_to_trash(tv_root[0], path)
+				logger.info("moving download directory '%s' to '%s'", path, args[0])
+			else:
+				logger.info("removing download directory '%s'", path)
+
+def _move_to_trash(root, path):
+
+	trash_path = os.path.join(root, ".trash", os.path.basename(path))
+	shutil.move(path, trash_path)
+
+	return trash_path
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
