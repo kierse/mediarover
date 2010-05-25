@@ -16,7 +16,9 @@
 import logging
 
 class ConfigurationError(Exception): pass
+class FailedDownload(Exception): pass
 class FilesystemError(Exception): pass
+class InvalidArgument(Exception): pass
 class InvalidData(Exception): pass
 class InvalidEpisodeString(Exception): pass
 class InvalidItemTitle(Exception): pass
@@ -29,6 +31,7 @@ class QueueDeletionError(Exception): pass
 class QueueInsertionError(Exception): pass
 class QueueRetrievalError(Exception): pass
 class TooManyParametersError(Exception): pass
+class UnexpectedArgumentCount(Exception): pass
 class UnknownQueue(Exception): pass
 class UnsupportedCategory(Exception): pass
 
