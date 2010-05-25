@@ -464,7 +464,6 @@ from time import strftime
 
 from mediarover.config import build_series_filters
 from mediarover.filesystem.episode import FilesystemEpisode
-from mediarover.scripts.error import *
 from mediarover.utils.filesystem import clean_path
 
 def episode_sort(broker, args):
