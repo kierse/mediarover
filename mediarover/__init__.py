@@ -32,29 +32,29 @@ def run():
 	""" parse command line options """
 
 	usage = "%prog [--version] [--help] COMMAND [ARGS]"
-	description = "description goes here!"
-	parser = OptionParser(version=__app_version__, usage=usage, add_help_option=False, description=description)
-	parser.disable_interspersed_args()
-
-	def usage(option, opt, value, parser):
-		parser.print_usage()
-		print parser.description
-		print 
-		print """Available commands are:
+	description = "Description: Media Rover is an automated TV download scheduler and catalogue maintainer"
+	epilog = """
+Available commands are:
    schedule       Process configured sources and schedule nzb's for download
    episode-sort   Sort downloaded episode
    set-quality    Register quality of series episodes on disk
    write-configs  Generate default configuration and logging files
-		"""
-		exit(0)
-	
-	parser.add_option("-h", "--help", action="callback", callback=usage)
 
+See 'python mediarover.py COMMAND --help' for more information on a specific command."""
+	parser = OptionParser(version=__app_version__, usage=usage, description=description, epilog=epilog, add_help_option=False)
+	parser._general = True
+
+	# stop processing arguments when we find the command 
+	parser.disable_interspersed_args()
+
+	parser.add_option("-h", "--help", action="callback", callback=print_usage, help="show this help message and exit")
+
+	# parse arguments and grab the command
 	(options, args) = parser.parse_args()
 	if len(args):
 		command = args.pop(0)
 	else:
-		usage(None, None, None, parser)
+		print_usage(None, None, None, parser)
 
 	# initialize dependency broker and register resources
 	broker = initialize_broker()
@@ -84,6 +84,17 @@ def run():
 		print "%s: error: no such command: %s" % (os.path.basename(sys.argv[0]), command)
 		exit(2)
 
+def print_usage(option, opt, value, parser):
+	epilog = parser.epilog
+	parser.epilog = None
+	if getattr(parser, '_general', False):
+		parser.print_usage()
+		print parser.description
+	else:
+		parser.print_help()
+	print epilog
+	exit(0)
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 from mediarover.config import generate_config_files
@@ -91,11 +102,19 @@ from mediarover.config import generate_config_files
 def write_configs(broker, args):
 
 	usage = "%prog write-configs [options]"
-	description = "description goes here!"
-	parser = OptionParser(usage=usage, description=description)
+	description = "Description: generate default configuration and logging files"
+	epilog = """
+Examples:
+   Generate default application config files:
+     > python mediarover.py write-configs
+	
+   Generate default application config files, in a specific directory:
+     > python mediarover.py write-configs --config /path/to/config/dir
+"""
+	parser = OptionParser(usage=usage, description=description, epilog=epilog, add_help_option=False)
 
-	# location of config dir
 	parser.add_option("-c", "--config", metavar="/PATH/TO/CONFIG/DIR", help="path to application configuration directory")
+	parser.add_option("-h", "--help", action="callback", callback=print_usage, help="show this help message and exit")
 
 	(options, args) = parser.parse_args(args)
 
@@ -120,14 +139,23 @@ from mediarover.source.nzbs.factory import NzbsFactory
 def scheduler(broker, args):
 
 	usage = "%prog schedule [options]"
-	description = "description goes here!"
-	parser = OptionParser(usage=usage, description=description)
+	description = "Description: process configured sources and schedule nzb's for download"
+	epilog = """
+Examples:
+   Process configured sources and schedule nzb's for download:
+     > python mediarover.py schedule
 
-	# location of config dir
+   Same as above, but use non-default config directory:
+     > python mediarover.py schedule --config /path/to/config/dir
+
+   Process configured sources but don't schedule anything for download:
+     > python mediarover.py schedule --dry-run
+"""
+	parser = OptionParser(usage=usage, description=description, epilog=epilog, add_help_option=False)
+
 	parser.add_option("-c", "--config", metavar="/PATH/TO/CONFIG/DIR", help="path to application configuration directory")
-
-	# dry run
 	parser.add_option("-d", "--dry-run", action="store_true", default=False, help="simulate downloading nzb's from configured sources")
+	parser.add_option("-h", "--help", action="callback", callback=print_usage, help="show this help message and exit")
 
 	(options, args) = parser.parse_args(args)
 
@@ -469,14 +497,33 @@ from mediarover.utils.filesystem import clean_path
 def episode_sort(broker, args):
 
 	usage = "%prog episode-sort [options] result_dir [nzb_name nice_name newzbin_id category newsgroup status] [quality]"
-	description = "description goes here!"
-	parser = OptionParser(usage=usage, description=description)
+	description = "Description: process a recent download and sort episode file in appropriate series folder"
+	epilog = """
+Examples:
+   Manual use:
+   ==========
+   Manually sort a downloaded file:
+     > python mediarover.py episode-sort /path/to/some.download
 
-	# location of config dir
+   Same as above, but use a non-default config directory:
+     > python mediarover.py episode-sort --config /path/to/config/dir /path/to/some.download
+
+   Manually sort a downloaded file, but specify an overriding quality level: (low/medium/high)
+     > python mediarover.py episode-sort /path/to/some.download high
+
+   Simulate sorting a downloaded file:
+     > python mediarover.py episode-sort --dry-run /path/to/some.download
+
+   From shell script : (called by SABnzbd)
+   ==================
+   Sort a downloaded file:
+     > python mediarover.py episode-sort /path/to/some.download some.download.nzb some.download 12345 tv alt.public.access.tv 0
+"""
+	parser = OptionParser(usage=usage, description=description, epilog=epilog, add_help_option=False)
+
 	parser.add_option("-c", "--config", metavar="/PATH/TO/CONFIG/DIR", help="path to application configuration directory")
-
-	# dry run
 	parser.add_option("-d", "--dry-run", action="store_true", default=False, help="simulate downloading nzb's from configured sources")
+	parser.add_option("-h", "--help", action="callback", callback=print_usage, help="show this help message and exit")
 
 	(options, args) = parser.parse_args(args)
 
@@ -905,7 +952,6 @@ def _move_to_trash(root, path):
 
 	return trash_path
 
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 from mediarover.series import build_watch_list
@@ -913,16 +959,48 @@ from mediarover.series import build_watch_list
 def set_quality(broker, args):
 
 	usage = "%prog set-quality [options] [series [season [episode]]]"
-	description = "description goes here!"
-	parser = OptionParser(usage=usage, description=description)
+	description = "Description: populate metadata database with local episode quality specifics"
+	epilog = """
+Examples:
+   Interactive Prompt:
+   ==================
+   Process series directories:
+     > python mediarover.py set-quality
 
-	# location of config dir
+   Same as above, but use non-default config directory
+     > python mediarover.py set-quality --config /path/to/config/dir
+
+   Process series directories (without series prompt):
+     > python mediarover.py set-quality --no-series-prompt
+
+   Process episodes of a given series:
+     > python mediarover.py set-quality some.show
+
+   Process episodes of a given series and season:
+     > python mediarover.py set-quality some.show 3
+
+   Process specific episode of a given series:
+     > python mediarover.py set-quality some.show 3 15
+
+   Partially Automated:
+   ===================
+   Process series directories setting files with extension .avi to medium quality:
+     > python mediarover.py set-quality --medium avi
+
+   Same as above, but also set .mp4 to medium and .mkv to high quality:
+     > python mediarover.py set-quality --medium avi --medium mp4 --high mkv
+
+   Automate as much as possible, only prompting the user for input when absolutely needed:
+     > python mediarover.py set-quality --low mp4 --medium avi --high mkv --no-series-prompt
+"""
+	parser = OptionParser(usage=usage, description=description, epilog=epilog, add_help_option=False)
+
 	parser.add_option("-c", "--config", metavar="/PATH/TO/CONFIG/DIR", help="path to application configuration directory")
-
-	parser.add_option("--series-prompt-off", action="store_false", dest="series_prompt", default=True, help="Don't ask for confirmation before processing each series")
 	parser.add_option("-l", "--low", action="append", type="string", default=list(), help="mark extension as LOW quality")
 	parser.add_option("-m", "--medium", action="append", type="string", default=list(), help="mark extension as MEDIUM quality")
 	parser.add_option("-H", "--high", action="append", type="string", default=list(), help="mark extension as HIGH quality")
+	parser.add_option("--no-series-prompt", action="store_false", dest="series_prompt", default=True, help="Don't ask for confirmation before processing each series")
+	parser.add_option("-h", "--help", action="callback", callback=print_usage, help="show this help message and exit")
 
 	(options, args) = parser.parse_args(args)
 
