@@ -940,8 +940,8 @@ def __episode_sort(broker, options, **kwargs):
 			except (OSError, FilesystemError):
 				logger.error("unable to remove download directory '%s'", path)
 
-				args[0] = _move_to_trash(tv_root[0], path)
-				logger.info("moving download directory '%s' to '%s'", path, args[0])
+				trash_path = _move_to_trash(tv_root[0], path)
+				logger.info("moving download directory '%s' to '%s'", path, trash_path)
 			else:
 				logger.info("removing download directory '%s'", path)
 
