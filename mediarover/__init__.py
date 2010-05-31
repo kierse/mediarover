@@ -603,7 +603,7 @@ Examples:
 	logger.info("--- STARTING ---")
 	logger.debug("using config directory: %s", broker['config_dir'])
 
-	logger.debug(sys.argv[0] + " " + " ".join(map(lambda x: "'" + x + "'", args)))
+	logger.debug(sys.argv[0] + " episode-sort " + " ".join(map(lambda x: "'" + x + "'", args)))
 
 	# check if user has requested a dry-run
 	if options.dry_run:
