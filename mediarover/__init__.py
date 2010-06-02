@@ -675,9 +675,9 @@ def __episode_sort(broker, options, **kwargs):
 	elif os.path.basename(path).startswith("_FAILED_") or int(status) > 0:
 		logger.warning("download failed, moving to trash...")
 		try:
-			args[0] = _move_to_trash(tv_root[0], path)
+			_move_to_trash(tv_root[0], path)
 		except OSError, (e):
-			logger.error("unable to move download directory to %r: %s", args[0], e.strerror)
+			logger.error("unable to move download directory to trash: %s" % e.strerror)
 			raise FailedDownload("unable to sort failed download")
 		else:
 			if job is None or job == "":
