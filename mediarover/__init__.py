@@ -493,7 +493,7 @@ from mediarover.utils.filesystem import clean_path
 
 def episode_sort(broker, args):
 
-	usage = "%prog episode-sort [options] result_dir [nzb_name nice_name newzbin_id category newsgroup status] [quality]"
+	usage = "%prog episode-sort [options] result_dir [nzb_name nice_name newzbin_id category newsgroup status] [low|medium|high]"
 	description = "Description: process a recent download and sort episode file in appropriate series folder"
 	epilog = """
 Examples:
