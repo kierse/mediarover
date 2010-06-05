@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS series;
 DROP TABLE IF EXISTS single_episode;
 DROP TABLE IF EXISTS daily_episode;
 DROP TABLE IF EXISTS in_progress;
+DROP TABLE IF EXISTS delayed_item;
 
 CREATE TABLE IF NOT EXISTS series
 (
@@ -40,3 +41,12 @@ CREATE TABLE IF NOT EXISTS in_progress
 	type TEXT NOT NULL,
 	quality TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS delayed_item
+(
+	title TEXT PRIMARY KEY NOT NULL,
+	url TEXT NOT NULL,
+	type TEXT NOT NULL,
+	priority TEXT NOT NULL,
+);
+
