@@ -35,10 +35,11 @@ def run():
 	description = "Description: Media Rover is an automated TV download scheduler and catalogue maintainer"
 	epilog = """
 Available commands are:
-   schedule       Process configured sources and schedule nzb's for download
-   episode-sort   Sort downloaded episode
-   set-quality    Register quality of series episodes on disk
-   write-configs  Generate default configuration and logging files
+   schedule          Process configured sources and schedule nzb's for download
+   episode-sort      Sort downloaded episode
+   set-quality       Register quality of series episodes on disk
+   write-configs     Generate default configuration and logging files
+   migrate-metadata  Migrate metadata database from one version to another
 
 See 'python mediarover.py COMMAND --help' for more information on a specific command."""
 	parser = OptionParser(version=__app_version__, usage=usage, description=description, epilog=epilog, add_help_option=False)
@@ -79,6 +80,8 @@ See 'python mediarover.py COMMAND --help' for more information on a specific com
 		set_quality(broker, args)
 	elif command == 'write-configs':
 		write_configs(broker, args)
+	elif command == 'migrate-metadata':
+		migrate_metadata(broker, args)
 	else:
 		parser.print_usage()
 		print "%s: error: no such command: %s" % (os.path.basename(sys.argv[0]), command)
@@ -1229,3 +1232,38 @@ def __query_user(query, list, default, help):
 		elif answer in list:
 			return answer
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+def migrate_metadata(broker, args):
+
+	usage = "%prog migrate-metadata [options] [version]"
+	description = "Description: migrate metadata database schema from one version to another."
+	epilog = """
+Examples:
+
+"""
+	parser = OptionParser(usage=usage, description=description, epilog=epilog, add_help_option=False)
+
+	parser.add_option("-c", "--config", metavar="/PATH/TO/CONFIG/DIR", help="path to application configuration directory")
+	parser.add_option("-h", "--help", action="callback", callback=print_usage, help="show this help message and exit")
+	parser.add_option("--rollback", action="store_true", default=False, help="rather than upgrade database, revert changes to given version")
+
+	(options, args) = parser.parse_args(args)
+	end_version = args[0] if args else None
+
+	if options.rollback and end_version is None:
+		print "ERROR: when rolling back, you must indicate an end schema version!"
+		exit(1)
+		
+	if options.config:
+		broker.register('config_dir', options.config)
+
+	# create config object using user config values
+	try:
+		config = read_config(broker['resources_dir'], broker['config_dir'])
+	except (ConfigurationError), e:
+		print e
+		exit(1)
+	
+	broker.register('metadata_data_store', Metadata())
+	broker['metadata_data_store'].migrate_schema(end_version, options.rollback)

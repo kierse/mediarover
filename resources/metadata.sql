@@ -48,5 +48,7 @@ CREATE TABLE IF NOT EXISTS delayed_item
 	url TEXT NOT NULL,
 	type TEXT NOT NULL,
 	priority TEXT NOT NULL,
+	quality TEXT NOT NULL,
+	delay INTEGER NOT NULL
 );
 

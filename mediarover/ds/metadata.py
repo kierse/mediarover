@@ -17,7 +17,9 @@ from __future__ import with_statement
 
 import logging
 import os.path
+import re
 import sqlite3
+import sys
 
 from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.injection import is_instance_of, Dependency
@@ -125,6 +127,77 @@ class Metadata(object):
 
 		return result
 
+	def migrate_schema(self, version=None, rollback=False):
+		""" 
+			migrate metadata schema from one version to another. If given a version number, attempt to migrate 
+			schema to it. If rollback is True, attempt to revert to given schema number 
+		"""
+		# current schema version
+		current = int(self.schema_version)
+
+		# if caller has provided a desired schema version, check if there
+		# is anything to be done
+		if version is not None:
+			version = int(version)
+			if current == version:
+				return
+			elif rollback:
+				if current < version:
+					return
+			else:
+				if current > version:
+					return
+
+		# grab current isolation level then set it to 'EXCLUSIVE'
+		current_isolation = self.__dbh.isolation_level
+		self.__dbh.isolation_level = 'EXCLUSIVE'
+
+		# add migration directory to sys.path
+		sys.path.append(self.resources)
+
+		file_list = os.listdir(os.path.join(self.resources, 'migration'))
+		file_list.sort()
+		if rollback:
+			file_list.reverse()
+
+		action = 'revert' if rollback else 'upgrade'
+		numeric_regex = re.compile("m(\d{3})", re.I)
+		for file in file_list:
+			if os.path.isfile(os.path.join(self.resources, 'migration', file)):
+				match = numeric_regex.match(file)
+				(name, ext) = os.path.splitext(file)
+				if match and ext == '.py':
+					num = int(match.group(1))
+					if rollback:
+						if num > current: continue
+						elif num == current: 
+							num -= 1
+						elif current != num - 1:
+							raise
+					else:
+						if num <= current: continue
+						elif num != current + 1:
+							raise
+
+					# import the migration script and
+					# call appropriate method 
+					exec "import migration.%s" % name
+					module = getattr(migration, name)
+
+					print "migrating schema to version %d..." % num
+					getattr(module, action)(self.__dbh)
+
+					# update schema version to num
+					# ATTENTION: this calls PRAGMA which will commit current transaction!
+					current = self.schema_version = num
+
+					# if current now equal to version, break out of loop
+					if current == version:
+						break
+
+		# all done, reset isolation_level
+		self.__dbh.isolation_level = current_isolation
+
 	def cleanup(self):
 		self.__dbh.close()
 
@@ -155,6 +228,20 @@ class Metadata(object):
 
 		logger.info("created metadata datastore")
 
+	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	def _schema_version_prop(self, version=None):
+		""" get/set database schema version """
+		if version is not None:
+			self.__dbh.execute("PRAGMA user_version = %d" % int(version))
+			self.__dbh.commit()
+		row = self.__dbh.execute("PRAGMA user_version").fetchone()
+		return row[0]
+
+	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	schema_version = property(fget=_schema_version_prop, fset=_schema_version_prop, doc="database schema version")
+
 	def __init__(self):
 
 		db = os.path.join(self.config_dir, "ds", "metadata.db")
@@ -165,7 +252,6 @@ class Metadata(object):
 
 		# tell connection to return Row objects instead of tuples
 		self.__dbh.row_factory = sqlite3.Row
-
 
 		if exists == False:
 			self._build_schema()
