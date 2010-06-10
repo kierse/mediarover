@@ -1252,11 +1252,21 @@ def __query_user(query, list, default, help):
 
 def migrate_metadata(broker, args):
 
-	usage = "%prog migrate-metadata [options] [version]"
+	usage = "%prog migrate-metadata [options] [schema_version]"
 	description = "Description: migrate metadata database schema from one version to another."
-	epilog = """
-Examples:
+	epilog = """Arguments:
+  schema_version        schema version number to migrate to
+                        (required when using --rollback)
 
+Examples:
+   Migrate schema to latest version:
+     > python mediarover.py migrate-metadata
+	
+   Migrate schema to version 3:
+     > python mediarover.py migrate-metadata 3
+
+   Migrate schema to earlier version:
+     > python mediarover.py migrate-metadata --rollback 2
 """
 	parser = OptionParser(usage=usage, description=description, epilog=epilog, add_help_option=False)
 
@@ -1265,11 +1275,20 @@ Examples:
 	parser.add_option("--rollback", action="store_true", default=False, help="rather than upgrade database, revert changes to given version")
 
 	(options, args) = parser.parse_args(args)
-	end_version = args[0] if args else None
-
+	if len(args):
+		try:
+			end_version = int(args[0])
+		except ValueError:
+			print "ERROR: version must be numeric! '%s' is not!" % args[0]
+			print_usage(parser)
+			exit(2)
+	else:
+		end_version = None
+			
 	if options.rollback and end_version is None:
 		print "ERROR: when rolling back, you must indicate an end schema version!"
-		exit(1)
+		print_usage(parser)
+		exit(2)
 		
 	if options.config:
 		broker.register('config_dir', options.config)
@@ -1281,5 +1300,6 @@ Examples:
 		print e
 		exit(1)
 	
-	broker.register('metadata_data_store', Metadata())
+	broker.register('metadata_data_store', Metadata(check_schema_version=False))
 	broker['metadata_data_store'].migrate_schema(end_version, options.rollback)
+
