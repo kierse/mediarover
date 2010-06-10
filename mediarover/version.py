@@ -15,3 +15,4 @@
 
 __app_version__ = "0.5.0_alpha"
 __config_version__ = {'version': 5, 'min': 5}
+__schema_version__ = 1
