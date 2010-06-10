@@ -36,6 +36,9 @@ class Source:
 	def quality(self):
 		raise NotImplementedError
 
+	def delay(self):
+		raise NotImplementedError
+
 	def items(self):
 		""" return list of zero or more mediarover.source.item objects """
 		raise NotImplementedError
@@ -73,6 +76,9 @@ class AbstractXmlSource(Source):
 	def quality(self):
 		return self._quality
 
+	def delay(self):
+		return self._delay
+
 	# private methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def _get_document(self):
@@ -97,7 +103,7 @@ class AbstractXmlSource(Source):
 
 		return document
 
-	def __init__(self, name, url, type, priority, timeout, quality):
+	def __init__(self, name, url, type, priority, timeout, quality, delay):
 		""" validate given url and verify that it is a valid url (syntactically) """
 
 		self._name = name
@@ -105,6 +111,7 @@ class AbstractXmlSource(Source):
 		self._timeout = int(timeout)
 		self._type = type
 		self._quality = quality
+		self._delay = delay
 
 		if url in ("", None):
 			raise InvalidURL("empty url")
