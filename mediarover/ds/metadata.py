@@ -21,6 +21,8 @@ import re
 import sqlite3
 import sys
 
+from mediarover.error import SchemaMigrationError
+from mediarover.source.item import DelayedItem
 from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.injection import is_instance_of, Dependency
 
@@ -126,6 +128,28 @@ class Metadata(object):
 			result = self.__dbh.execute(sql, args).fetchone()
 
 		return result
+
+	def add_delayed_item(self, item, delay):
+		""" add given item to delayed_item table """
+		self.__dbh.execute("INSERT INTO delayed_item (title, url, type, priority, delay) VALUES (?,?,?,?,?)", (item.title, item.url, item.type, item.priority, delay))
+		self.__dbh.commit()
+
+		logger = logging.getLogger("mediarover.ds.metadata")
+		logger.info("delayed scheduling '%s' for download", item.title())
+
+	def get_delayed_items(self):
+		""" return list of items from the delayed_table that have delay value of 0 """
+		
+		# first things first, subtract 1 from all items delay value
+		self.__dbh.execute("UPDATE delayed_table SET delay=delay-1");
+		self.__dbh.commit()
+
+		# iterate over all tuples with delay == 0 and create new item objects
+		items = []
+		for row in self.__dbh.execute("SELECT title, url, type, priority, quality, delay FROM delayed_item WHERE delay=?", (0,)):
+			items.append(DelayedItem(**row))
+
+		return items
 
 	def migrate_schema(self, version=None, rollback=False):
 		""" 

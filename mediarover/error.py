@@ -30,6 +30,7 @@ class MissingParameterError(Exception): pass
 class QueueDeletionError(Exception): pass
 class QueueInsertionError(Exception): pass
 class QueueRetrievalError(Exception): pass
+class SchemaMigrationError(Exception): pass
 class TooManyParametersError(Exception): pass
 class UnexpectedArgumentCount(Exception): pass
 class UnknownQueue(Exception): pass
