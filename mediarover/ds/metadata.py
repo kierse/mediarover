@@ -25,6 +25,7 @@ from mediarover.error import SchemaMigrationError
 from mediarover.source.item import DelayedItem
 from mediarover.utils.configobj import ConfigObj
 from mediarover.utils.injection import is_instance_of, Dependency
+from mediarover.version import __schema_version__
 
 class Metadata(object):
 	""" object interface to series metadata data store """
@@ -194,14 +195,13 @@ class Metadata(object):
 					num = int(match.group(1))
 					if rollback:
 						if num > current: continue
-						elif num == current: 
-							num -= 1
-						elif current != num - 1:
-							raise
+						elif num < current:
+							raise SchemaMigrationError("unable to migrate schema! Missing script for schema version %d" % current)
+						num -= 1
 					else:
 						if num <= current: continue
-						elif num != current + 1:
-							raise
+						elif num > current + 1:
+							raise SchemaMigrationError("unable to migrate schema! Missing script for schema version %d" % (current + 1,))
 
 					# import the migration script and
 					# call appropriate method 
@@ -266,7 +266,7 @@ class Metadata(object):
 
 	schema_version = property(fget=_schema_version_prop, fset=_schema_version_prop, doc="database schema version")
 
-	def __init__(self):
+	def __init__(self, check_schema_version=True):
 
 		db = os.path.join(self.config_dir, "ds", "metadata.db")
 		exists = True if os.path.exists(db) else False
@@ -277,6 +277,13 @@ class Metadata(object):
 		# tell connection to return Row objects instead of tuples
 		self.__dbh.row_factory = sqlite3.Row
 
-		if exists == False:
+		# db exists, check that schema version is current
+		if exists:
+			if check_schema_version and self.schema_version != __schema_version__:
+				print "Metadata out of date! See `python mediarover.py migrate-metadata --help for more details"
+				exit(1)
+
+		# db doesn't exist, create it
+		else:
 			self._build_schema()
 
