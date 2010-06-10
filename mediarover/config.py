@@ -57,9 +57,9 @@ def read_config(resources, path):
 	# check if users config file is current
 	if version > 0:
 		if int(version) < int(__config_version__.get('min', __config_version__['version'])):
-			raise ConfigurationError("Configuration file is out of date!  Regenerate using --write-configs")
+			raise ConfigurationError("Configuration file is out of date and needs to be regenerated! See `python mediarover.py write-configs --help` for instructions")
 	else:
-		raise ConfigurationError("Out of date or corrupt configuration file!  Regenerate using --write-configs")
+		raise ConfigurationError("Out of date or corrupt configuration file! See `python mediarover.py write-configs --help` for instructions")
 
 	spec = os.path.join(resources, "config.spec")
 	config = ConfigObj(file, configspec=spec)
