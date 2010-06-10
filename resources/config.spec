@@ -45,6 +45,7 @@
 		type = option('tv', default='tv')
 		quality = option('low', 'medium', 'high', None, default=None)
 		timeout = integer(default=60)
+		schedule_delay = integer(default=0)
 
 [queue]
 	[[__many__]]

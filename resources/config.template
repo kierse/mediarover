@@ -325,6 +325,18 @@
 #        description: this option tells Media Rover to stop waiting for a response from the source
 #                     url once the specified number of seconds has been reached.
 #
+#     e) option: schedule_delay
+#        value: number (greater than 0)
+#        required: no
+#        default: 0
+#        description: this option tells Media Rover to delay scheduling all items from a given source 
+#                     for the specified number of iterations.  For example, say schedule_delay is set 
+#                     to 2 and the scheduler is configured to run every 30 minutes. Missing items 
+#                     (found in this source) will be stored and reprocessed 60 minutes from the
+#                     time they were first identified. This option essentially allows the user to delay
+#                     scheduling a download and wait for an equivalent item that's of a more favourable 
+#                     quality level.
+#
 #  Example:
 #
 #     [source]
@@ -332,6 +344,7 @@
 #          provider = nzbmatrix
 #          url = https://rss.nzbmatrix.com/some/rss/feed
 #          quality = medium
+#          schedule_delay = 2
 #        [[ new HD ]]
 #           provider = newzbin
 #           url = https://newzbin.com/some/other/rss/feed
