@@ -43,7 +43,6 @@ Available commands are:
 
 See 'python mediarover.py COMMAND --help' for more information on a specific command."""
 	parser = OptionParser(version=__app_version__, usage=usage, description=description, epilog=epilog, add_help_option=False)
-	parser._general = True
 
 	# stop processing arguments when we find the command 
 	parser.disable_interspersed_args()
@@ -55,7 +54,7 @@ See 'python mediarover.py COMMAND --help' for more information on a specific com
 	if len(args):
 		command = args.pop(0)
 	else:
-		print_usage(None, None, None, parser)
+		print_usage(parser)
 
 	# initialize dependency broker and register resources
 	broker = initialize_broker()
@@ -87,14 +86,22 @@ See 'python mediarover.py COMMAND --help' for more information on a specific com
 		print "%s: error: no such command: %s" % (os.path.basename(sys.argv[0]), command)
 		exit(2)
 
-def print_usage(option, opt, value, parser):
+def print_usage(*args):
+	"""
+		arguments (when called by optparser):
+		 1. option
+		 2. opt
+		 3. value
+		 4. parser
+
+		arguments (when called manually):
+		 1. parser
+	"""
+	parser = args[3] if len(args) > 1 else args[0]
+
 	epilog = parser.epilog
 	parser.epilog = None
-	if getattr(parser, '_general', False):
-		parser.print_usage()
-		print parser.description
-	else:
-		parser.print_help()
+	parser.print_help()
 	print epilog
 	exit(0)
 
@@ -187,12 +194,7 @@ Examples:
 	""" post configuration setup """
 
 	broker.register('config', config)
-	if config['tv']['quality']['managed']:
-		metadata = Metadata()
-	else:
-		metadata = None
-
-	broker.register('metadata_data_store', metadata)
+	broker.register('metadata_data_store', Metadata())
 	broker.register('episode_factory', EpisodeFactory())
 	broker.register('filesystem_factory', FilesystemFactory())
 
@@ -292,7 +294,7 @@ def __scheduler(broker, options):
 	# message and exit
 	if not len(sources):
 		logger.warning("No sources found!")
-		print "Did not find any configured sources in configuration file.  Nothing to do!"
+		print "ERROR: Did not find any configured sources in configuration file.  Nothing to do!"
 		exit(1)
 
 	logger.info("watching %d source(s)", len(sources))
@@ -335,7 +337,7 @@ def __scheduler(broker, options):
 					break
 	else:
 		logger.warning("No queue found!")
-		print "Did not find a configured queue in configuration file.  Unable to proceed!"
+		print "ERROR: Did not find a configured queue in configuration file.  Unable to proceed!"
 		exit(1)
 	logger.debug("finished queue configuration")
 
@@ -542,7 +544,7 @@ Examples:
 		params['status'] = args[6]
 	else:
 		print "ERROR: incorrect number of arguments!"
-		parser.print_help()
+		print_usage(parser)
 		exit(1)
 
 	if options.config:
@@ -570,12 +572,7 @@ Examples:
 
 	""" post configuration setup """
 
-	if config['tv']['quality']['managed']:
-		metadata = Metadata()
-	else:
-		metadata = None
-
-	broker.register('metadata_data_store', metadata)
+	broker.register('metadata_data_store', Metadata())
 	broker.register('config', config)
 
 	# register factory objects
@@ -1030,12 +1027,7 @@ Examples:
 	""" post configuration setup """
 
 	broker.register('config', config)
-	if config['tv']['quality']['managed']:
-		metadata = Metadata()
-	else:
-		metadata = None
-
-	broker.register('metadata_data_store', metadata)
+	broker.register('metadata_data_store', Metadata())
 	broker.register('episode_factory', EpisodeFactory())
 	broker.register('filesystem_factory', FilesystemFactory())
 
