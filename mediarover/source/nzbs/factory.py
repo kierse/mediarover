@@ -23,6 +23,6 @@ class NzbsFactory(EpisodeFactory, SourceFactory):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def create_source(self, name, url, type, priority, timeout, quality):
-		return NzbsSource(name, url, type, priority, timeout, quality) 	
+	def create_source(self, name, url, type, priority, timeout, quality, schedule_delay):
+		return NzbsSource(name, url, type, priority, timeout, quality, schedule_delay)
 

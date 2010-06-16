@@ -20,6 +20,6 @@ class MytvnzbFactory(TvnzbFactory):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def create_source(self, name, url, type, priority, timeout, quality):
-		return MytvnzbSource(name, url, type, priority, timeout, quality) 	
+	def create_source(self, name, url, type, priority, timeout, quality, schedule_delay):
+		return MytvnzbSource(name, url, type, priority, timeout, quality, schedule_delay) 	
 

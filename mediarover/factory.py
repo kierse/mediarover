@@ -20,6 +20,6 @@ class EpisodeFactory(object):
 
 class SourceFactory(object):
 
-	def create_source(self, name, url, type, priority, timeout, quality):
+	def create_source(self, name, url, type, priority, timeout, quality, schedule_delay):
 		raise NotImplementedError
 	

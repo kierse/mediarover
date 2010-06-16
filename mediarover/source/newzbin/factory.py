@@ -32,8 +32,8 @@ class NewzbinFactory(EpisodeFactory, SourceFactory):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def create_source(self, name, url, type, priority, timeout, quality):
-		return NewzbinSource(name, url, type, priority, timeout, quality) 	
+	def create_source(self, name, url, type, priority, timeout, quality, schedule_delay):
+		return NewzbinSource(name, url, type, priority, timeout, quality, schedule_delay)
 
 	def create_episode(self, string, **kwargs):
 		

@@ -33,8 +33,8 @@ class NzbmatrixFactory(EpisodeFactory, SourceFactory):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def create_source(self, name, url, type, priority, timeout, quality):
-		return NzbmatrixSource(name, url, type, priority, timeout, quality) 	
+	def create_source(self, name, url, type, priority, timeout, quality, schedule_delay):
+		return NzbmatrixSource(name, url, type, priority, timeout, quality, schedule_delay)
 
 	def create_episode(self, string, **kwargs):
 

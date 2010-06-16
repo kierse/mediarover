@@ -23,5 +23,5 @@ class TvnzbFactory(EpisodeFactory, SourceFactory):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def create_source(self, name, url, type, priority, timeout, quality):
-		return TvnzbSource(name, url, type, priority, timeout, quality) 	
+	def create_source(self, name, url, type, priority, timeout, quality, schedule_delay):
+		return TvnzbSource(name, url, type, priority, timeout, quality, schedule_delay)
