@@ -86,6 +86,7 @@ class Series(object):
 			or, one that is closer in quality to the desired level for a given series.  If there are no desirable 
 			episodes, return an empty list
 		"""
+		logger = logging.getLogger("mediarover.series")
 
 		# get list of episodes that will serve as the test sample.  If a sample
 		# wasn't provided, grab the series episode list
@@ -116,8 +117,10 @@ class Series(object):
 				if self.config['tv']['quality']['managed']:
 					if sanitized_name in self.config['tv']['filter']:
 						if ep.quality not in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
+							logger.debug("episode not of acceptable quality, skipping")
 							continue
 					elif ep.quality not in self.config['tv']['quality']['acceptable']:
+						logger.debug("episode not of acceptable quality, skipping")
 						continue
 				desirable.append(ep)
 
@@ -134,21 +137,25 @@ class Series(object):
 
 						# skip if current offering already meets desired quality level
 						if current_quality == desired:
+							logger.debug("current episode already at desired quality level, skipping")
 							continue
 
 						# given meets desired level.  Since current doesn't, add given to 
 						# desirable list
 						elif given_quality == desired:
+							logger.debug("episode is of desired quality level and should be downloaded")
 							desirable.append(given)
 
 						# intermediate step DOWN in quality
 						if desired == 'low':
 							if current_quality == 'high' and given_quality == 'medium':
+								logger.debug("episode is closer to desired quality level than current and should be downloaded")
 								desirable.append(given)
 
 						# intermediate step UP in quality
 						elif desired == 'high':
 							if current_quality == 'low' and given_quality == 'medium':
+								logger.debug("episode is closer to desired quality level than current and should be downloaded")
 								desirable.append(given)
 
 						# desired == medium
