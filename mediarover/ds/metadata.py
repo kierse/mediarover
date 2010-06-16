@@ -14,10 +14,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import with_statement
+from time import strftime
 
 import logging
 import os.path
 import re
+import shutil
 import sqlite3
 import sys
 
@@ -221,6 +223,11 @@ class Metadata(object):
 
 		# all done, reset isolation_level
 		self.__dbh.isolation_level = current_isolation
+
+	def backup(self):
+		backup = "metadata.%s.rev-%d.db" % (strftime("%Y%m%d%H%M%S"), self.schema_version)
+		root = os.path.join(self.config_dir, "ds")
+		shutil.copyfile(os.path.join(root, "metadata.db"), os.path.join(root, backup))
 
 	def cleanup(self):
 		self.__dbh.close()

@@ -1274,6 +1274,7 @@ Examples:
 	parser.add_option("-h", "--help", action="callback", callback=print_usage, help="show this help message and exit")
 	parser.add_option("-c", "--config", metavar="/PATH/TO/CONFIG/DIR", help="path to application configuration directory")
 	parser.add_option("--rollback", action="store_true", default=False, help="rather than upgrade database, revert changes to given version")
+	parser.add_option("--backup", action="store_true", default=False, help="make a backup copy of database before attempting a migration")
 
 	(options, args) = parser.parse_args(args)
 	if len(args):
@@ -1308,5 +1309,9 @@ Examples:
 		print broker['metadata_data_store'].schema_version
 		exit(0)
 
+	# make backup of database
+	if options.backup:
+		broker['metadata_data_store'].backup()
+	
 	broker['metadata_data_store'].migrate_schema(end_version, options.rollback)
 
