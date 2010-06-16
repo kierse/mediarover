@@ -280,7 +280,7 @@ class Metadata(object):
 		# db exists, check that schema version is current
 		if exists:
 			if check_schema_version and self.schema_version != __schema_version__:
-				print "Metadata out of date! See `python mediarover.py migrate-metadata --help for more details"
+				print "Metadata out of date! See `python mediarover.py migrate-metadata --help` for more details"
 				exit(1)
 
 		# db doesn't exist, create it

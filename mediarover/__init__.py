@@ -1270,8 +1270,9 @@ Examples:
 """
 	parser = OptionParser(usage=usage, description=description, epilog=epilog, add_help_option=False)
 
-	parser.add_option("-c", "--config", metavar="/PATH/TO/CONFIG/DIR", help="path to application configuration directory")
+	parser.add_option("--version", action="store_true", default=False, help="show current schema version and exit")
 	parser.add_option("-h", "--help", action="callback", callback=print_usage, help="show this help message and exit")
+	parser.add_option("-c", "--config", metavar="/PATH/TO/CONFIG/DIR", help="path to application configuration directory")
 	parser.add_option("--rollback", action="store_true", default=False, help="rather than upgrade database, revert changes to given version")
 
 	(options, args) = parser.parse_args(args)
@@ -1301,5 +1302,11 @@ Examples:
 		exit(1)
 	
 	broker.register('metadata_data_store', Metadata(check_schema_version=False))
+
+	# print current schema version and exit
+	if options.version:
+		print broker['metadata_data_store'].schema_version
+		exit(0)
+
 	broker['metadata_data_store'].migrate_schema(end_version, options.rollback)
 
