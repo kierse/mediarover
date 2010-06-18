@@ -81,13 +81,12 @@ class SabnzbdQueue(Queue):
 			'priority': priority[item.priority().lower()],
 		}
 
-		try:
-			args['name'] = item.id()
-		except AttributeError:
+		if hasattr(item, "id"):
+			args['mode'] = 'addid'
+			args['name'] = item.id
+		else:
 			args['mode'] = 'addurl'
 			args['name'] = item.url()
-		else:
-			args['mode'] = 'addid'
 			
 		if 'username' and 'password' in self._params:
 			if self._params['username'] is not None and self._params['password'] is not None:
