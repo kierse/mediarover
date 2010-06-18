@@ -37,7 +37,7 @@ class MytvnzbSource(AbstractXmlSource):
 			for rawItem in self._document.getElementsByTagName("item"):
 				title = rawItem.getElementsByTagName("title")[0].childNodes[0].data
 				try:
-					item = TvnzbItem(rawItem, self.type(), self.priority(), self.quality())
+					item = TvnzbItem(rawItem, self.type(), self.priority(), self.quality(), self.delay())
 				except InvalidItemTitle:
 					logger.debug("skipping %r, unknown format" % title)
 				except UnsupportedCategory:

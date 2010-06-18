@@ -18,8 +18,8 @@ from mediarover.comparable import Comparable
 class Item(Comparable):
 	""" Source item interface class """
 
-	def type(self):
-		raise NotImplementedError
+	def delay(self):
+		return NotImplementedError
 
 	def download(self):
 		raise NotImplementedError
@@ -31,6 +31,9 @@ class Item(Comparable):
 		raise NotImplementedError
 
 	def title(self):
+		raise NotImplementedError
+
+	def type(self):
 		raise NotImplementedError
 
 	def url(self):
@@ -66,9 +69,13 @@ class DelayedItem(AbstractItem):
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def type(self):
-		""" item type """
-		return self.__type
+	def delay(self):
+		""" return delay value for current item """
+		return self.__delay
+
+	def download(self):
+		""" return download object representing current item """
+		return self.__download
 
 	def priority(self):
 		""" source priority """
@@ -78,13 +85,13 @@ class DelayedItem(AbstractItem):
 		""" episode quality """
 		return self.__quality
 
-	def download(self):
-		""" return download object representing current item """
-		return self.__download
-
 	def title(self):
 		""" item title """
 		return self.__title
+
+	def type(self):
+		""" item type """
+		return self.__type
 
 	def url(self):
 		""" item url """
@@ -104,13 +111,14 @@ class DelayedItem(AbstractItem):
 		else:
 			return download
 
-	def __init__(self, title, url, type, priority, quality):
+	def __init__(self, title, url, type, priority, quality, delay):
 
 		self.__title = title
 		self.__url = url
 		self.__type = type
 		self.__priority = priority
 		self.__quality = quality
+		self.__delay = delay
 
 		self.__download = self.__parseItem()
 

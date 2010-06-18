@@ -33,9 +33,13 @@ class NzbsItem(AbstractItem):
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def type(self):
-		""" type of current report """
-		return self.__type
+	def delay(self):
+		""" return delay value for current item """
+		return self.__delay
+
+	def download(self):
+		""" return a download object """
+		return self.__download
 
 	def priority(self):
 		""" download priority of current report """
@@ -45,13 +49,13 @@ class NzbsItem(AbstractItem):
 		""" quality (if known) of current report """
 		return self.__quality
 
-	def download(self):
-		""" return a download object """
-		return self.__download
-
 	def title(self):
 		""" report title from source item """
 		return self.__title
+
+	def type(self):
+		""" type of current report """
+		return self.__type
 
 	def url(self):
 		return self.__url
@@ -81,13 +85,14 @@ class NzbsItem(AbstractItem):
 
 		raise UnsupportedCategory("category %r unsupported!" % report_category)
 
-	def __init__(self, item, type, priority, quality):
+	def __init__(self, item, type, priority, quality, delay):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
 		self.__item = item
 		self.__type = type
 		self.__priority = priority
 		self.__quality = quality
+		self.__delay = delay
 
 		titles = self.__item.getElementsByTagName("title")
 		if titles:

@@ -38,7 +38,7 @@ class NewzbinSource(AbstractXmlSource):
 				if self.type().upper() == rawItem.getElementsByTagName("report:category")[0].childNodes[0].data.upper():
 					title = rawItem.getElementsByTagName("title")[0].childNodes[0].data
 					try:
-						item = NewzbinItem(rawItem, self.type(), self.priority(), self.quality())
+						item = NewzbinItem(rawItem, self.type(), self.priority(), self.quality(), self.delay())
 					except InvalidItemTitle:
 						logger.debug("skipping %r, unknown format" % title)
 					except UnsupportedCategory:

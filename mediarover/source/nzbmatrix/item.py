@@ -31,21 +31,13 @@ class NzbmatrixItem(AbstractItem):
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def delay(self):
+		""" return delay value for current item """
+		return self.__delay
+
 	def download(self):
 		""" return a download object """
 		return self.__download
-
-	def title(self):
-		""" report title from source item """
-		return self.__title
-
-	def url(self):
-		""" return tvnzb nzb url """
-		return self.__url
-
-	def type(self):
-		""" type of current report """
-		return self.__type
 
 	def priority(self):
 		""" download priority of current report """
@@ -54,6 +46,18 @@ class NzbmatrixItem(AbstractItem):
 	def quality(self):
 		""" quality (if known) of current report """
 		return self.__quality
+
+	def title(self):
+		""" report title from source item """
+		return self.__title
+
+	def type(self):
+		""" type of current report """
+		return self.__type
+
+	def url(self):
+		""" return tvnzb nzb url """
+		return self.__url
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -80,13 +84,14 @@ class NzbmatrixItem(AbstractItem):
 		else:
 			raise InvalidRemoteData("report does not have a category")
 
-	def __init__(self, item, type, priority, quality):
+	def __init__(self, item, type, priority, quality, delay):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
 		self.__item = item
 		self.__type = type
 		self.__priority = priority
 		self.__quality = quality
+		self.__delay = delay
 
 		titles = self.__item.getElementsByTagName("title")
 		if titles:
