@@ -209,10 +209,7 @@ Examples:
 		logger.exception(e)
 		raise
 	finally:
-		# close db handler
-		if 'metadata_data_store' in broker:
-			if broker['metadata_data_store'] is not None:
-				broker['metadata_data_store'].cleanup()
+		broker['metadata_data_store'].cleanup()
 
 	if options.dry_run:
 		logger.info("DONE, dry-run flag set...nothing to do!")
@@ -528,8 +525,10 @@ Examples:
 	(options, args) = parser.parse_args(args)
 
 	# gather command line arguments
-	params = {'path': args[0]}
-	if len(args) == 2:
+	params = {'path': args[0].rstrip("/\ ")}
+	if len(args) == 1:
+		pass
+	elif len(args) == 2:
 		params['quality'] = args[1]
 	elif len(args) in (7,8):
 		params['nzb'] = args[1]
@@ -610,12 +609,12 @@ Examples:
 		logger.info("--dry-run flag detected!  Download will not be sorted during execution!")
 
 	fatal = 0
+	message = None
 	try:
 		__episode_sort(broker, options, **params)
-	except Exception, e:
+	except (Exception), e:
 		fatal = 1
 		logger.exception(e)
-
 		if config['logging']['generate_sorting_log']:
 
 			# reset current position to start of file for reading...
@@ -625,19 +624,25 @@ Examples:
 			sort_log = open(os.path.join(params['path'], "sort.log"), "w")
 			shutil.copyfileobj(tmp_file, sort_log)
 			sort_log.close()
-	finally:
-		# close db handler
-		if 'metadata_data_store' in broker:
-			if broker['metadata_data_store'] is not None:
-				broker['metadata_data_store'].cleanup()
 
-	if fatal:
-		print "FAILURE, unable to sort downloaded episode! See log file at %r for more details!" % os.path.join(broker['config_dir'], "logs", "sabnzbd_episode_sort.log")
+		if isinstance(e, FailedDownload):
+			logger.warning("download failed, moving to trash...")
+			try:
+				_move_to_trash(broker['config']['tv']['tv_root'][0], params['path'])
+			except OSError, (e2):
+				logger.exception(FailedDownload("unable to move download directory to trash: %s" % e2.args[0]))
+			message = "FAILURE, %s!" % e.args[0]
+		else:
+			message = "FAILURE, unable to sort downloaded episode! See log file at %r for more details!" % os.path.join(broker['config_dir'], "logs", "sabnzbd_episode_sort.log")
 	else:
 		if options.dry_run:
-			print "DONE, dry-run flag set...nothing to do!"
+			message = "DONE, dry-run flag set...nothing to do!"
 		else:
-			print "SUCCESS, downloaded episode sorted!"
+			message = "SUCCESS, downloaded episode sorted!"
+	finally:
+		broker['metadata_data_store'].cleanup()
+
+	print message
 	exit(fatal)
 
 def __episode_sort(broker, options, **kwargs):
@@ -659,7 +664,7 @@ def __episode_sort(broker, options, **kwargs):
 	  6. Group that the NZB was posted in e.g. alt.binaries.x
 	  7. Status
 	"""
-	path = kwargs['path'].rstrip("/\ ")
+	path = kwargs['path']
 	job = kwargs.get('job', os.path.basename(path))
 	nzb = kwargs.get('nzb', job + ".nzb")
 	report_id = kwargs.get('report_id', '')
@@ -673,23 +678,16 @@ def __episode_sort(broker, options, **kwargs):
 	if path is None or path == "":
 		raise InvalidArgument("path to completed job is missing or null")
 	elif os.path.basename(path).startswith("_FAILED_") or int(status) > 0:
-		logger.warning("download failed, moving to trash...")
-		try:
-			_move_to_trash(tv_root[0], path)
-		except OSError, (e):
-			logger.error("unable to move download directory to trash: %s" % e.strerror)
-			raise FailedDownload("unable to sort failed download")
+		if job is None or job == "":
+			raise InvalidArgument("job name is missing or null")
+		elif int(status) == 1:
+			raise FailedDownload("download failed verification")
+		elif int(status) == 2:
+			raise FailedDownload("download failed unpack")
+		elif int(status) == 3:
+			raise FailedDownload("download failed verification and unpack")
 		else:
-			if job is None or job == "":
-				raise InvalidArgument("job name is missing or null")
-			elif int(status) == 1:
-				raise FailedDownload("download failed verification")
-			elif int(status) == 2:
-				raise FailedDownload("download failed unpack")
-			elif int(status) == 3:
-				raise FailedDownload("download failed verification and unpack")
-			else:
-				raise FailedDownload("download failed")
+			raise FailedDownload("download failed")
 
 	watched_list = {}
 	skip_list = {}
@@ -1044,10 +1042,7 @@ Examples:
 		logger.exception(e)
 		raise
 	finally:
-		# close db handler
-		if 'metadata_data_store' in broker:
-			if broker['metadata_data_store'] is not None:
-				broker['metadata_data_store'].cleanup()
+		broker['metadata_data_store'].cleanup()
 	
 def __set_quality(broker, options, series_name=None, season_num=None, episode_num=None):
 	logger = logging.getLogger("mediarover")
