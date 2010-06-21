@@ -140,11 +140,11 @@ from urllib2 import URLError
 
 from mediarover.error import *
 from mediarover.series import Series, build_watch_list
-from mediarover.source.tvnzb.factory import TvnzbFactory
 from mediarover.source.mytvnzb.factory import MytvnzbFactory
 from mediarover.source.newzbin.factory import NewzbinFactory
 from mediarover.source.nzbmatrix.factory import NzbmatrixFactory
 from mediarover.source.nzbs.factory import NzbsFactory
+from mediarover.source.tvnzb.factory import TvnzbFactory
 
 def scheduler(broker, args):
 
@@ -376,10 +376,10 @@ def __scheduler(broker, options):
 
 	# start by processing any items that have been delayed and 
 	# are now eligible for processing
-	logger.info("searching for delayed items...")
-	for item in broker['metadata_data_store'].get_delayed_items():
+	logger.info("retrieving delayed items...")
+	for item in broker['metadata_data_store'].get_actionable_delayed_items():
 		logger.debug("begin processing delayed item '%s'", item.title())
-		__process_item(item, scheduled, drop_from_queue)
+		__process_item(broker, item, queue, scheduled, drop_from_queue)
 
 	# now process items from any configured sources
 	for source in sources:
@@ -394,11 +394,8 @@ def __scheduler(broker, options):
 		for item in items:
 			logger.debug("begin processing item '%s'", item.title())
 
-			# set source delay on item for later use
-			item.delay = source.delay
-
 			# process current item
-			__process_item(item, scheduled, drop_from_queue)
+			__process_item(broker, item, queue, scheduled, drop_from_queue)
 
 	logger.debug("finished processing items")
 
@@ -411,33 +408,45 @@ def __scheduler(broker, options):
 				except QueueDeletionError:
 					logger.warning("unable to remove job %r from queue", job.title())
 
+		# remove processed items from delayed_item table
+		broker['metadata_data_store'].delete_stale_delayed_items()
+
 		# now that we've fully parsed all source items
 		# lets add the collected downloads to the queue...
+		delayed = []
 		if len(scheduled) > 0:
-			delayed = []
 			logger.info("scheduling items for download")
 			for item in scheduled:
-				if item.delay:
+				if item.delay() > 0:
 					delayed.append(item)
 					continue
 				try:
 					queue.add_to_queue(item)
 				except (IOError, QueueInsertionError):
 					logger.warning("unable to schedule item %r for download", item.title())
-
-			if len(delayed) > 0:
-				logger.info("found %d item(s) that have a delay and will NOT be schedule for download this cycle" % len(delayed))
-				for item in delayed:
-					broker['metadata_data_store'].add_delayed_item(item, item.delay)
 		else:
 			logger.info("no items to schedule for download")
+
+		if len(delayed) > 0:
+			logger.info("identified %d item(s) with a schedule delay" % len(delayed))
+			existing = broker['metadata_data_store'].get_delayed_items()
+			for item in delayed:
+				if item not in existing:
+					broker['metadata_data_store'].add_delayed_item(item)
+				else:
+					logger.debug("skipping %s, already delayed" % item.title())
+
+		# reduce delay count for all items in delayed_item table
+		broker['metadata_data_store'].reduce_item_delay()
 	else:
 		if len(scheduled) > 0:
 			logger.info("the following items were identified as being eligible for download:")
 			for item in scheduled:
 				logger.info(item.title())
 
-def __process_item(item, scheduled, drop_from_queue):
+def __process_item(broker, item, queue, scheduled, drop_from_queue):
+
+	logger = logging.getLogger("mediarover")
 
 	# grab the episode and series object
 	episode = item.download()
@@ -456,7 +465,7 @@ def __process_item(item, scheduled, drop_from_queue):
 
 	# if multiepisode job: check if user will accept, otherwise 
 	# continue to next job
-	if not config['tv']['allow_multipart']:
+	if not broker['config']['tv']['allow_multipart']:
 		try:
 			episode.episodes
 		except AttributeError:
@@ -481,7 +490,7 @@ def __process_item(item, scheduled, drop_from_queue):
 	# replace queued item and be scheduled for download
 	# ATTENTION: this call takes into account users preferences regarding single vs multi-part 
 	# episodes as well as desired quality level
-	if item.delay == 0 and queue.in_queue(episode):
+	if item.delay() == 0 and queue.in_queue(episode):
 		job = queue.get_job_by_download(episode)
 		if series.should_episode_be_downloaded(episode, job.download()):
 			drop_from_queue.append(job)
@@ -496,7 +505,27 @@ def __process_item(item, scheduled, drop_from_queue):
 	drop_from_scheduled = None
 	if item in scheduled:
 		old_item = scheduled[scheduled.index(item)]
-		if series.should_episode_be_downloaded(episode, old_item.download()):
+		desirable = series.should_episode_be_downloaded(episode, old_item.download())
+
+		# the current item has a delay:
+		#   a) if the old scheduled item is also delayed, consult desirability
+		#   b) otherwise, skip item
+		if item.delay():
+			if old_item.delay() and desirable:
+				drop_from_scheduled = old_item
+			else:
+				return
+
+		# the old item has a delay:
+		#   a) if the current item is also delayed, consult desirability
+		#   b) otherwise, replace old item
+		elif old_item.delay():
+			if item.delay() and series.should_episode_be_downloaded(old_item.download(), episode):
+				return
+			drop_from_scheduled = old_item
+
+		# neither item has a delay
+		elif desirable:
 			drop_from_scheduled = old_item
 		else:
 			logger.info("skipping '%s', already scheduled for download", item.title())
@@ -508,7 +537,7 @@ def __process_item(item, scheduled, drop_from_queue):
 		
 	if drop_from_scheduled is not None:
 		scheduled.remove(drop_from_scheduled)
-
+	
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import shutil

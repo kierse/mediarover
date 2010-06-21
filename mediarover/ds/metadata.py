@@ -132,28 +132,46 @@ class Metadata(object):
 
 		return result
 
-	def add_delayed_item(self, item, delay):
+	def add_delayed_item(self, item):
 		""" add given item to delayed_item table """
-		self.__dbh.execute("INSERT INTO delayed_item (title, url, type, priority, delay) VALUES (?,?,?,?,?)", (item.title, item.url, item.type, item.priority, delay))
+		self.__dbh.execute("INSERT INTO delayed_item (title, url, type, priority, quality, delay) VALUES (?,?,?,?,?,?)", (item.title(), item.url(), item.type(), item.priority(), item.quality(), item.delay()))
 		self.__dbh.commit()
 
 		logger = logging.getLogger("mediarover.ds.metadata")
 		logger.info("delayed scheduling '%s' for download", item.title())
 
-	def get_delayed_items(self):
-		""" return list of items from the delayed_table that have delay value of 0 """
-		
-		# first things first, subtract 1 from all items delay value
-		self.__dbh.execute("UPDATE delayed_table SET delay=delay-1");
+	def delete_delayed_item(self, item):
+		""" remove given item from delayed_item table """
+		self.__dbh.execute("DELETE FROM delayed_item WHERE title=?", (item.title(),))
 		self.__dbh.commit()
 
-		# iterate over all tuples with delay == 0 and create new item objects
+	def delete_stale_delayed_items(self):
+		""" remove all stale items from delayed_item table """
+		self.__dbh.execute("DELETE FROM delayed_item WHERE delay < 1")
+		self.__dbh.commit()
+
+	def get_actionable_delayed_items(self):
+		""" return list of items from the delayed_item table that have delay value less than 1 """
+		
+		# iterate over all tuples with delay < 1 and create new item objects
 		items = []
-		for row in self.__dbh.execute("SELECT title, url, type, priority, quality, delay FROM delayed_item WHERE delay=?", (0,)):
+		for row in self.__dbh.execute("SELECT title, url, type, priority, quality, delay FROM delayed_item WHERE delay < 1"):
 			items.append(DelayedItem(**row))
 
 		return items
+	
+	def get_delayed_items(self):
+		""" return list of all items found in delayed_item table """
+		list = []
+		for row in self.__dbh.execute("SELECT title, url, type, priority, quality, delay FROM delayed_item"):
+			list.append(DelayedItem(**row))
+		return list
 
+	def reduce_item_delay(self):
+		""" reduce delay count by one for all items in delayed_item table """
+		self.__dbh.execute("UPDATE delayed_item SET delay=delay-1 WHERE delay > 0");
+		self.__dbh.commit()
+	
 	def migrate_schema(self, version=None, rollback=False):
 		""" 
 			migrate metadata schema from one version to another. If given a version number, attempt to migrate 
