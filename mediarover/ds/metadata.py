@@ -155,16 +155,16 @@ class Metadata(object):
 		
 		# iterate over all tuples with delay < 1 and create new item objects
 		items = []
-		for row in self.__dbh.execute("SELECT title, url, type, priority, quality, delay FROM delayed_item WHERE delay < 1"):
-			items.append(DelayedItem(**row))
+		for r in self.__dbh.execute("SELECT title, url, type, priority, quality, delay FROM delayed_item WHERE delay < 1"):
+			items.append(DelayedItem(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
 
 		return items
 	
 	def get_delayed_items(self):
 		""" return list of all items found in delayed_item table """
 		list = []
-		for row in self.__dbh.execute("SELECT title, url, type, priority, quality, delay FROM delayed_item"):
-			list.append(DelayedItem(**row))
+		for r in self.__dbh.execute("SELECT title, url, type, priority, quality, delay FROM delayed_item"):
+			list.append(DelayedItem(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
 		return list
 
 	def reduce_item_delay(self):
