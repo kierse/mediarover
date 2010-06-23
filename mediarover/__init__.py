@@ -872,23 +872,34 @@ def __episode_sort(broker, options, **kwargs):
 	series = episode.series
 	sanitized_name = series.sanitize_series_name(series=series)
 
-	# determine quality of given job if quality management is turned on
-	if config['tv']['quality']['managed']:
-		if 'quality' in kwargs:
-			episode.quality = kwargs['quality']
-		else:
-			result = broker['metadata_data_store'].get_in_progress(job)
-			if result is not None:
-				episode.quality = result['quality']
-			else:
-				logger.info("unable to find quality information in metadata db, assuming default quality level!")
-
 	# move downloaded file to new location and rename
 	if not options.dry_run:
 
 		# build a filesystem episode object
 		file = FilesystemEpisode(orig_path, episode, size)
 		logger.debug("created %r" % file)
+
+		# determine quality of given job if quality management is turned on
+		if config['tv']['quality']['managed']:
+			if 'quality' in kwargs:
+				episode.quality = kwargs['quality']
+			else:
+				result = broker['metadata_data_store'].get_in_progress(job)
+				if result is None:
+					if config['tv']['quality']['guess']:
+						ext = file.extension
+						if ext in config['tv']['quality']['extension']['low']:
+							episode.quality = 'low'
+						elif ext in config['tv']['quality']['extension']['medium']:
+							episode.quality = 'medium'
+						elif ext in config['tv']['quality']['extension']['high']:
+							episode.quality = 'high'
+						else:
+							logger.info("unable to find quality information in metadata db and unable to guess, assuming default quality level!")
+					else:
+						logger.info("unable to find quality information in metadata db, assuming default quality level!")
+				else:
+					episode.quality = result['quality']
 
 		dest_dir = series.locate_season_folder(episode.season)
 		if dest_dir is None:
