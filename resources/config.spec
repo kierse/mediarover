@@ -20,6 +20,11 @@
 		managed = boolean(default=False)
 		acceptable = options_list(options=list('all', 'low', 'medium', 'high'), default=list('all'))
 		desired = option('low', 'medium', 'high', None, default=None)
+		guess = boolean(default=True)
+		[[[extension]]]
+			low = list(default=list('mp4'))
+			medium = list(default=list('avi'))
+			high = list(default=list('mkv'))
 
 	[[filter]]
 		[[[__many__]]]

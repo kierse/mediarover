@@ -68,6 +68,34 @@
 		# Note: only set if managed is True
 		#desired = 
 
+		# instruct Media Rover to guess the quality of episodes that it encounters 
+		# when no quality details are known.  If this is false, Media Rover will
+		# assume all such files meet the desired quality level of the episode series.
+		#
+		# Note: defaults to True
+		#guess = True
+
+		# ATTENTION: the extension options are only consulted when quality guessing is on (ie. [[quality]] guess = True)
+		[[[extension]]]
+			
+			# list of extensions that should be marked LOW quality
+			# ATTENTION: this list is only consulted when quality information for a given episode is unknown!
+			#
+			# Note: defaults to mp4
+			#low = mp4,
+
+			# list of extensions that should be marked MEDIUM quality
+			# ATTENTION: this list is only consulted when quality information for a given episode is unknown!
+			#
+			# Note: defaults to avi
+			#medium = avi,
+
+			# list of extensions that should be marked HIGH quality
+			# ATTENTION: this list is only consulted when quality information for a given episode is unknown!
+			#
+			# Note: defaults to mkv
+			#high = mkv,
+
 	# series specific filter options
 	# usage: in order to specify filters for a given series, define
 	# a new subsection with the series name.  Define all filter rules
