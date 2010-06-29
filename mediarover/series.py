@@ -24,7 +24,7 @@ from mediarover.error import FilesystemError, InvalidData, InvalidEpisodeString,
 from mediarover.factory import EpisodeFactory
 from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.utils.injection import is_instance_of, Dependency
-from mediarover.utils.quality import compare_quality
+from mediarover.utils.quality import guess_quality_level, LOW, MEDIUM, HIGH
 
 class Series(object):
 	""" represents a tv series """
@@ -147,14 +147,14 @@ class Series(object):
 							desirable.append(given)
 
 						# intermediate step DOWN in quality
-						if desired == 'low':
-							if current_quality == 'high' and given_quality == 'medium':
+						if desired == LOW:
+							if current_quality == HIGH and given_quality == MEDIUM:
 								logger.debug("episode is closer to desired quality level than current and should be downloaded")
 								desirable.append(given)
 
 						# intermediate step UP in quality
-						elif desired == 'high':
-							if current_quality == 'low' and given_quality == 'medium':
+						elif desired == HIGH:
+							if current_quality == LOW and given_quality == MEDIUM:
 								logger.debug("episode is closer to desired quality level than current and should be downloaded")
 								desirable.append(given)
 
@@ -300,7 +300,10 @@ class Series(object):
 								if len(list) > 0 and self.config['tv']['quality']['managed']:
 									record = self.meta_ds.get_episode(list[0])
 									if record is None:
-										logger.warning("quality level of '%s' unknown, defaulting to desired level of '%s'" % (episode, desired))
+										if self.config['tv']['quality']['guess']:
+											episode.quality = guess_quality_level(self.config, file.extension, episode.quality)
+										else:
+											logger.warning("quality level of '%s' unknown, defaulting to desired level of '%s'" % (episode, desired))
 									else:
 										episode.quality = record['quality']
 								compiled.extend(list)
@@ -309,7 +312,10 @@ class Series(object):
 								if self.config['tv']['quality']['managed']:
 									record = self.meta_ds.get_episode(episode)
 									if record is None:
-										logger.warning("quality level of '%s' unknown, defaulting to desired level of '%s'" % (episode, desired))
+										if self.config['tv']['quality']['guess']:
+											episode.quality = guess_quality_level(self.config, file.extension, episode.quality)
+										else:
+											logger.warning("quality level of '%s' unknown, defaulting to desired level of '%s'" % (episode, desired))
 									else:
 										episode.quality = record['quality']
 
