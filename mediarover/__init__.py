@@ -1243,7 +1243,7 @@ Series Options:
 				exit(1)
 			elif answer == 'l':
 				quality = 'low'
-			elif answer == 'medium':
+			elif answer == 'm':
 				quality = 'medium'
 			else:
 				quality = 'high'
