@@ -13,18 +13,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-QUALITY_LEVELS = {
-	'low': 1,
-	'medium': 2,
-	'high': 3,
-}
+import logging
 
-def compare_quality(a, b):
-	""" 
-		compare given qualities, return:
+LOW = 'low'
+MEDIUM = 'medium'
+HIGH = 'high'
 
-			-1 for a  < b,
-			 0 for a == b,
-			+1 for a  > b
-	"""
-	return cmp(QUALITY_LEVELS[a.lower()], QUALITY_LEVELS[b.lower()])
+def guess_quality_level(config, ext, default):
+	quality = default
+	if config['tv']['quality']['guess']:
+		if ext in config['tv']['quality']['extension'][LOW]:
+			quality = LOW
+		elif ext in config['tv']['quality']['extension'][MEDIUM]:
+			quality = MEDIUM
+		elif ext in config['tv']['quality']['extension'][HIGH]:
+			quality = HIGH
+		logger = logging.getLogger("mediarover.util.quality")
+		logger.debug("matched file extension '%s' to quality level to of '%s'" % (ext, quality))
+	return quality
+
