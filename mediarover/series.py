@@ -285,8 +285,10 @@ class Series(object):
 							logger.warning("skipping file, encountered error while parsing filename: %s (%s)" % (e, path))
 							pass
 						else:
-							# multipart
 							episode = file.episode
+							list = []
+
+							# multipart
 							if hasattr(episode, "episodes"):
 								multipart.append(file)
 
@@ -296,36 +298,27 @@ class Series(object):
 								for ep in episode.episodes:
 									if ep not in compiled:
 										list.append(ep)
-
-								if len(list) > 0 and self.config['tv']['quality']['managed']:
-									record = self.meta_ds.get_episode(list[0])
-									if record is None:
-										if self.config['tv']['quality']['guess']:
-											episode.quality = guess_quality_level(self.config, file.extension, episode.quality)
-										else:
-											logger.warning("quality level of '%s' unknown, defaulting to desired level of '%s'" % (episode, desired))
-									else:
-										episode.quality = record['quality']
-								compiled.extend(list)
-
 							else:
-								if self.config['tv']['quality']['managed']:
-									record = self.meta_ds.get_episode(episode)
-									if record is None:
-										if self.config['tv']['quality']['guess']:
-											episode.quality = guess_quality_level(self.config, file.extension, episode.quality)
-										else:
-											logger.warning("quality level of '%s' unknown, defaulting to desired level of '%s'" % (episode, desired))
-									else:
-										episode.quality = record['quality']
-
-								# add to compiled list
-								compiled.append(episode)
-
+								list.append(episode)
 								if hasattr(episode, "year"):
 									daily.append(file)
 								else:
 									single.append(file)
+						
+							# add to compiled list
+							compiled.extend(list)
+
+							# see if we can come up with a more accurate quality level 
+							# for current file
+							if len(list) > 0 and self.config['tv']['quality']['managed']:
+								record = self.meta_ds.get_episode(list[0])
+								if record is None:
+									if self.config['tv']['quality']['guess']:
+										episode.quality = guess_quality_level(self.config, file.extension, episode.quality)
+									else:
+										logger.warning("quality level of '%s' unknown, defaulting to desired level of '%s'" % (episode, desired))
+								else:
+									episode.quality = record['quality']
 
 							logger.debug("created %r" % file)
 
