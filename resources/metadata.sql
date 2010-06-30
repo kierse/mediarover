@@ -52,3 +52,5 @@ CREATE TABLE IF NOT EXISTS delayed_item
 	delay INTEGER NOT NULL
 );
 
+PRAGMA user_version = ${schema_version};
+

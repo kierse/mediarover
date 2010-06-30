@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import with_statement
+from string import Template
 from time import strftime
 
 import logging
@@ -269,10 +270,13 @@ class Metadata(object):
 		
 		# read the sql commands from disk
 		with open(os.path.join(self.resources, "metadata.sql"), "r") as fh:
-			sql = fh.readlines()
+			sql = fh.read()
+
+		# set schema version
+		sql = Template(sql).safe_substitute(schema_version=__schema_version__)
 
 		# and create the schema
-		self.__dbh.executescript("\n".join(sql))
+		self.__dbh.executescript(sql)
 		self.__dbh.commit()
 
 		logger.info("created metadata datastore")
