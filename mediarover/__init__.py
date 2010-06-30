@@ -548,10 +548,11 @@ from time import strftime
 from mediarover.config import build_series_filters
 from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.utils.filesystem import clean_path
+from mediarover.utils.quality import guess_quality_level, LOW, MEDIUM, HIGH
 
 def episode_sort(broker, args):
 
-	usage = "%prog episode-sort [options] result_dir [nzb_name nice_name newzbin_id category newsgroup status] [low|medium|high]"
+	usage = "%prog episode-sort [options] result_dir [nzb_name nice_name newzbin_id category newsgroup status] [%s|%s|%s]" % (LOW, MEDIUM, HIGH)
 	description = "Description: process a recent download and sort episode file in appropriate series folder"
 	epilog = """
 Examples:
@@ -563,7 +564,7 @@ Examples:
    Same as above, but use a non-default config directory:
      > python mediarover.py episode-sort --config /path/to/config/dir /path/to/some.download
 
-   Manually sort a downloaded file, but specify an overriding quality level: (low/medium/high)
+   Manually sort a downloaded file, but specify an overriding quality level: (%s/%s/%s)
      > python mediarover.py episode-sort /path/to/some.download high
 
    Simulate sorting a downloaded file:
@@ -573,9 +574,9 @@ Examples:
    ==================
    Sort a downloaded file:
      > python mediarover.py episode-sort /path/to/some.download some.download.nzb some.download 12345 tv alt.public.access.tv 0
-"""
-	parser = OptionParser(usage=usage, description=description, epilog=epilog, add_help_option=False)
+""" % (LOW, MEDIUM, HIGH)
 
+	parser = OptionParser(usage=usage, description=description, epilog=epilog, add_help_option=False)
 	parser.add_option("-c", "--config", metavar="/PATH/TO/CONFIG/DIR", help="path to application configuration directory")
 	parser.add_option("-d", "--dry-run", action="store_true", default=False, help="simulate downloading nzb's from configured sources")
 	parser.add_option("-h", "--help", action="callback", callback=print_usage, help="show this help message and exit")
@@ -887,15 +888,7 @@ def __episode_sort(broker, options, **kwargs):
 				result = broker['metadata_data_store'].get_in_progress(job)
 				if result is None:
 					if config['tv']['quality']['guess']:
-						ext = file.extension
-						if ext in config['tv']['quality']['extension']['low']:
-							episode.quality = 'low'
-						elif ext in config['tv']['quality']['extension']['medium']:
-							episode.quality = 'medium'
-						elif ext in config['tv']['quality']['extension']['high']:
-							episode.quality = 'high'
-						else:
-							logger.info("unable to find quality information in metadata db and unable to guess, assuming default quality level!")
+						episode.quality = guess_quality_level(config, file.extension, episode.quality)
 					else:
 						logger.info("unable to find quality information in metadata db, assuming default quality level!")
 				else:
@@ -1141,7 +1134,7 @@ Series Options:
 		names.sort()
 
 	displayed_series_help = 0
-	quality_levels = ['low', 'medium', 'high']
+	quality_levels = [LOW, MEDIUM, HIGH]
 
 	if options.series_prompt:
 		print help
@@ -1166,6 +1159,16 @@ Series Options:
 			default = config['tv']['filter'][sanitized]['quality']['desired']
 		else:
 			default = config['tv']['quality']['desired']
+
+		# if quality guessing is on, populate extension lists (if they weren't 
+		# provided by user)
+		if config['tv']['quality']['managed'] and config['tv']['quality']['guess']:
+			if len(options.low) == 0:
+				options.low = config['tv']['quality']['extension'][LOW]
+			if len(options.medium) == 0:
+				options.medium = config['tv']['quality']['extension'][MEDIUM]
+			if len(options.high) == 0:
+				options.high = config['tv']['quality']['extension'][HIGH]
 
 		low = list()
 		medium = list()
@@ -1242,11 +1245,11 @@ Series Options:
 			if answer == 'q':
 				exit(1)
 			elif answer == 'l':
-				quality = 'low'
+				quality = LOW
 			elif answer == 'm':
-				quality = 'medium'
+				quality = MEDIUM
 			else:
-				quality = 'high'
+				quality = HIGH
 
 			# set quality for all episodes in given size list
 			for episode in avg_sizes[avg_size]['episodes']:
@@ -1256,21 +1259,21 @@ Series Options:
 		# set quality for all episodes that were matched by extension
 		extension_msg = "Setting quality of '%s' for %d episode(s) with extension found in %s"
 		if len(low):
-			quality = 'low'
+			quality = LOW
 			print extension_msg % (quality, len(low), options.low)
 			for episode in low:
 				episode.quality = quality
 				broker['metadata_data_store'].add_episode(episode)
 
 		if len(medium):
-			quality = 'medium'
+			quality = MEDIUM
 			print extension_msg % (quality, len(medium), options.medium)
 			for episode in medium:
 				episode.quality = quality
 				broker['metadata_data_store'].add_episode(episode)
 
 		if len(high):
-			quality = 'high'
+			quality = HIGH
 			print extension_msg % (quality, len(high), options.high)
 			for episode in high:
 				episode.quality = quality
