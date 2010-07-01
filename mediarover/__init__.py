@@ -583,24 +583,6 @@ Examples:
 
 	(options, args) = parser.parse_args(args)
 
-	# gather command line arguments
-	params = {'path': args[0].rstrip("/\ ")}
-	if len(args) == 1:
-		pass
-	elif len(args) == 2:
-		params['quality'] = args[1]
-	elif len(args) in (7,8):
-		params['nzb'] = args[1]
-		params['job'] = args[2]
-		params['report_id'] = args[3]
-		params['category'] = args[4]
-		params['group'] = args[5]
-		params['status'] = args[6]
-	else:
-		print "ERROR: incorrect number of arguments!"
-		print_usage(parser)
-		exit(1)
-
 	if options.config:
 		broker.register('config_dir', options.config)
 
@@ -626,14 +608,6 @@ Examples:
 
 	""" post configuration setup """
 
-	broker.register('metadata_data_store', Metadata())
-	broker.register('config', config)
-
-	# register factory objects
-	broker.register('newzbin', NewzbinFactory())
-	broker.register('episode_factory', EpisodeFactory())
-	broker.register('filesystem_factory', FilesystemFactory())
-
 	# capture all logging output in local file.  If sorting script exits unexpectedly,
 	# or encounters an error and gracefully exits, the log file will be placed in
 	# the download directory for debugging
@@ -645,6 +619,37 @@ Examples:
 		handler.setFormatter(formatter)
 		logger.addHandler(handler)
 
+	logger.info("--- STARTING ---")
+	logger.debug("using config directory: %s", broker['config_dir'])
+
+	logger.debug(sys.argv[0] + " episode-sort " + " ".join(map(lambda x: "'" + x + "'", args)))
+
+	# gather command line arguments
+	params = {'path': args[0].rstrip("/\ ")}
+	if len(args) == 1:
+		pass
+	elif len(args) == 2:
+		params['quality'] = args[1]
+	elif len(args) in (7,8):
+		params['nzb'] = args[1]
+		params['job'] = args[2]
+		params['report_id'] = args[3]
+		params['category'] = args[4]
+		params['group'] = args[5]
+		params['status'] = args[6]
+	else:
+		print "ERROR: incorrect number of arguments!"
+		print_usage(parser)
+		exit(1)
+
+	broker.register('metadata_data_store', Metadata())
+	broker.register('config', config)
+
+	# register factory objects
+	broker.register('newzbin', NewzbinFactory())
+	broker.register('episode_factory', EpisodeFactory())
+	broker.register('filesystem_factory', FilesystemFactory())
+
 	# sanitize tv series filter subsection names for 
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
@@ -652,11 +657,6 @@ Examples:
 		config['tv']['filter'][Series.sanitize_series_name(name=name)] = filters
 
 	""" main """
-
-	logger.info("--- STARTING ---")
-	logger.debug("using config directory: %s", broker['config_dir'])
-
-	logger.debug(sys.argv[0] + " episode-sort " + " ".join(map(lambda x: "'" + x + "'", args)))
 
 	# check if user has requested a dry-run
 	if options.dry_run:
