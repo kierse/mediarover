@@ -10,6 +10,7 @@ Announcing Media Rover 0.5.0!
 
 * introduced ability to specify quality preferences on a per series basis
 * added ability to delay scheduling nzbs
+* reworked configured sources so they are processed in order of appearance
 * fixed handling of daily episodes
 * reworked startup scripts and merged them into one
 * massive code reorganization
