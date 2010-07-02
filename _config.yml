@@ -12,3 +12,5 @@ maruku:
   png_url:    /images/latex
 url:         http://kierse.github.com/mediarover
 #url:         http://localhost:4000
+#url:         http://10.0.0.25:4000
+
