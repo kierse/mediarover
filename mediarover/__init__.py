@@ -142,6 +142,7 @@ from mediarover.error import *
 from mediarover.series import Series, build_watch_list
 from mediarover.source.mytvnzb.factory import MytvnzbFactory
 from mediarover.source.newzbin.factory import NewzbinFactory
+from mediarover.source.nzbindex.factory import NzbindexFactory
 from mediarover.source.nzbclub.factory import NzbclubFactory
 from mediarover.source.nzbmatrix.factory import NzbmatrixFactory
 from mediarover.source.nzbs.factory import NzbsFactory
@@ -204,6 +205,7 @@ Examples:
 	broker.register('newzbin', NewzbinFactory())
 	broker.register('tvnzb', TvnzbFactory())
 	broker.register('mytvnzb', MytvnzbFactory())
+	broker.register('nzbindex', NzbindexFactory())
 	broker.register('nzbclub', NzbclubFactory())
 	broker.register('nzbs', NzbsFactory())
 	broker.register('nzbsrus', NzbsrusFactory())
