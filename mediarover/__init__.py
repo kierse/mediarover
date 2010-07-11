@@ -144,6 +144,7 @@ from mediarover.source.mytvnzb.factory import MytvnzbFactory
 from mediarover.source.newzbin.factory import NewzbinFactory
 from mediarover.source.nzbmatrix.factory import NzbmatrixFactory
 from mediarover.source.nzbs.factory import NzbsFactory
+from mediarover.source.nzbsrus.factory import NzbsrusFactory
 from mediarover.source.tvnzb.factory import TvnzbFactory
 
 def scheduler(broker, args):
@@ -203,6 +204,7 @@ Examples:
 	broker.register('tvnzb', TvnzbFactory())
 	broker.register('mytvnzb', MytvnzbFactory())
 	broker.register('nzbs', NzbsFactory())
+	broker.register('nzbsrus', NzbsrusFactory())
 	broker.register('nzbmatrix', NzbmatrixFactory())
 
 	logger.info("--- STARTING ---")
