@@ -46,7 +46,7 @@
 [source]
 	[[__many__]]
 		url = url()
-		provider = option('newzbin','tvnzb','mytvnzb','nzbs','nzbmatrix','nzbsrus')
+		provider = option('newzbin','tvnzb','mytvnzb','nzbs','nzbmatrix','nzbsrus','nzbclub')
 		type = option('tv', default='tv')
 		quality = option('low', 'medium', 'high', None, default=None)
 		timeout = integer(default=60)
