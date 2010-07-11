@@ -330,8 +330,6 @@
 #        Media Rover currently supports the following providers:
 #
 #          newzbin   (http://newzbin.com)
-#          tvnzb     (http://www.tvnzb.com)
-#          mytvznb   (any version 2.5 site)
 #          nzbs      (http://www.nzbs.org)
 #          nzbmatrix (http://nzbmatrix.com)
 #          nzbsrus   (http://nzbsrus.com)
