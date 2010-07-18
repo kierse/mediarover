@@ -636,7 +636,9 @@ Examples:
 		pass
 	elif len(args) == 2:
 		params['quality'] = args[1]
-	elif len(args) in (7,8):
+	elif len(args) in (6,7):
+		if len(args) == 6:
+			args.insert(3, None)
 		params['nzb'] = args[1]
 		params['job'] = args[2]
 		params['report_id'] = args[3]
