@@ -558,7 +558,7 @@ from mediarover.utils.quality import guess_quality_level, LOW, MEDIUM, HIGH
 
 def episode_sort(broker, args):
 
-	usage = "%%prog episode-sort [options] result_dir [nzb_name nice_name newzbin_id category newsgroup status] [%s|%s|%s]" % (LOW, MEDIUM, HIGH)
+	usage = "%%prog episode-sort [options] result_dir [%s|%s|%s] | [nzb_name nice_name newzbin_id category newsgroup status]" % (LOW, MEDIUM, HIGH)
 	description = "Description: process a recent download and sort episode file in appropriate series folder"
 	epilog = """
 Examples:
