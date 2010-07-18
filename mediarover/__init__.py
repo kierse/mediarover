@@ -637,6 +637,9 @@ Examples:
 	elif len(args) == 2:
 		params['quality'] = args[1]
 	elif len(args) in (6,7):
+		# NOTE: when SAB passes an empty value for the index id to the batch shell script (Windows), the empty
+		# command line argument is lost.  This means that MR is only called with 6 arguments rather than the standar
+		# of 7. Add an additional argument of None for the missing index id and move on
 		if len(args) == 6:
 			args.insert(3, None)
 		params['nzb'] = args[1]
