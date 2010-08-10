@@ -167,12 +167,17 @@ class Series(object):
 
 		return desirable
 
-	def locate_season_folder(self, season):
-		path = None
+	def locate_season_folder(self, season, path = None):
+		season_path = None
+
+		if path is None:
+			path = self.path
+		else:
+			path = [path]
 
 		metadata_regex = re.compile("\(.+?\)$")
 		number_regex = re.compile("[^\d]")
-		for root in self.path:
+		for root in path:
 			for dir in os.listdir(root):
 				if os.path.isdir(os.path.join(root, dir)):
 
@@ -182,12 +187,12 @@ class Series(object):
 
 					number = number_regex.sub("", clean_dir)
 					if len(number) and int(season) == int(number):
-						path = os.path.join(root, dir)
+						season_path = os.path.join(root, dir)
 						break
-			if path is not None:
+			if season_path is not None:
 				break
 		
-		return path
+		return season_path
 
 	def ignore(self, season):
 		""" return boolean indicating whether or not the given season number should be ignored """

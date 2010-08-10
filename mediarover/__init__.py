@@ -553,7 +553,7 @@ from time import strftime
 
 from mediarover.config import build_series_filters
 from mediarover.filesystem.episode import FilesystemEpisode
-from mediarover.utils.filesystem import clean_path
+from mediarover.utils.filesystem import clean_path, find_disk_with_space
 from mediarover.utils.quality import guess_quality_level, LOW, MEDIUM, HIGH
 
 def episode_sort(broker, args):
@@ -905,17 +905,31 @@ def __episode_sort(broker, options, **kwargs):
 				else:
 					episode.quality = result['quality']
 
-		dest_dir = series.locate_season_folder(episode.season)
+		# find available disk with enough space for newly downloaded episode
+		free_root = find_disk_with_space(series, tv_root, file.size) 
+		if free_root is None:
+			raise FilesystemError("unable to find disk with enough space to sort episode!")
+
+		# make sure series folder exists on that disk
+		for path in series.path:
+			if path.startswith(free_root):
+				break
+		else:
+			free_root = os.path.join(free_root, series.format(config['tv']['template']['series']))
+			try:
+				os.makedirs(free_root)
+			except OSError, (e):
+				logger.error("unable to create directory %r: %s", free_root, e.strerror)
+				raise
+			else:
+				logger.debug("created directory '%s'", free_root)
+			series.path.append(free_root)
+
+		dest_dir = series.locate_season_folder(episode.season, free_root)
 		if dest_dir is None:
 			
-			# determine series path
-			if len(series.path) == 0:
-				root = os.path.join(tv_root[0], series.format(config['tv']['template']['series']))
-			else:
-				root = series.path[0]
-
 			# get season folder (if desired)
-			dest_dir = os.path.join(root, file.format_season())
+			dest_dir = os.path.join(free_root, file.format_season())
 
 			if not os.path.isdir(dest_dir):
 				try:
@@ -929,7 +943,7 @@ def __episode_sort(broker, options, **kwargs):
 			# now that the series folder has been created
 			# set the series path
 			if len(series.path) == 0:
-				series.path = root
+				series.path = free_root
 				
 		# build list of episode(s) (either SingleEpisode or DailyEpisode) that are desirable
 		# ie. missing or of more desirable quality than current offering

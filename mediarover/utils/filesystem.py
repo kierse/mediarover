@@ -16,8 +16,38 @@
 import logging
 import os.path
 import os
+import ctypes
 
 # public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+def find_disk_with_space(series, tv_root, minimum_space):
+	""" 
+		identify a filesystem disk that has the minimum amount of free space
+
+		iterate over the given series paths and determine if there is the minimum amount of space.  
+		Failing that check all disks in tv_root.  Return None otherwise 
+	"""
+	found = None
+
+	check = set()
+	check.update(series.path)
+	check.update(tv_root)
+
+	# iterate over the list of unique paths and check the underlying filesystem for available space
+	for path in check:
+		if os.name == 'posix':
+			obj = os.statvfs(path)
+			if (obj.f_frsize * obj.f_bavail) >= long(minimum_space):
+				found = path
+				break
+		elif os.name == 'nt':
+			free_bytes = ctypes.c_ulonglong(0)
+			ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(u'%s' % path), None, None, ctypes.pointer(free_bytes))
+			if free_bytes >= long(minimum_space):
+				found = path
+				break
+
+	return found
 
 def clean_path(path, extensions):
 	""" open given path and delete any files with file extension in given list. """
