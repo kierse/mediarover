@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS daily_episode
 CREATE TABLE IF NOT EXISTS in_progress
 (
 	title TEXT PRIMARY KEY NOT NULL,
+	source TEXT NOT NULL,
 	type TEXT NOT NULL,
 	quality TEXT NOT NULL
 );
@@ -45,6 +46,7 @@ CREATE TABLE IF NOT EXISTS in_progress
 CREATE TABLE IF NOT EXISTS delayed_item
 (
 	title TEXT PRIMARY KEY NOT NULL,
+	source TEXT NOT NULL,
 	url TEXT NOT NULL,
 	type TEXT NOT NULL,
 	priority TEXT NOT NULL,
