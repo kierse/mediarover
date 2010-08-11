@@ -64,17 +64,17 @@ class NzbmatrixItem(AbstractItem):
 	def __parseItem(self):
 		""" parse item data and build appropriate download object """
 
-		if re.match("TV", self._report_category()):
+		if self._report_category().startswith(('TV', 'Documentaries')):
 			try:
 				download = self.factory.create_episode(self.title(), quality=self.quality())
 			except (InvalidMultiEpisodeData, MissingParameterError):
 				raise InvalidItemTitle("unable to parse item title and create Episode object: %s" % self.title())
 			except InvalidEpisodeString:
-				raise InvalidItemTitle("unsupported item title format: %r" % self.title())
+				raise InvalidItemTitle("unsupported item title format: %s" % self.title())
 			else:
 				return download
 
-		raise UnsupportedCategory("category %r unsupported!" % self._report_category())
+		raise UnsupportedCategory("category %s unsupported!" % self._report_category())
 
 	def _report_category(self):
 		""" report category id from source item """
