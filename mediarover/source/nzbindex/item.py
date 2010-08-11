@@ -69,7 +69,7 @@ class NzbindexItem(AbstractItem):
 		except (InvalidMultiEpisodeData, MissingParameterError):
 			raise InvalidItemTitle("unable to parse item title and create Episode object: %s" % self.title())
 		except InvalidEpisodeString:
-			raise InvalidItemTitle("unsupported item title format: %r" % self.title())
+			raise InvalidItemTitle("unsupported item title format: %s" % self.title())
 		else:
 			return download
 
