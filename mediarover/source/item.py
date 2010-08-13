@@ -30,6 +30,9 @@ class Item(Comparable):
 	def quality(self):
 		raise NotImplementedError
 
+	def source(self):
+		raise NotImplementedError
+
 	def title(self):
 		raise NotImplementedError
 
