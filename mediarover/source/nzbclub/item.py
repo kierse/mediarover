@@ -65,7 +65,7 @@ class NzbclubItem(AbstractItem):
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def __parseItem(self):
+	def __build_download(self):
 		""" parse item data and build appropriate download object """
 
 		try:
@@ -77,28 +77,33 @@ class NzbclubItem(AbstractItem):
 		else:
 			return download
 
-	def __init__(self, item, type, priority, quality, delay):
+	def __init__(self, item, type, priority, quality, delay, title=None, url=None):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
-		self.__item = item
 		self.__type = type
 		self.__priority = priority
 		self.__quality = quality
 		self.__delay = delay
 
-		titles = self.__item.getElementsByTagName("title")
-		if titles:
-			self.__title = titles[0].childNodes[0].data
+		if item is None:
+			self.__title = title
+			self.__url = url
 		else:
-			raise InvalidRemoteData("report does not have a title")
+			self.__item = item
 
-		enclosure = self.__item.getElementsByTagName("enclosure")
-		if enclosure and enclosure[0].getAttribute('url') is not "":
-			index = enclosure[0].getAttribute('url').rfind("/")
-			self.__url = "%s/nzb" % enclosure[0].getAttribute('url')[:index]
-			#self.__url = enclosure[0].getAttribute('url')
-		else:
+			titles = self.__item.getElementsByTagName("title")
+			if titles:
+				self.__title = titles[0].childNodes[0].data
+
+			enclosure = self.__item.getElementsByTagName("enclosure")
+			if enclosure and enclosure[0].getAttribute('url') is not "":
+				index = enclosure[0].getAttribute('url').rfind("/")
+				self.__url = "%s/nzb" % enclosure[0].getAttribute('url')[:index]
+
+		if self.__title is None:
+			raise InvalidRemoteData("report does not have a title")
+		if self.__url is None:
 			raise InvalidRemoteData("report does not have a url")
 
-		self.__download = self.__parseItem()
+		self.__download = self.__build_download()
 

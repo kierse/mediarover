@@ -66,49 +66,44 @@ class NzbsItem(AbstractItem):
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def _report_category(self):
-		categories = self.__item.getElementsByTagName("category")
-		if categories:
-			return re.match("(\w+)-", categories[0].childNodes[0].data).group(1)
-		else:
-			raise InvalidRemoteData("report does not have a category")
-
-	def __parseItem(self):
+	def __build_download(self):
 		""" parse item data and build appropriate download object """
 
-		report_category = self._report_category()
-		if re.match("TV", report_category):
-			try:
-				download = self.factory.create_episode(self.title(), quality=self.quality())
-			except (InvalidMultiEpisodeData, MissingParameterError):
-				raise InvalidItemTitle("unable to parse item title and create Episode object: %s" % self.title())
-			except InvalidEpisodeString:
-				raise InvalidItemTitle("unsupported item title format: %s" % self.title())
-			else:
-				return download
+		try:
+			download = self.factory.create_episode(self.title(), quality=self.quality())
+		except (InvalidMultiEpisodeData, MissingParameterError):
+			raise InvalidItemTitle("unable to parse item title and create Episode object: %s" % self.title())
+		except InvalidEpisodeString:
+			raise InvalidItemTitle("unsupported item title format: %s" % self.title())
+		else:
+			return download
 
-		raise UnsupportedCategory("category %s unsupported!" % report_category)
-
-	def __init__(self, item, type, priority, quality, delay):
+	def __init__(self, item, type, priority, quality, delay, title=None, url=None):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
-		self.__item = item
 		self.__type = type
 		self.__priority = priority
 		self.__quality = quality
 		self.__delay = delay
 
-		titles = self.__item.getElementsByTagName("title")
-		if titles:
-			self.__title = titles[0].childNodes[0].data
+		if item is None:
+			self.__title = title
+			self.__url = url
 		else:
-			raise InvalidRemoteData("report does not have a title")
+			self.__item = item
 
-		links = self.__item.getElementsByTagName("link")
-		if links:
-			self.__url = links[0].childNodes[0].data
-		else:
+			titles = self.__item.getElementsByTagName("title")
+			if titles:
+				self.__title = titles[0].childNodes[0].data
+
+			links = self.__item.getElementsByTagName("link")
+			if links:
+				self.__url = links[0].childNodes[0].data
+
+		if self.__title is None:
+			raise InvalidRemoteData("report does not have a title")
+		if self.__url is None:
 			raise InvalidRemoteData("report does not have a url")
 
-		self.__download = self.__parseItem()
+		self.__download = self.__build_download()
 
