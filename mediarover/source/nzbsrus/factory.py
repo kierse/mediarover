@@ -15,15 +15,16 @@
 
 from mediarover.config import ConfigObj
 from mediarover.error import *
-from mediarover.factory import EpisodeFactory, SourceFactory
+from mediarover.factory import EpisodeFactory, ItemFactory, SourceFactory
 from mediarover.episode.daily import DailyEpisode
 from mediarover.episode.multi import MultiEpisode
 from mediarover.episode.single import SingleEpisode
 from mediarover.series import Series
 from mediarover.source.nzbsrus import NzbsrusSource
+from mediarover.source.nzbsrus.item import NzbsrusItem
 from mediarover.utils.injection import is_instance_of, Dependency
 
-class NzbsrusFactory(EpisodeFactory, SourceFactory):
+class NzbsrusFactory(EpisodeFactory, ItemFactory, SourceFactory):
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -67,4 +68,7 @@ class NzbsrusFactory(EpisodeFactory, SourceFactory):
 			return DailyEpisode(**params)
 		else:
 			return SingleEpisode(**params)
+
+	def create_item(self, title, url, type, priority, quality, delay):
+		return NzbsrusItem(None, type, priority, quality, delay, title=title, url=url)
 

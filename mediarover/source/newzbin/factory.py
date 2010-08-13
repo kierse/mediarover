@@ -15,14 +15,14 @@
 
 from mediarover.config import ConfigObj
 from mediarover.error import *
-from mediarover.factory import EpisodeFactory, SourceFactory
+from mediarover.factory import EpisodeFactory, ItemFactory, SourceFactory
 from mediarover.series import Series
 from mediarover.source.newzbin import NewzbinSource
 from mediarover.source.newzbin.item import NewzbinItem
 from mediarover.source.newzbin.episode import NewzbinSingleEpisode, NewzbinMultiEpisode, NewzbinDailyEpisode
 from mediarover.utils.injection import is_instance_of, Dependency
 
-class NewzbinFactory(EpisodeFactory, SourceFactory):
+class NewzbinFactory(EpisodeFactory, ItemFactory, SourceFactory):
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -66,4 +66,7 @@ class NewzbinFactory(EpisodeFactory, SourceFactory):
 			return NewzbinDailyEpisode(**params)
 		else:
 			return NewzbinSingleEpisode(**params)
+
+	def create_item(self, title, url, type, priority, quality, delay):
+		return NewzbinItem(None, url, type, priority, quality, delay, title=title, url=url)
 

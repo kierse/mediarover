@@ -15,7 +15,7 @@
 
 from mediarover.config import ConfigObj
 from mediarover.error import *
-from mediarover.factory import EpisodeFactory, SourceFactory
+from mediarover.factory import EpisodeFactory, ItemFactory, SourceFactory
 from mediarover.episode.daily import DailyEpisode
 from mediarover.episode.multi import MultiEpisode
 from mediarover.episode.single import SingleEpisode
@@ -23,7 +23,7 @@ from mediarover.series import Series
 from mediarover.source.nzbindex import NzbindexSource
 from mediarover.utils.injection import is_instance_of, Dependency
 
-class NzbindexFactory(EpisodeFactory, SourceFactory):
+class NzbindexFactory(EpisodeFactory, ItemFactory, SourceFactory):
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -67,4 +67,7 @@ class NzbindexFactory(EpisodeFactory, SourceFactory):
 			return DailyEpisode(**params)
 		else:
 			return SingleEpisode(**params)
+
+	def create_item(self, title, url, type, priority, quality, delay):
+		return NzbindexItem(None, type, priority, quality, delay, title=title, url=url)
 
