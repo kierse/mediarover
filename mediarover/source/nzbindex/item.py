@@ -16,6 +16,7 @@
 import logging
 import re
 
+from mediarover.constant import NZBINDEX_FACTORY_OBJECT
 from mediarover.error import *
 from mediarover.source.item import AbstractItem
 from mediarover.factory import EpisodeFactory
@@ -46,6 +47,9 @@ class NzbindexItem(AbstractItem):
 	def quality(self):
 		""" quality (if known) of current report """
 		return self.__quality
+
+	def source(self):
+		return NZBINDEX_FACTORY_OBJECT
 
 	def title(self):
 		""" report title from source item """

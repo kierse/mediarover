@@ -16,6 +16,7 @@
 import logging
 import re
 
+from mediarover.constant import NZBS_FACTORY_OBJECT
 from mediarover.error import *
 from mediarover.episode.single import SingleEpisode
 from mediarover.episode.multi import MultiEpisode
@@ -48,6 +49,9 @@ class NzbsItem(AbstractItem):
 	def quality(self):
 		""" quality (if known) of current report """
 		return self.__quality
+
+	def source(self):
+		return NZBS_FACTORY_OBJECT
 
 	def title(self):
 		""" report title from source item """

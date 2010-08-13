@@ -16,6 +16,7 @@
 import logging
 import re
 
+from mediarover.constant import NEWZBIN_FACTORY_OBJECT
 from mediarover.error import *
 from mediarover.source.item import AbstractItem
 from mediarover.factory import EpisodeFactory
@@ -46,6 +47,9 @@ class NewzbinItem(AbstractItem):
 	def quality(self):
 		""" quality (if known) of current report """
 		return self.__quality
+
+	def source(self):
+		return NEWZBIN_FACTORY_OBJECT
 
 	def title(self):
 		""" title of current report """
