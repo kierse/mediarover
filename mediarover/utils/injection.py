@@ -86,7 +86,7 @@ class DependencyBroker(object):
 
 class Dependency(object):
 
-   def __get__(self, instance, owner):
+   def __get__(self, *args):
       return self.result 
 
    def __getattr__(self, name):
