@@ -78,17 +78,12 @@ class SabnzbdQueue(Queue):
 		}
 
 		args = {
+			'mode': 'addurl',
 			'cat': self.config[item.type()]['category'],
+			'name': item.url(),
 			'priority': priority[item.priority().lower()],
 		}
 
-		if hasattr(item, "id"):
-			args['mode'] = 'addid'
-			args['name'] = item.id
-		else:
-			args['mode'] = 'addurl'
-			args['name'] = item.url()
-			
 		if 'username' and 'password' in self._params:
 			if self._params['username'] is not None and self._params['password'] is not None:
 				args['ma_username'] = self._params['username']
@@ -106,12 +101,12 @@ class SabnzbdQueue(Queue):
 		response = handle.readline()
 		if response == "ok\n":
 			if self.config['tv']['quality']['managed']:
-				self.meta_ds.add_in_progress(item.title(), item.type(), item.quality())
+				self.meta_ds.add_in_progress(item)
 			logger.info("item '%s' successfully queued for download", item.title())
 		elif response.startswith("error"):
-			raise QueueInsertionError("unable to queue item '%s' for download: %s", args=(item.title(), response))
+			raise QueueInsertionError("unable to queue item '%s' for download: %s" % (item.title(), response))
 		else:
-			raise QueueInsertionError("unexpected response received from queue while attempting to schedule item '%s' for download: %s", args=(item.title(), response))
+			raise QueueInsertionError("unexpected response received from queue while attempting to schedule item '%s' for download: %s" % (item.title(), response))
 
 	def remove_from_queue(self, job):
 		""" remove item representing given download from queue """
@@ -143,9 +138,9 @@ class SabnzbdQueue(Queue):
 				self.meta_ds.delete_in_progress(job.title())
 			logger.info("job '%s' successfully removed from queue", job.title())
 		elif response.startswith("error"):
-			raise QueueDeletionError("unable to remove job %r from queue: %s", args=(job.title(), response))
+			raise QueueDeletionError("unable to remove job %s from queue: %s" % (job.title(), response))
 		else:
-			raise QueueDeletionError("unexpected response received from queue while attempting to remove job %r: %s", args=(job.title(), response))
+			raise QueueDeletionError("unexpected response received from queue while attempting to remove job %r: %s" % (job.title(), response))
 
 	def in_queue(self, download):
 		""" return boolean indicating whether or not the given source item is in queue """
