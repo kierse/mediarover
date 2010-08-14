@@ -28,7 +28,7 @@ class NzbsrusItem(AbstractItem):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	factory = Dependency('nzbsrus', is_instance_of(EpisodeFactory))
+	factory = Dependency(NZBSRUS_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

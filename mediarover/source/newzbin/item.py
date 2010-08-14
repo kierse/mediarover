@@ -28,7 +28,7 @@ class NewzbinItem(AbstractItem):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	factory = Dependency('newzbin', is_instance_of(EpisodeFactory))
+	factory = Dependency(NEWZBIN_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

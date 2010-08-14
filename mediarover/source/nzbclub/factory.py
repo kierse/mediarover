@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from mediarover.config import ConfigObj
+from mediarover.constant import CONFIG_OBJECT, WATCHED_SERIES_LIST
 from mediarover.error import *
 from mediarover.factory import EpisodeFactory, ItemFactory, SourceFactory
 from mediarover.episode.daily import DailyEpisode
@@ -28,8 +29,8 @@ class NzbclubFactory(EpisodeFactory, ItemFactory, SourceFactory):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	config = Dependency("config", is_instance_of(ConfigObj))
-	watched_series = Dependency('watched_series', is_instance_of(dict))
+	config = Dependency(CONFIG_OBJECT, is_instance_of(ConfigObj))
+	watched_series = Dependency(WATCHED_SERIES_LIST, is_instance_of(dict))
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

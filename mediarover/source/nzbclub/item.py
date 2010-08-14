@@ -28,7 +28,7 @@ class NzbclubItem(AbstractItem):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	factory = Dependency('nzbclub', is_instance_of(EpisodeFactory))
+	factory = Dependency(NZBCLUB_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

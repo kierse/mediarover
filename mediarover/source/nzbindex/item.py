@@ -28,7 +28,7 @@ class NzbindexItem(AbstractItem):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	factory = Dependency('nzbindex', is_instance_of(EpisodeFactory))
+	factory = Dependency(NZBINDEX_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

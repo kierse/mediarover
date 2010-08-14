@@ -28,7 +28,7 @@ class NzbmatrixItem(AbstractItem):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	factory = Dependency('nzbmatrix', is_instance_of(EpisodeFactory))
+	factory = Dependency(NZBMATRIX_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

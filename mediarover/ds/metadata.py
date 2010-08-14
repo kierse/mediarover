@@ -24,6 +24,7 @@ import shutil
 import sqlite3
 import sys
 
+from mediarover.constant import CONFIG_DIR, RESOURCES_DIR
 from mediarover.error import SchemaMigrationError
 from mediarover.source.item import DelayedItem
 from mediarover.utils.configobj import ConfigObj
@@ -36,9 +37,8 @@ class Metadata(object):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	config = Dependency('config', is_instance_of(ConfigObj))
-	config_dir = Dependency('config_dir', is_instance_of(str))
-	resources = Dependency("resources_dir", is_instance_of(str))
+	config_dir = Dependency(CONFIG_DIR, is_instance_of(str))
+	resources = Dependency(RESOURCES_DIR, is_instance_of(str))
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

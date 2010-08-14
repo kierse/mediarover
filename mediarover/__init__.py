@@ -21,6 +21,7 @@ import sys
 from optparse import OptionParser
 
 from mediarover.config import read_config
+from mediarover.constant import *
 from mediarover.ds.metadata import Metadata
 from mediarover.episode.factory import EpisodeFactory
 from mediarover.filesystem.factory import FilesystemFactory
@@ -68,8 +69,8 @@ See 'python mediarover.py COMMAND --help' for more information on a specific com
 	else: # os.name == "posix":
 		config_dir = os.path.expanduser("~/.mediarover")
 
-	broker.register('config_dir', config_dir)
-	broker.register('resources_dir', os.path.join(sys.path[0], "resources"))
+	broker.register(CONFIG_DIR, config_dir)
+	broker.register(RESOURCES_DIR, os.path.join(sys.path[0], "resources"))
 
 	if command == 'schedule':
 		scheduler(broker, args)
@@ -129,9 +130,9 @@ Examples:
 	(options, args) = parser.parse_args(args)
 
 	if options.config:
-		broker.register('config_dir', options.config)
+		broker.register(CONFIG_DIR, options.config)
 	
-	generate_config_files(broker['resources_dir'], broker['config_dir'])
+	generate_config_files(broker[RESOURCES_DIR], broker[CONFIG_DIR])
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -173,11 +174,11 @@ Examples:
 	(options, args) = parser.parse_args(args)
 
 	if options.config:
-		broker.register('config_dir', options.config)
+		broker.register(CONFIG_DIR, options.config)
 
 	# create config object using user config values
 	try:
-		config = read_config(broker['resources_dir'], broker['config_dir'])
+		config = read_config(broker[RESOURCES_DIR], broker[CONFIG_DIR])
 	except (ConfigurationError), e:
 		print e
 		exit(1)
@@ -191,28 +192,28 @@ Examples:
 	""" logging setup """
 
 	# initialize and retrieve logger for later use
-	logging.config.fileConfig(open(os.path.join(broker['config_dir'], "logging.conf")))
+	logging.config.fileConfig(open(os.path.join(broker[CONFIG_DIR], "logging.conf")))
 	logger = logging.getLogger("mediarover")
 
 	""" post configuration setup """
 
-	broker.register('config', config)
-	broker.register('metadata_data_store', Metadata())
-	broker.register('episode_factory', EpisodeFactory())
-	broker.register('filesystem_factory', FilesystemFactory())
+	broker.register(CONFIG_OBJECT, config)
+	broker.register(METADATA_OBJECT, Metadata())
+	broker.register(EPISODE_FACTORY_OBJECT, EpisodeFactory())
+	broker.register(FILESYSTEM_FACTORY_OBJECT, FilesystemFactory())
 
 	# register source dependencies
-	broker.register('newzbin', NewzbinFactory())
-	broker.register('tvnzb', TvnzbFactory())
-	broker.register('mytvnzb', MytvnzbFactory())
-	broker.register('nzbindex', NzbindexFactory())
-	broker.register('nzbclub', NzbclubFactory())
-	broker.register('nzbs', NzbsFactory())
-	broker.register('nzbsrus', NzbsrusFactory())
-	broker.register('nzbmatrix', NzbmatrixFactory())
+	broker.register(NEWZBIN_FACTORY_OBJECT, NewzbinFactory())
+	broker.register(TVNZB_FACTORY_OBJECT, TvnzbFactory())
+	broker.register(MYTVNZB_FACTORY_OBJECT, MytvnzbFactory())
+	broker.register(NZBINDEX_FACTORY_OBJECT, NzbindexFactory())
+	broker.register(NZBCLUB_FACTORY_OBJECT, NzbclubFactory())
+	broker.register(NZBS_FACTORY_OBJECT, NzbsFactory())
+	broker.register(NZBSRUS_FACTORY_OBJECT, NzbsrusFactory())
+	broker.register(NZBMATRIX_FACTORY_OBJECT, NzbmatrixFactory())
 
 	logger.info("--- STARTING ---")
-	logger.debug("using config directory: %s", broker['config_dir'])
+	logger.debug("using config directory: %s", broker[CONFIG_DIR])
 
 	try:
 		__scheduler(broker, options)
@@ -220,7 +221,7 @@ Examples:
 		logger.exception(e)
 		raise
 	finally:
-		broker['metadata_data_store'].cleanup()
+		broker[METADATA_OBJECT].cleanup()
 
 	if options.dry_run:
 		logger.info("DONE, dry-run flag set...nothing to do!")
@@ -232,7 +233,7 @@ def __scheduler(broker, options):
 	logger = logging.getLogger("mediarover")
 
 	# grab config object
-	config = broker['config']
+	config = broker[CONFIG_OBJECT]
 
 	# grab quality management flag.  This will determine if Media Rover
 	# will actively manage the quality of filesystem episodes or not
@@ -244,7 +245,7 @@ def __scheduler(broker, options):
 	if options.dry_run:
 		logger.info("--dry-run flag detected!  No new downloads will be queued during execution!")
 
-	config = broker['config']
+	config = broker[CONFIG_OBJECT]
 	tv_root = config['tv']['tv_root']
 
 	if not len(tv_root):
@@ -255,7 +256,7 @@ def __scheduler(broker, options):
 	logger.info("watching %d tv show(s)", len(watched_list))
 
 	# register series dictionary with dependency broker
-	broker.register('watched_series', watched_list)
+	broker.register(WATCHED_SERIES_LIST, watched_list)
 
 	logger.debug("finished processing watched tv")
 	logger.info("begin processing sources")
@@ -352,7 +353,7 @@ def __scheduler(broker, options):
 
 		# grab queue and list of in_progress jobs from database
 		in_queue = []
-		in_progress = set([row['title'] for row in broker['metadata_data_store'].list_in_progress()])
+		in_progress = set([row['title'] for row in broker[METADATA_OBJECT].list_in_progress()])
 		for job in queue.jobs():
 			if job.title() in in_progress:
 				in_queue.append(job.title())
@@ -362,7 +363,7 @@ def __scheduler(broker, options):
 		not_in_queue = in_progress.difference(set(in_queue))
 		if len(not_in_queue) > 0:
 			logger.debug("found %d stale job(s) in the database, removing..." % len(not_in_queue))
-			broker['metadata_data_store'].delete_in_progress(*not_in_queue)
+			broker[METADATA_OBJECT].delete_in_progress(*not_in_queue)
 
 	"""
 		for each Source object, loop through the list of available Items and
@@ -383,7 +384,7 @@ def __scheduler(broker, options):
 	# start by processing any items that have been delayed and 
 	# are now eligible for processing
 	logger.info("retrieving delayed items...")
-	for item in broker['metadata_data_store'].get_actionable_delayed_items():
+	for item in broker[METADATA_OBJECT].get_actionable_delayed_items():
 		logger.debug("begin processing delayed item '%s'", item.title())
 		__process_item(broker, item, queue, scheduled, drop_from_queue)
 
@@ -415,7 +416,7 @@ def __scheduler(broker, options):
 					logger.warning("unable to remove job %r from queue", job.title())
 
 		# remove processed items from delayed_item table
-		broker['metadata_data_store'].delete_stale_delayed_items()
+		broker[METADATA_OBJECT].delete_stale_delayed_items()
 
 		# now that we've fully parsed all source items
 		# lets add the collected downloads to the queue...
@@ -435,15 +436,15 @@ def __scheduler(broker, options):
 
 		if len(delayed) > 0:
 			logger.info("identified %d item(s) with a schedule delay" % len(delayed))
-			existing = broker['metadata_data_store'].get_delayed_items()
+			existing = broker[METADATA_OBJECT].get_delayed_items()
 			for item in delayed:
 				if item not in existing:
-					broker['metadata_data_store'].add_delayed_item(item)
+					broker[METADATA_OBJECT].add_delayed_item(item)
 				else:
 					logger.debug("skipping %s, already delayed" % item.title())
 
 		# reduce delay count for all items in delayed_item table
-		broker['metadata_data_store'].reduce_item_delay()
+		broker[METADATA_OBJECT].reduce_item_delay()
 	else:
 		if len(scheduled) > 0:
 			logger.info("the following items were identified as being eligible for download:")
@@ -471,7 +472,7 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 
 	# if multiepisode job: check if user will accept, otherwise 
 	# continue to next job
-	if not broker['config']['tv']['allow_multipart']:
+	if not broker[CONFIG_OBJECT]['tv']['allow_multipart']:
 		try:
 			episode.episodes
 		except AttributeError:
@@ -590,11 +591,11 @@ Examples:
 	(options, args) = parser.parse_args(args)
 
 	if options.config:
-		broker.register('config_dir', options.config)
+		broker.register(CONFIG_DIR, options.config)
 
 	# create config object using user config values
 	try:
-		config = read_config(broker['resources_dir'], broker['config_dir'])
+		config = read_config(broker[RESOURCE_DIR], broker[CONFIG_DIR])
 	except (ConfigurationError), e:
 		print e
 		exit(1)
@@ -609,7 +610,7 @@ Examples:
 
 	# initialize and retrieve logger for later use
 	# set logging path using default_log_dir from config file
-	logging.config.fileConfig(open(os.path.join(broker['config_dir'], "sabnzbd_episode_sort_logging.conf")))
+	logging.config.fileConfig(open(os.path.join(broker[CONFIG_DIR], "sabnzbd_episode_sort_logging.conf")))
 	logger = logging.getLogger("mediarover.scripts.sabnzbd.episode")
 
 	""" post configuration setup """
@@ -626,7 +627,7 @@ Examples:
 		logger.addHandler(handler)
 
 	logger.info("--- STARTING ---")
-	logger.debug("using config directory: %s", broker['config_dir'])
+	logger.debug("using config directory: %s", broker[CONFIG_DIR])
 
 	logger.debug(sys.argv[0] + " episode-sort " + " ".join(map(lambda x: "'" + x + "'", args)))
 
@@ -648,18 +649,14 @@ Examples:
 		params['category'] = args[4]
 		params['group'] = args[5]
 		params['status'] = args[6]
-	else:
-		print "ERROR: incorrect number of arguments!"
-		print_usage(parser)
-		exit(1)
 
-	broker.register('metadata_data_store', Metadata())
-	broker.register('config', config)
+	broker.register(METADATA_OBJECT, Metadata())
+	broker.register(CONFIG, config)
 
 	# register factory objects
-	broker.register('newzbin', NewzbinFactory())
-	broker.register('episode_factory', EpisodeFactory())
-	broker.register('filesystem_factory', FilesystemFactory())
+	broker.register(NEWZBIN_FACTORY_OBJECT, NewzbinFactory())
+	broker.register(EPISODE_FACTORY_OBJECT, EpisodeFactory())
+	broker.register(FILESYSTEM_FACTORY_OBJECT, FilesystemFactory())
 
 	# sanitize tv series filter subsection names for 
 	# consistent lookups
@@ -693,19 +690,19 @@ Examples:
 		if isinstance(e, FailedDownload):
 			logger.warning("download failed, moving to trash...")
 			try:
-				_move_to_trash(broker['config']['tv']['tv_root'][0], params['path'])
+				_move_to_trash(broker[CONFIG_OBJECT]['tv']['tv_root'][0], params['path'])
 			except OSError, (e2):
 				logger.exception(FailedDownload("unable to move download directory to trash: %s" % e2.args[0]))
 			message = "FAILURE, %s!" % e.args[0]
 		else:
-			message = "FAILURE, unable to sort downloaded episode! See log file at %r for more details!" % os.path.join(broker['config_dir'], "logs", "sabnzbd_episode_sort.log")
+			message = "FAILURE, unable to sort downloaded episode! See log file at %r for more details!" % os.path.join(broker[CONFIG_DIR], "logs", "sabnzbd_episode_sort.log")
 	else:
 		if options.dry_run:
 			message = "DONE, dry-run flag set...nothing to do!"
 		else:
 			message = "SUCCESS, downloaded episode sorted!"
 	finally:
-		broker['metadata_data_store'].cleanup()
+		broker[METADATA_OBJECT].cleanup()
 
 	print message
 	exit(fatal)
@@ -715,7 +712,7 @@ def __episode_sort(broker, options, **kwargs):
 	logger = logging.getLogger("mediarover.scripts.sabnzbd.episode")
 
 	# ensure user has indicated a desired quality level if quality management is turned on
-	config = broker['config']
+	config = broker[CONFIG_OBJECT]
 	if config['tv']['quality']['managed'] and config['tv']['quality']['desired'] is None:
 		raise ConfigurationError("when quality management is on you must indicate a desired quality level at [tv] [[quality]] desired =")
 
@@ -833,7 +830,7 @@ def __episode_sort(broker, options, **kwargs):
 					watched_list.update(additions)
 
 	# register series dictionary with dependency broker
-	broker.register('watched_series', watched_list)
+	broker.register(WATCHED_SERIES_LIST, watched_list)
 
 	logger.info("watching %d tv show(s)", len(watched_list))
 	logger.debug("finished processing watched tv")
@@ -896,7 +893,7 @@ def __episode_sort(broker, options, **kwargs):
 			if 'quality' in kwargs:
 				episode.quality = kwargs['quality']
 			else:
-				result = broker['metadata_data_store'].get_in_progress(job)
+				result = broker[METADATA_OBJECT].get_in_progress(job)
 				if result is None:
 					if config['tv']['quality']['guess']:
 						episode.quality = guess_quality_level(config, file.extension, episode.quality)
@@ -972,7 +969,7 @@ def __episode_sort(broker, options, **kwargs):
 
 			# remove job from in_progress
 			if config['tv']['quality']['managed']:
-				broker['metadata_data_store'].delete_in_progress(job)
+				broker[METADATA_OBJECT].delete_in_progress(job)
 
 			if additional is None:
 
@@ -982,7 +979,7 @@ def __episode_sort(broker, options, **kwargs):
 				# update metadata db with newly sorted episode information
 				if config['tv']['quality']['managed']:
 					for ep in desirables:
-						broker['metadata_data_store'].add_episode(ep)
+						broker[METADATA_OBJECT].add_episode(ep)
 
 				remove = []
 				files = series.find_episode_on_disk(episode)
@@ -1085,11 +1082,11 @@ Examples:
 	(options, args) = parser.parse_args(args)
 
 	if options.config:
-		broker.register('config_dir', options.config)
+		broker.register(CONFIG_DIR, options.config)
 
 	# create config object using user config values
 	try:
-		config = read_config(broker['resources_dir'], broker['config_dir'])
+		config = read_config(broker[RESOURCES_DIR], broker[CONFIG_DIR])
 	except (ConfigurationError), e:
 		print e
 		exit(1)
@@ -1103,15 +1100,15 @@ Examples:
 	""" logging setup """
 
 	# initialize and retrieve logger for later use
-	logging.config.fileConfig(open(os.path.join(broker['config_dir'], "logging.conf")))
+	logging.config.fileConfig(open(os.path.join(broker[CONFIG_DIR], "logging.conf")))
 	logger = logging.getLogger("mediarover")
 
 	""" post configuration setup """
 
-	broker.register('config', config)
-	broker.register('metadata_data_store', Metadata())
-	broker.register('episode_factory', EpisodeFactory())
-	broker.register('filesystem_factory', FilesystemFactory())
+	broker.register(CONFIG_OBJECT, config)
+	broker.register(METADATA_OBJECT, Metadata())
+	broker.register(EPISODE_FACTORY_OBJECT, EpisodeFactory())
+	broker.register(FILESYSTEM_FACTORY_OBJECT, FilesystemFactory())
 
 	try:
 		__set_quality(broker, options, *args)
@@ -1119,7 +1116,7 @@ Examples:
 		logger.exception(e)
 		raise
 	finally:
-		broker['metadata_data_store'].cleanup()
+		broker[METADATA_OBJECT].cleanup()
 	
 def __set_quality(broker, options, series_name=None, season_num=None, episode_num=None):
 	logger = logging.getLogger("mediarover")
@@ -1136,12 +1133,12 @@ Series Options:
 (m)edium - mark episodes as being of medium quality
 (h)igh   - mark episodes as being of high quality"""
 
-	config = broker['config']
+	config = broker[CONFIG]
 
 	# build dict of watched series
 	# register series dictionary with dependency broker
 	watched_list = build_watch_list(config, process_aliases=False)
-	broker.register('watched_series', watched_list)
+	broker.register(WATCHED_SERIES_LIST, watched_list)
 
 	# build list of series to iterate over
 	if series_name:
@@ -1279,7 +1276,7 @@ Series Options:
 			# set quality for all episodes in given size list
 			for episode in avg_sizes[avg_size]['episodes']:
 				episode.quality = quality
-				broker['metadata_data_store'].add_episode(episode)
+				broker[METADATA_OBJECT].add_episode(episode)
 
 		# set quality for all episodes that were matched by extension
 		extension_msg = "Setting quality of '%s' for %d episode(s) with extension found in %s"
@@ -1288,21 +1285,21 @@ Series Options:
 			print extension_msg % (quality, len(low), options.low)
 			for episode in low:
 				episode.quality = quality
-				broker['metadata_data_store'].add_episode(episode)
+				broker[METADATA_OBJECT].add_episode(episode)
 
 		if len(medium):
 			quality = MEDIUM
 			print extension_msg % (quality, len(medium), options.medium)
 			for episode in medium:
 				episode.quality = quality
-				broker['metadata_data_store'].add_episode(episode)
+				broker[METADATA_OBJECT].add_episode(episode)
 
 		if len(high):
 			quality = HIGH
 			print extension_msg % (quality, len(high), options.high)
 			for episode in high:
 				episode.quality = quality
-				broker['metadata_data_store'].add_episode(episode)
+				broker[METADATA_OBJECT].add_episode(episode)
 
 	print "DONE"
 		
@@ -1361,25 +1358,25 @@ Examples:
 		exit(2)
 		
 	if options.config:
-		broker.register('config_dir', options.config)
+		broker.register(CONFIG_DIR, options.config)
 
 	# create config object using user config values
 	try:
-		config = read_config(broker['resources_dir'], broker['config_dir'])
+		config = read_config(broker[RESOURCES_DIR], broker[CONFIG_DIR])
 	except (ConfigurationError), e:
 		print e
 		exit(1)
 	
-	broker.register('metadata_data_store', Metadata(check_schema_version=False))
+	broker.register(METADATA_OBJECT, Metadata(check_schema_version=False))
 
 	# print current schema version and exit
 	if options.version:
-		print broker['metadata_data_store'].schema_version
+		print broker[METADATA_OBJECT].schema_version
 		exit(0)
 
 	# make backup of database
 	if options.backup:
-		broker['metadata_data_store'].backup()
+		broker[METADATA_OBJECT].backup()
 	
-	broker['metadata_data_store'].migrate_schema(end_version, options.rollback)
+	broker[METADATA_OBJECT].migrate_schema(end_version, options.rollback)
 

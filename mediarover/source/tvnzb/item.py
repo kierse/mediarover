@@ -28,7 +28,7 @@ class TvnzbItem(AbstractItem):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	factory = Dependency('tvnzb', is_instance_of(EpisodeFactory))
+	factory = Dependency(TVNZB_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

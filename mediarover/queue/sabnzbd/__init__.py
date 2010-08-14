@@ -21,6 +21,7 @@ import urllib
 import xml.dom.minidom
 
 from mediarover.config import ConfigObj
+from mediarvoer.constant import CONFIG_OBJECT, METADATA_OBJECT
 from mediarover.ds.metadata import Metadata
 from mediarover.error import *
 from mediarover.queue import Queue
@@ -31,8 +32,8 @@ class SabnzbdQueue(Queue):
 	""" Sabnzbd queue class """
 
 	# declare the metadata_data_source as a dependency
-	meta_ds = Dependency("metadata_data_store", is_instance_of(Metadata))
-	config = Dependency("config", is_instance_of(ConfigObj))
+	meta_ds = Dependency(METADATA_OBJECT, is_instance_of(Metadata))
+	config = Dependency(CONFIG_OBJECT, is_instance_of(ConfigObj))
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

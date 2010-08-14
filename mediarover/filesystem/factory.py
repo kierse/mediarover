@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from mediarover.config import ConfigObj
+from mediarover.constant import CONFIG_OBJECT, WATCHED_SERIES_LIST
 from mediarover.error import InvalidEpisodeString
 from mediarover.factory import EpisodeFactory
 from mediarover.filesystem.episode import FilesystemSingleEpisode
@@ -27,8 +28,8 @@ class FilesystemFactory(EpisodeFactory):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	config = Dependency("config", is_instance_of(ConfigObj))
-	watched_series = Dependency('watched_series', is_instance_of(dict))
+	config = Dependency(CONFIG_OBJECT, is_instance_of(ConfigObj))
+	watched_series = Dependency(WATCHED_SERIES_LIST, is_instance_of(dict))
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

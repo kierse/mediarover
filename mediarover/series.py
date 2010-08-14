@@ -19,6 +19,7 @@ import os.path
 import re
 
 from mediarover.config import ConfigObj
+from mediarover.constant import CONFIG_OBJECT, FILESYSTEM_FACTORY_OBJECT, METADATA_OBJECT
 from mediarover.ds.metadata import Metadata
 from mediarover.error import FilesystemError, InvalidData, InvalidEpisodeString, InvalidMultiEpisodeData, MissingParameterError, TooManyParametersError
 from mediarover.factory import EpisodeFactory
@@ -32,9 +33,9 @@ class Series(object):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	config = Dependency('config', is_instance_of(ConfigObj))
-	factory = Dependency('filesystem_factory', is_instance_of(EpisodeFactory))
-	meta_ds = Dependency("metadata_data_store", is_instance_of(Metadata))
+	config = Dependency(CONFIG_OBJECT, is_instance_of(ConfigObj))
+	factory = Dependency(FILESYSTEM_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
+	meta_ds = Dependency(METADATA_OBJECT, is_instance_of(Metadata))
 
 	metadata_regex = re.compile("\s*\(.+?\)")
 
