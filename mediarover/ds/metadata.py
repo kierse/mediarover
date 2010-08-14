@@ -26,8 +26,7 @@ import sys
 
 from mediarover.constant import CONFIG_DIR, RESOURCES_DIR
 from mediarover.error import SchemaMigrationError
-from mediarover.source.item import DelayedItem
-from mediarover.utils.configobj import ConfigObj
+from mediarover.factory import ItemFactory
 from mediarover.utils.injection import is_instance_of, Dependency
 from mediarover.version import __schema_version__
 
@@ -42,9 +41,9 @@ class Metadata(object):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def add_in_progress(self, title, type, quality):
+	def add_in_progress(self, item):
 		""" record given nzb in progress table with type, and quality """
-		self.__dbh.execute("INSERT INTO in_progress (title, type, quality) VALUES (?,?,?)", (title, type, quality))
+		self.__dbh.execute("INSERT INTO in_progress (title, source, type, quality) VALUES (?,?,?,?)", (item.title(), item.source(), item.type(), item.quality()))
 		self.__dbh.commit()
 
 	def get_in_progress(self, title):
@@ -135,7 +134,7 @@ class Metadata(object):
 
 	def add_delayed_item(self, item):
 		""" add given item to delayed_item table """
-		self.__dbh.execute("INSERT INTO delayed_item (title, url, type, priority, quality, delay) VALUES (?,?,?,?,?,?)", (item.title(), item.url(), item.type(), item.priority(), item.quality(), item.delay()))
+		self.__dbh.execute("INSERT INTO delayed_item (title, source, url, type, priority, quality, delay) VALUES (?,?,?,?,?,?,?)", (item.title(), item.source(), item.url(), item.type(), item.priority(), item.quality(), item.delay()))
 		self.__dbh.commit()
 
 		logger = logging.getLogger("mediarover.ds.metadata")
@@ -153,19 +152,29 @@ class Metadata(object):
 
 	def get_actionable_delayed_items(self):
 		""" return list of items from the delayed_item table that have delay value less than 1 """
-		
+		factories = {}
+
 		# iterate over all tuples with delay < 1 and create new item objects
 		items = []
-		for r in self.__dbh.execute("SELECT title, url, type, priority, quality, delay FROM delayed_item WHERE delay < 1"):
-			items.append(DelayedItem(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
+		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay FROM delayed_item WHERE delay < 1"):
+			if r['source'] not in factories:
+				factories[r['source']] = Dependency(r['source'], is_instance_of(ItemFactory))
+			factory = factories[r['source']].__get__()
+			items.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
 
 		return items
 	
 	def get_delayed_items(self):
 		""" return list of all items found in delayed_item table """
+		factories = {}
+
 		list = []
-		for r in self.__dbh.execute("SELECT title, url, type, priority, quality, delay FROM delayed_item"):
-			list.append(DelayedItem(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
+		for row in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay FROM delayed_item"):
+			if r['source'] not in factories:
+				factories[r['source']] = Dependency(r['source'], is_instance_of(ItemFactory))
+			factory = factories[r['source']].__get__()
+			items.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
+
 		return list
 
 	def reduce_item_delay(self):
