@@ -480,11 +480,6 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 		else:
 			return
 
-	# make sure current item hasn't already been downloaded before
-	if queue.processed(item):
-		logger.info("skipping '%s', already processed by queue", item.title())
-		return
-
 	# check if episode is represented on disk (single or multi). If yes, determine whether 
 	# or not it should be scheduled for download.
 	# ATTENTION: this call takes into account users preferences regarding single vs multi-part 
@@ -504,6 +499,11 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 		else:
 			logger.info("skipping '%s', in download queue", item.title())
 			return
+
+	# make sure current item hasn't already been downloaded before
+	if queue.processed(item):
+		logger.info("skipping '%s', already processed by queue", item.title())
+		return
 
 	# check if episode has already been scheduled for download.  If yes, determine whether or not it
 	# should replace the currently scheduled item.
