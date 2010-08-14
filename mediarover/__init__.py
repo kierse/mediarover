@@ -633,9 +633,7 @@ Examples:
 
 	# gather command line arguments
 	params = {'path': args[0].rstrip("/\ ")}
-	if len(args) == 1:
-		pass
-	elif len(args) == 2:
+	if len(args) == 2:
 		params['quality'] = args[1]
 	elif len(args) in (6,7):
 		# NOTE: when SAB passes an empty value for the index id to the batch shell script (Windows), the empty
@@ -866,10 +864,14 @@ def __episode_sort(broker, options, **kwargs):
 	logger.info("found download file at '%s'", orig_path)
 
 	# retrieve the proper factory object
-	if report_id is not None and report_id != "":
-		factory = broker['newzbin']
+	in_progress = broker[METADATA_OBJECT].get_in_progress(job)
+	if in_progress is None:
+		if report_id is not None and report_id != "":
+			factory = broker[NEWZBIN_FACTORY_OBJECT]
+		else:
+			factory = broker[EPISODE_FACTORY_OBJECT]
 	else:
-		factory = broker['episode_factory']
+		factory = broker[in_progress['source']]
 
 	# build episode object using job name
 	try:
