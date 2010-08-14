@@ -429,8 +429,8 @@ def __scheduler(broker, options):
 					continue
 				try:
 					queue.add_to_queue(item)
-				except (IOError, QueueInsertionError):
-					logger.warning("unable to schedule item %r for download", item.title())
+				except (IOError, QueueInsertionError), e:
+					logger.warning("unable to schedule item %s for download: %s" % (item.title(), e.args[0]))
 		else:
 			logger.info("no items to schedule for download")
 
