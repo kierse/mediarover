@@ -834,25 +834,27 @@ def __episode_sort(broker, options, **kwargs):
 			raise FilesystemError("unable to find disk with enough space to sort episode!")
 
 		# make sure series folder exists on that disk
-		for path in series.path:
-			if path.startswith(free_root):
+		series_dir = None
+		for dir in series.path:
+			if dir.startswith(free_root):
+				series_dir = dir 
 				break
 		else:
-			free_root = os.path.join(free_root, series.format(config['tv']['template']['series']))
+			series_dir = os.path.join(free_root, series.format(config['tv']['template']['series']))
 			try:
-				os.makedirs(free_root)
+				os.makedirs(series_dir)
 			except OSError, (e):
-				logger.error("unable to create directory %r: %s", free_root, e.strerror)
+				logger.error("unable to create directory %r: %s", series_dir, e.strerror)
 				raise
 			else:
-				logger.debug("created directory '%s'", free_root)
-			series.path.append(free_root)
+				logger.debug("created series directory '%s'", series_dir)
+			series.path.append(series_dir)
 
-		dest_dir = series.locate_season_folder(episode.season, free_root)
+		dest_dir = series.locate_season_folder(episode.season, series_dir)
 		if dest_dir is None:
 			
 			# get season folder (if desired)
-			dest_dir = os.path.join(free_root, file.format_season())
+			dest_dir = os.path.join(series_dir, file.format_season())
 
 			if not os.path.isdir(dest_dir):
 				try:
@@ -861,13 +863,8 @@ def __episode_sort(broker, options, **kwargs):
 					logger.error("unable to create directory %r: %s", dest_dir, e.strerror)
 					raise
 				else:
-					logger.debug("created directory '%s'", dest_dir)
+					logger.debug("created season directory '%s'", dest_dir)
 
-			# now that the series folder has been created
-			# set the series path
-			if len(series.path) == 0:
-				series.path = free_root
-				
 		# build list of episode(s) (either SingleEpisode or DailyEpisode) that are desirable
 		# ie. missing or of more desirable quality than current offering
 		desirables = series.filter_undesirables(episode)
