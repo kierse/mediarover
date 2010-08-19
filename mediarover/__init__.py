@@ -187,7 +187,7 @@ Examples:
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = filters
+		config['tv']['filter'][Series.sanitize_series_name(name=name)] = build_series_filters(config['tv']['quality'], filters)
 
 	""" logging setup """
 
@@ -604,7 +604,7 @@ Examples:
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = filters
+		config['tv']['filter'][Series.sanitize_series_name(name=name)] = build_series_filters(config['tv']['quality'], filters)
 
 	""" logging setup """
 
@@ -660,7 +660,7 @@ Examples:
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = filters
+		config['tv']['filter'][Series.sanitize_series_name(name=name)] = build_series_filters(config['tv']['quality'], filters)
 
 	""" main """
 
@@ -1097,7 +1097,7 @@ Examples:
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = filters
+		config['tv']['filter'][Series.sanitize_series_name(name=name)] = build_series_filters(config['tv']['quality'], filters)
 
 	""" logging setup """
 
