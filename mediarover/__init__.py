@@ -203,14 +203,7 @@ Examples:
 	broker.register(FILESYSTEM_FACTORY_OBJECT, FilesystemFactory())
 
 	# register source dependencies
-	broker.register(NEWZBIN_FACTORY_OBJECT, NewzbinFactory())
-	broker.register(TVNZB_FACTORY_OBJECT, TvnzbFactory())
-	broker.register(MYTVNZB_FACTORY_OBJECT, MytvnzbFactory())
-	broker.register(NZBINDEX_FACTORY_OBJECT, NzbindexFactory())
-	broker.register(NZBCLUB_FACTORY_OBJECT, NzbclubFactory())
-	broker.register(NZBS_FACTORY_OBJECT, NzbsFactory())
-	broker.register(NZBSRUS_FACTORY_OBJECT, NzbsrusFactory())
-	broker.register(NZBMATRIX_FACTORY_OBJECT, NzbmatrixFactory())
+	__register_source_factories(broker)
 
 	logger.info("--- STARTING ---")
 	logger.debug("using config directory: %s", broker[CONFIG_DIR])
@@ -451,6 +444,16 @@ def __scheduler(broker, options):
 			for item in scheduled:
 				logger.info(item.title())
 
+def __register_source_factories(broker):
+	broker.register(NEWZBIN_FACTORY_OBJECT, NewzbinFactory())
+	broker.register(TVNZB_FACTORY_OBJECT, TvnzbFactory())
+	broker.register(MYTVNZB_FACTORY_OBJECT, MytvnzbFactory())
+	broker.register(NZBINDEX_FACTORY_OBJECT, NzbindexFactory())
+	broker.register(NZBCLUB_FACTORY_OBJECT, NzbclubFactory())
+	broker.register(NZBS_FACTORY_OBJECT, NzbsFactory())
+	broker.register(NZBSRUS_FACTORY_OBJECT, NzbsrusFactory())
+	broker.register(NZBMATRIX_FACTORY_OBJECT, NzbmatrixFactory())
+
 def __process_item(broker, item, queue, scheduled, drop_from_queue):
 
 	logger = logging.getLogger("mediarover")
@@ -650,11 +653,11 @@ Examples:
 
 	broker.register(METADATA_OBJECT, Metadata())
 	broker.register(CONFIG_OBJECT, config)
-
-	# register factory objects
-	broker.register(NEWZBIN_FACTORY_OBJECT, NewzbinFactory())
 	broker.register(EPISODE_FACTORY_OBJECT, EpisodeFactory())
 	broker.register(FILESYSTEM_FACTORY_OBJECT, FilesystemFactory())
+
+	# register source factory objects
+	__register_source_factories(broker)
 
 	# sanitize tv series filter subsection names for 
 	# consistent lookups
