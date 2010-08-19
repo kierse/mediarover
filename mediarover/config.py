@@ -232,7 +232,7 @@ def check_options_list(selections, **kargs):
 
 	return selections
 
-def build_series_filters(path, quality_defaults, seed=None):
+def build_series_filters(quality_defaults, seed=None):
 	""" build a dict of filters for a given path and seed """
 	logger = logging.getLogger("mediarover.config")
 
@@ -250,9 +250,14 @@ def build_series_filters(path, quality_defaults, seed=None):
 	if seed['quality']['desired'] is None:
 		seed['quality']['desired'] = quality_defaults['desired']
 
+	return seed
+
+def locate_and_process_ignore(current, path):
+	""" check given path for a .ignore file and incorporate any values with current hash """
+
 	# avoid a little I/O overhead and only look for the
 	# ignore file if skip isn't True
-	if 'skip' not in seed or seed['skip'] is False:
+	if 'skip' not in current or current['skip'] is False:
 
 		# check given path for .ignore file
 		if os.path.exists(os.path.join(path, ".ignore")):
@@ -262,14 +267,12 @@ def build_series_filters(path, quality_defaults, seed=None):
 			with open(os.path.join(path, ".ignore")) as file:
 				line = file.readline().rstrip("\n")
 				if line == "*":
-					seed['skip'] = True
+					current['skip'] = True
 				else:
 					file_ignores.append(re.sub('[^\d]', '', line))
 
 			# replace existing ignore list with current
-			seed['ignore'] = file_ignores
-
-	return seed
+			current['ignore'] = file_ignores
 
 # private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

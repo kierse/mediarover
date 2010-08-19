@@ -187,7 +187,7 @@ Examples:
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = filters
+		config['tv']['filter'][Series.sanitize_series_name(name=name)] = build_series_filters(config['tv']['quality'], filters)
 
 	""" logging setup """
 
@@ -595,7 +595,7 @@ Examples:
 
 	# create config object using user config values
 	try:
-		config = read_config(broker[RESOURCE_DIR], broker[CONFIG_DIR])
+		config = read_config(broker[RESOURCES_DIR], broker[CONFIG_DIR])
 	except (ConfigurationError), e:
 		print e
 		exit(1)
@@ -604,7 +604,7 @@ Examples:
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = filters
+		config['tv']['filter'][Series.sanitize_series_name(name=name)] = build_series_filters(config['tv']['quality'], filters)
 
 	""" logging setup """
 
@@ -649,7 +649,7 @@ Examples:
 		params['status'] = args[6]
 
 	broker.register(METADATA_OBJECT, Metadata())
-	broker.register(CONFIG, config)
+	broker.register(CONFIG_OBJECT, config)
 
 	# register factory objects
 	broker.register(NEWZBIN_FACTORY_OBJECT, NewzbinFactory())
@@ -660,7 +660,7 @@ Examples:
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = filters
+		config['tv']['filter'][Series.sanitize_series_name(name=name)] = build_series_filters(config['tv']['quality'], filters)
 
 	""" main """
 
@@ -749,85 +749,9 @@ def __episode_sort(broker, options, **kwargs):
 		else:
 			raise FailedDownload("download failed")
 
-	watched_list = {}
-	skip_list = {}
-	for root in tv_root:
-
-		# make sure tv root directory exists and that we have read and 
-		# write access to it
-		if not os.path.exists(root):
-			raise FilesystemError("TV root directory (%s) does not exist!", (root))
-		if not os.access(root, os.R_OK | os.W_OK):
-			raise FilesystemError("Missing read/write access to tv root directory (%s)", (root))
-
-		logger.info("begin processing tv directory: %s", root)
-
-		# set umask for files and directories created during this session
-		os.umask(config['tv']['umask'])
-
-		# get list of shows in root tv directory
-		dir_list = os.listdir(root)
-		dir_list.sort()
-		for name in dir_list:
-
-			# skip hidden directories
-			if name.startswith("."):
-				continue
-
-			dir = os.path.join(root, name)
-			if os.path.isdir(dir):
-
-				sanitized_name = Series.sanitize_series_name(name=name)
-
-				# already seen this series and have determined that user wants to skip it
-				if sanitized_name in skip_list:
-					continue
-
-				# we've already seen this series.  Append new directory to list of series paths
-				elif sanitized_name in watched_list:
-					series = watched_list[sanitized_name]
-					series.path.append(dir)
-
-				# new series, create new Series object and add to the watched list
-				else:
-					series = Series(name, path=dir)
-					additions = {sanitized_name: series}
-
-					# locate and process any filters for current series.  If no user defined filters for 
-					# current series exist, build dict using default values
-					if sanitized_name in config['tv']['filter']:
-						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'], config['tv']['filter'][sanitized_name])
-					else:
-						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'])
-
-					# check filters to see if user wants this series skipped...
-					if config['tv']['filter'][sanitized_name]["skip"]:
-						skip_list[sanitized_name] = series
-						logger.debug("found skip filter, ignoring series: %s", series.name)
-						continue
-
-					# set season ignore list for current series
-					if len(config['tv']['filter'][sanitized_name]['ignore']):
-						logger.debug("ignoring the following seasons of %s: %s", series.name, config['tv']['filter'][sanitized_name]['ignore'])
-						series.ignores = config['tv']['filter'][sanitized_name]['ignore']
-
-					# process series aliases.  For each new alias, register series in watched_list
-					if config['tv']['filter'][sanitized_name]['alias']:
-						series.aliases = config['tv']['filter'][sanitized_name]['alias'];
-						count = 0
-						for alias in series.aliases:
-							sanitized_alias = Series.sanitize_series_name(name=alias)
-							if sanitized_alias in watched_list:
-								logger.warning("duplicate series alias found for '%s'! Duplicate aliases can/will result in incorrect downloads and improper sorting! You've been warned..." % series)
-							additions[sanitized_alias] = series
-							count += 1
-						logger.debug("%d alias(es) identified for series '%s'" % (count, series))
-
-					# finally, add additions to watched list
-					logger.debug("watching series: %s", series)
-					watched_list.update(additions)
-
+	# build dict of watched series
 	# register series dictionary with dependency broker
+	watched_list = build_watch_list(config)
 	broker.register(WATCHED_SERIES_LIST, watched_list)
 
 	logger.info("watching %d tv show(s)", len(watched_list))
@@ -837,7 +761,6 @@ def __episode_sort(broker, options, **kwargs):
 
 	# locate episode file in given download directory
 	orig_path = None
-	filename = None
 	extension = None
 	size = 0
 	for dirpath, dirnames, filenames in os.walk(path):
@@ -852,16 +775,15 @@ def __episode_sort(broker, options, **kwargs):
 			# get size of current file (in bytes)
 			stat = os.stat(os.path.join(dirpath, file))
 			if stat.st_size > size:
-				filename = file
+				orig_path = os.path.join(dirpath, file)
 				extension = ext
 				size = stat.st_size
-				logger.debug("identified possible download: filename => %s, size => %d", filename, size)
+				logger.debug("identified possible download: filename => %s, size => %d", file, size)
 
-	if filename is None:
+	if orig_path is None:
 		raise FilesystemError("unable to find episode file in given download path %r" % path)
-
-	orig_path = os.path.join(path, filename)
-	logger.info("found download file at '%s'", orig_path)
+	else:
+		logger.info("found download file at '%s'", orig_path)
 
 	# retrieve the proper factory object
 	in_progress = broker[METADATA_OBJECT].get_in_progress(job)
@@ -895,14 +817,13 @@ def __episode_sort(broker, options, **kwargs):
 			if 'quality' in kwargs:
 				episode.quality = kwargs['quality']
 			else:
-				result = broker[METADATA_OBJECT].get_in_progress(job)
-				if result is None:
+				if in_progress is None:
 					if config['tv']['quality']['guess']:
 						episode.quality = guess_quality_level(config, file.extension, episode.quality)
 					else:
 						logger.info("unable to find quality information in metadata db, assuming default quality level!")
 				else:
-					episode.quality = result['quality']
+					episode.quality = in_progress['quality']
 
 		# find available disk with enough space for newly downloaded episode
 		free_root = find_disk_with_space(series, tv_root, file.size) 
@@ -910,21 +831,24 @@ def __episode_sort(broker, options, **kwargs):
 			raise FilesystemError("unable to find disk with enough space to sort episode!")
 
 		# make sure series folder exists on that disk
+		dest_dir = None
 		for path in series.path:
 			if path.startswith(free_root):
+				dest_dir = path
 				break
 		else:
-			free_root = os.path.join(free_root, series.format(config['tv']['template']['series']))
+			dest_dir = os.path.join(free_root, series.format(config['tv']['template']['series']))
 			try:
-				os.makedirs(free_root)
+				os.makedirs(dest_dir)
 			except OSError, (e):
-				logger.error("unable to create directory %r: %s", free_root, e.strerror)
+				logger.error("unable to create directory %r: %s", dest_dir, e.strerror)
 				raise
 			else:
-				logger.debug("created directory '%s'", free_root)
-			series.path.append(free_root)
+				logger.debug("created directory '%s'", dest_dir)
+			series.path.append(dest_dir)
 
-		dest_dir = series.locate_season_folder(episode.season, free_root)
+		# FIXME
+		dest_dir = series.locate_season_folder(episode.season, dest_dir)
 		if dest_dir is None:
 			
 			# get season folder (if desired)
@@ -1097,7 +1021,7 @@ Examples:
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = filters
+		config['tv']['filter'][Series.sanitize_series_name(name=name)] = build_series_filters(config['tv']['quality'], filters)
 
 	""" logging setup """
 
