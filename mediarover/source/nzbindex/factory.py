@@ -22,7 +22,6 @@ from mediarover.episode.multi import MultiEpisode
 from mediarover.episode.single import SingleEpisode
 from mediarover.series import Series
 from mediarover.source.nzbindex import NzbindexSource
-from mediarover.source.nzbindex.item import NzbindexItem
 from mediarover.utils.injection import is_instance_of, Dependency
 
 class NzbindexFactory(EpisodeFactory, ItemFactory, SourceFactory):

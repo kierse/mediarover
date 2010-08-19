@@ -69,5 +69,5 @@ class NewzbinFactory(EpisodeFactory, ItemFactory, SourceFactory):
 			return NewzbinSingleEpisode(**params)
 
 	def create_item(self, title, url, type, priority, quality, delay):
-		return NewzbinItem(None, type, priority, quality, delay, title=title, url=url)
+		return NewzbinItem(None, url, type, priority, quality, delay, title=title, url=url)
 

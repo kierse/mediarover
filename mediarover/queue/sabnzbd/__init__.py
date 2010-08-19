@@ -21,7 +21,7 @@ import urllib
 import xml.dom.minidom
 
 from mediarover.config import ConfigObj
-from mediarover.constant import CONFIG_OBJECT, METADATA_OBJECT
+from mediarvoer.constant import CONFIG_OBJECT, METADATA_OBJECT
 from mediarover.ds.metadata import Metadata
 from mediarover.error import *
 from mediarover.queue import Queue

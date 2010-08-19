@@ -450,7 +450,7 @@ class Series(object):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-from mediarover.config import build_series_filters, locate_and_process_ignore
+from mediarover.config import build_series_filters
 
 def build_watch_list(config, process_aliases=True):
 	""" use given config object and build a dictionary of watched series """
@@ -499,11 +499,10 @@ def build_watch_list(config, process_aliases=True):
 
 					# locate and process any filters for current series.  If no user defined filters for 
 					# current series exist, build dict using default values
-					if sanitized_name not in config['tv']['filter']:
-						config['tv']['filter'][sanitized_name] = build_series_filters(config['tv']['quality'])
-
-					# incorporate any .ignore file settings
-					locate_and_process_ignore(config['tv']['filter'][sanitized_name], dir)
+					if sanitized_name in config['tv']['filter']:
+						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'], config['tv']['filter'][sanitized_name])
+					else:
+						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'])
 
 					# check filters to see if user wants this series skipped...
 					if config['tv']['filter'][sanitized_name]["skip"]:
