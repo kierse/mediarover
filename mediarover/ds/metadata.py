@@ -48,7 +48,7 @@ class Metadata(object):
 
 	def get_in_progress(self, title):
 		""" retrieve tuple from the in_progress table for a given session id.  If given id doesn't exist, return None """
-		row = self.__dbh.execute("SELECT type, quality FROM in_progress WHERE title=?", (title,)).fetchone()
+		row = self.__dbh.execute("SELECT type, quality, source FROM in_progress WHERE title=?", (title,)).fetchone()
 		return row
 
 	def delete_in_progress(self, *titles):
