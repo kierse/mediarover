@@ -752,85 +752,9 @@ def __episode_sort(broker, options, **kwargs):
 		else:
 			raise FailedDownload("download failed")
 
-	watched_list = {}
-	skip_list = {}
-	for root in tv_root:
-
-		# make sure tv root directory exists and that we have read and 
-		# write access to it
-		if not os.path.exists(root):
-			raise FilesystemError("TV root directory (%s) does not exist!", (root))
-		if not os.access(root, os.R_OK | os.W_OK):
-			raise FilesystemError("Missing read/write access to tv root directory (%s)", (root))
-
-		logger.info("begin processing tv directory: %s", root)
-
-		# set umask for files and directories created during this session
-		os.umask(config['tv']['umask'])
-
-		# get list of shows in root tv directory
-		dir_list = os.listdir(root)
-		dir_list.sort()
-		for name in dir_list:
-
-			# skip hidden directories
-			if name.startswith("."):
-				continue
-
-			dir = os.path.join(root, name)
-			if os.path.isdir(dir):
-
-				sanitized_name = Series.sanitize_series_name(name=name)
-
-				# already seen this series and have determined that user wants to skip it
-				if sanitized_name in skip_list:
-					continue
-
-				# we've already seen this series.  Append new directory to list of series paths
-				elif sanitized_name in watched_list:
-					series = watched_list[sanitized_name]
-					series.path.append(dir)
-
-				# new series, create new Series object and add to the watched list
-				else:
-					series = Series(name, path=dir)
-					additions = {sanitized_name: series}
-
-					# locate and process any filters for current series.  If no user defined filters for 
-					# current series exist, build dict using default values
-					if sanitized_name in config['tv']['filter']:
-						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'], config['tv']['filter'][sanitized_name])
-					else:
-						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'])
-
-					# check filters to see if user wants this series skipped...
-					if config['tv']['filter'][sanitized_name]["skip"]:
-						skip_list[sanitized_name] = series
-						logger.debug("found skip filter, ignoring series: %s", series.name)
-						continue
-
-					# set season ignore list for current series
-					if len(config['tv']['filter'][sanitized_name]['ignore']):
-						logger.debug("ignoring the following seasons of %s: %s", series.name, config['tv']['filter'][sanitized_name]['ignore'])
-						series.ignores = config['tv']['filter'][sanitized_name]['ignore']
-
-					# process series aliases.  For each new alias, register series in watched_list
-					if config['tv']['filter'][sanitized_name]['alias']:
-						series.aliases = config['tv']['filter'][sanitized_name]['alias'];
-						count = 0
-						for alias in series.aliases:
-							sanitized_alias = Series.sanitize_series_name(name=alias)
-							if sanitized_alias in watched_list:
-								logger.warning("duplicate series alias found for '%s'! Duplicate aliases can/will result in incorrect downloads and improper sorting! You've been warned..." % series)
-							additions[sanitized_alias] = series
-							count += 1
-						logger.debug("%d alias(es) identified for series '%s'" % (count, series))
-
-					# finally, add additions to watched list
-					logger.debug("watching series: %s", series)
-					watched_list.update(additions)
-
+	# build dict of watched series
 	# register series dictionary with dependency broker
+	watched_list = build_watch_list(config)
 	broker.register(WATCHED_SERIES_LIST, watched_list)
 
 	logger.info("watching %d tv show(s)", len(watched_list))
