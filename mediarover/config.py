@@ -254,6 +254,7 @@ def build_series_filters(quality_defaults, seed=None):
 
 def locate_and_process_ignore(current, path):
 	""" check given path for a .ignore file and incorporate any values with current hash """
+	logger = logging.getLogger("mediarover.config")
 
 	# avoid a little I/O overhead and only look for the
 	# ignore file if skip isn't True
