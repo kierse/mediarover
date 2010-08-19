@@ -764,7 +764,6 @@ def __episode_sort(broker, options, **kwargs):
 
 	# locate episode file in given download directory
 	orig_path = None
-	filename = None
 	extension = None
 	size = 0
 	for dirpath, dirnames, filenames in os.walk(path):
@@ -779,16 +778,15 @@ def __episode_sort(broker, options, **kwargs):
 			# get size of current file (in bytes)
 			stat = os.stat(os.path.join(dirpath, file))
 			if stat.st_size > size:
-				filename = file
+				orig_path = os.path.join(dirpath, file)
 				extension = ext
 				size = stat.st_size
-				logger.debug("identified possible download: filename => %s, size => %d", filename, size)
+				logger.debug("identified possible download: filename => %s, size => %d", file, size)
 
-	if filename is None:
+	if orig_path is None:
 		raise FilesystemError("unable to find episode file in given download path %r" % path)
-
-	orig_path = os.path.join(path, filename)
-	logger.info("found download file at '%s'", orig_path)
+	else:
+		logger.info("found download file at '%s'", orig_path)
 
 	# retrieve the proper factory object
 	in_progress = broker[METADATA_OBJECT].get_in_progress(job)
@@ -822,14 +820,13 @@ def __episode_sort(broker, options, **kwargs):
 			if 'quality' in kwargs:
 				episode.quality = kwargs['quality']
 			else:
-				result = broker[METADATA_OBJECT].get_in_progress(job)
-				if result is None:
+				if in_progress is None:
 					if config['tv']['quality']['guess']:
 						episode.quality = guess_quality_level(config, file.extension, episode.quality)
 					else:
 						logger.info("unable to find quality information in metadata db, assuming default quality level!")
 				else:
-					episode.quality = result['quality']
+					episode.quality = in_progress['quality']
 
 		# find available disk with enough space for newly downloaded episode
 		free_root = find_disk_with_space(series, tv_root, file.size) 

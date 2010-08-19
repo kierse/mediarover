@@ -72,7 +72,7 @@ class DependencyBroker(object):
 		try:
 			provider = self.providers[feature]
 		except KeyError:
-			raise KeyError, "Unknown feature named %r" % feature
+			raise KeyError, "Unknown feature named '%s'" % feature
 		return provider()
 
 	def __contains__(self, key):
