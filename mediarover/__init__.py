@@ -595,7 +595,7 @@ Examples:
 
 	# create config object using user config values
 	try:
-		config = read_config(broker[RESOURCE_DIR], broker[CONFIG_DIR])
+		config = read_config(broker[RESOURCES_DIR], broker[CONFIG_DIR])
 	except (ConfigurationError), e:
 		print e
 		exit(1)
@@ -649,7 +649,7 @@ Examples:
 		params['status'] = args[6]
 
 	broker.register(METADATA_OBJECT, Metadata())
-	broker.register(CONFIG, config)
+	broker.register(CONFIG_OBJECT, config)
 
 	# register factory objects
 	broker.register(NEWZBIN_FACTORY_OBJECT, NewzbinFactory())
