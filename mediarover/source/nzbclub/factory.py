@@ -22,6 +22,7 @@ from mediarover.episode.multi import MultiEpisode
 from mediarover.episode.single import SingleEpisode
 from mediarover.series import Series
 from mediarover.source.nzbclub import NzbclubSource
+from mediarover.source.nzbclub.item import NzbclubItem
 from mediarover.utils.injection import is_instance_of, Dependency
 
 class NzbclubFactory(EpisodeFactory, ItemFactory, SourceFactory):
