@@ -260,11 +260,12 @@ def build_series_filters(path, quality_defaults, seed=None):
 
 			file_ignores = []
 			with open(os.path.join(path, ".ignore")) as file:
-				line = file.readline().rstrip("\n")
-				if line == "*":
-					seed['skip'] = True
-				else:
-					file_ignores.append(re.sub('[^\d]', '', line))
+				for line in file:
+					if line.rstrip("\n") == "*":
+						seed['skip'] = True
+						break
+					else:
+						file_ignores.append(re.sub('[^\d]', '', line))
 
 			# replace existing ignore list with current
 			seed['ignore'] = file_ignores
