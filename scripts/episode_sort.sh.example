@@ -28,5 +28,5 @@ ROOT=/PATH/TO/MEDIAROVER
 # filesystem path to configuration directory
 CONFIG=$HOME/.mediarover
 
-python $ROOT/mediarover.py episode-sort -c "$CONFIG" "$1" "$2" "$3" "$4" "$5" "$6" "$7"
+python $ROOT/mediarover.py episode-sort -c "$CONFIG" "$@"
 
