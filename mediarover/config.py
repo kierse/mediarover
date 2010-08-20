@@ -265,7 +265,9 @@ def build_series_filters(path, quality_defaults, seed=None):
 						seed['skip'] = True
 						break
 					else:
-						file_ignores.append(re.sub('[^\d]', '', line))
+						num = re.sub('[^\d]', '', line)
+						if num:
+							file_ignores.append(num)
 
 			# replace existing ignore list with current
 			seed['ignore'] = file_ignores
