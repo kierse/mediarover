@@ -271,7 +271,9 @@ def locate_and_process_ignore(current, path):
 						current['skip'] = True
 						break
 					else:
-						file_ignores.append(re.sub('[^\d]', '', line))
+						num = re.sub('[^\d]', '', line)
+						if num:
+							file_ignores.append(num)
 
 			# replace existing ignore list with current
 			current['ignore'] = file_ignores
