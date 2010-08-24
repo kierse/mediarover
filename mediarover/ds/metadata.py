@@ -188,20 +188,25 @@ class Metadata(object):
 			schema to it. If rollback is True, attempt to revert to given schema number 
 		"""
 		# current schema version
-		current = int(self.schema_version)
+		current = self.schema_version
+		if version is None:
+			version = __schema_version__
+		else:
+			version = int(version)
 
 		# if caller has provided a desired schema version, check if there
 		# is anything to be done
-		if version is not None:
-			version = int(version)
-			if current == version:
+		if current == version:
+			print "Schema up-to-date. Nothing to do!"
+			return
+		elif rollback:
+			if current < version:
+				print "Error: can't rollback to newer version!"
 				return
-			elif rollback:
-				if current < version:
-					return
-			else:
-				if current > version:
-					return
+		else:
+			if current > version:
+				print "Error: given version is behind current, use --rollback"
+				return
 
 		# grab current isolation level then set it to 'EXCLUSIVE'
 		current_isolation = self.__dbh.isolation_level
@@ -238,7 +243,10 @@ class Metadata(object):
 					exec "import migration.%s" % name
 					module = getattr(migration, name)
 
-					print "migrating schema to version %d..." % num
+					if rollback:
+						print "reverting schema to version %d..." % num
+					else:
+						print "migrating schema to version %d..." % num
 					getattr(module, action)(self.__dbh)
 
 					# update schema version to num
@@ -251,6 +259,8 @@ class Metadata(object):
 
 		# all done, reset isolation_level
 		self.__dbh.isolation_level = current_isolation
+
+		print "Migration to schema version %d complete!" % version
 
 	def backup(self):
 		backup = "metadata.%s.rev-%d.db" % (strftime("%Y%m%d%H%M%S"), self.schema_version)
@@ -298,7 +308,7 @@ class Metadata(object):
 			self.__dbh.execute("PRAGMA user_version = %d" % int(version))
 			self.__dbh.commit()
 		row = self.__dbh.execute("PRAGMA user_version").fetchone()
-		return row[0]
+		return int(row[0])
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -315,15 +325,16 @@ class Metadata(object):
 		# tell connection to return Row objects instead of tuples
 		self.__dbh.row_factory = sqlite3.Row
 
-		# db exists, check that schema version is current
-		if exists and check_schema_version:
-			current_version = self.schema_version
-			if current_version > __schema_version__:
-				print "Metadata is ahead of expected version! You must rollback to version %d to proceed! See `python mediarover.py migrate-metadata --help` for more details" % __schema_version__
-				exit(1)
-			elif current_version < __schema_version__:
-				print "Metadata out of date! You must upgrade to version %d to proceed! See `python mediarover.py migrate-metadata --help` for more details" % __schema_version__
-				exit(1)
+		if exists:
+			# db exists, check that schema version is current
+			if check_schema_version:
+				current_version = self.schema_version
+				if current_version > __schema_version__:
+					print "Metadata is ahead of expected version! You must rollback to version %d to proceed! See `python mediarover.py migrate-metadata --help` for more details" % __schema_version__
+					exit(1)
+				elif current_version < __schema_version__:
+					print "Metadata out of date! You must upgrade to version %d to proceed! See `python mediarover.py migrate-metadata --help` for more details" % __schema_version__
+					exit(1)
 
 		# db doesn't exist, create it
 		else:
