@@ -325,15 +325,16 @@ class Metadata(object):
 		# tell connection to return Row objects instead of tuples
 		self.__dbh.row_factory = sqlite3.Row
 
-		# db exists, check that schema version is current
-		if exists and check_schema_version:
-			current_version = self.schema_version
-			if current_version > __schema_version__:
-				print "Metadata is ahead of expected version! You must rollback to version %d to proceed! See `python mediarover.py migrate-metadata --help` for more details" % __schema_version__
-				exit(1)
-			elif current_version < __schema_version__:
-				print "Metadata out of date! You must upgrade to version %d to proceed! See `python mediarover.py migrate-metadata --help` for more details" % __schema_version__
-				exit(1)
+		if exists:
+			# db exists, check that schema version is current
+			if check_schema_version:
+				current_version = self.schema_version
+				if current_version > __schema_version__:
+					print "Metadata is ahead of expected version! You must rollback to version %d to proceed! See `python mediarover.py migrate-metadata --help` for more details" % __schema_version__
+					exit(1)
+				elif current_version < __schema_version__:
+					print "Metadata out of date! You must upgrade to version %d to proceed! See `python mediarover.py migrate-metadata --help` for more details" % __schema_version__
+					exit(1)
 
 		# db doesn't exist, create it
 		else:
