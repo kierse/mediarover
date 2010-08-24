@@ -26,7 +26,7 @@ from mediarover.constant import (MYTVNZB_FACTORY_OBJECT, NEWZBIN_FACTORY_OBJECT,
 											NZBINDEX_FACTORY_OBJECT, NZBMATRIX_FACTORY_OBJECT, NZBS_FACTORY_OBJECT, 
 											NZBSRUS_FACTORY_OBJECT, TVNZB_FACTORY_OBJECT)
 
-def print_usage(*args, **kwargs):
+def print_epilog(*args, **kwargs):
 	"""
 		arguments (when called by optparser):
 		 1. option
