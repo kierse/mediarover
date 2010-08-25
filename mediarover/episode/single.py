@@ -131,6 +131,12 @@ class SingleEpisode(Episode):
 	def __ne__(self, other):
 		return not self == other
 
+	def __gt__(self, other):
+		return not self < other
+
+	def __lt__(self, other):
+		return (self.season, self.episode) < (other.season, other.episode)
+
 	def __hash__(self):
 		hash = "%s %dx%02d" % (self.series.sanitize_series_name(series=self.series), self.season, self.episode)
 		return hash.__hash__()
