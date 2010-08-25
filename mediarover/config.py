@@ -242,6 +242,7 @@ def build_series_filters(quality_defaults, seed=None):
 			'ignore': [],
 			'alias': [],
 			'quality': dict(acceptable=None, desired=None),
+			'only_schedule_newer': False
 		}
 
 	# determine quality values for current series
