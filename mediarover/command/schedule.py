@@ -371,8 +371,15 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 	# ATTENTION: this call takes into account users preferences regarding single vs multi-part 
 	# episodes as well as desired quality level
 	if not series.should_episode_be_downloaded(episode):
-		logger.info("skipping %r", item.title())
+		logger.info("skipping '%s'", item.title())
 		return
+
+	# if user only wants episodes that are newer than those currently on disk, 
+	# determine if episode meets this criteria
+	if broker[CONFIG_OBJECT]['tv']['filter'][Series.sanitize_series_name(series=series)]['only_schedule_newer']:
+		if not series.is_episode_newer_than_current(episode):
+			logger.debug("skipping '%s', older than newest on disk", item.title())
+			return
 
 	# check if episode is already in the queue.  If yes, determine whether or not it should
 	# replace queued item and be scheduled for download
