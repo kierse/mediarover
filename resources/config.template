@@ -152,6 +152,12 @@
 	#                     normally wouldn't be matched. This option is typically used when the series name
 	#                     (contained in a source item title) does not match the series folder name on disk.
 	#
+	#     d) option: only_schedule_newer
+	#        values: True or False
+	#        default: False
+	#        description: this option tells Media Rover to only schedule episodes for download that are
+	#                     newer than what is currently on disk.
+	#
 	#  3. set series specific quality preferences. If [tv][quality][managed] is True, you have the option 
 	#     of specifying quality preferences on a per series basis. 
 	#     NOTE: all quality options must be placed under a quality subsection (ie. [[[[quality]]]]).  
