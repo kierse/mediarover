@@ -378,8 +378,17 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 	# determine if episode meets this criteria
 	if broker[CONFIG_OBJECT]['tv']['filter'][Series.sanitize_series_name(series=series)]['only_schedule_newer']:
 		if not series.is_episode_newer_than_current(episode):
-			logger.debug("skipping '%s', older than newest on disk", item.title())
-			return
+
+			# seeing as we passed the above check (determining if episode should be downloaded), we know
+			# that its either
+			#   a) missing, 
+			#   b) of more desirable quality than whats currently on disk
+			#
+			# Because this episode is NOT newer, we can just check if it's already exists on disk.  If it 
+			# doesn't exist we can skip
+			if len(series.find_episode_on_disk(episode)) == 0:
+				logger.debug("skipping '%s', older than newest episode already on disk", item.title())
+				return
 
 	# check if episode is already in the queue.  If yes, determine whether or not it should
 	# replace queued item and be scheduled for download
