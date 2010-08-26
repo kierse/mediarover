@@ -1,0 +1,13 @@
+---
+layout: announcement
+title: 0.5.3 released!
+desc: "Maintenance Release"
+---
+
+Announcing Media Rover 0.5.3! 
+
+*Release Details:*
+
+* bug fix: fixed bug in code that identifies series episodes on disk
+
+Get the latest code updates "here":http://mediarover.tv/#installation, or you can grab them straight from "GitHub":http://github.com/kierse/mediarover/archives/v0.5.3
