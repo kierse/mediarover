@@ -31,6 +31,7 @@
 			ignore = int_list(default=list())
 			skip = boolean(default=False)
 			alias = string_list(default=list())
+			only_schedule_newer = boolean(default=False)
 			[[[[quality]]]]
 				acceptable = options_list(options=list('all', 'low', 'medium', 'high', None), default=None)
 				desired = option('low', 'medium', 'high', None, default=None)

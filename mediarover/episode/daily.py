@@ -129,6 +129,12 @@ class DailyEpisode(Episode):
 	def __ne__(self, other):
 		return not self == other
 
+	def __gt__(self, other):
+		return not self < other
+
+	def __lt__(self, other):
+		return (self.year, self.month, self.day) < (other.year, other.month, other.day)
+
 	def __hash__(self):
 		hash = "%s %04d-%02d-%02d" % (Series.sanitize_series_name(series=self.series), self.year, self.month, self.day)
 		return hash.__hash__()

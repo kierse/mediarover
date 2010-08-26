@@ -229,6 +229,11 @@ class Series(object):
 		self.__single_files = None
 		self.__daily_files = None
 		self.__multipart_files = None
+		self.__newest_episode = None
+
+	def is_episode_newer_than_current(self, episode):
+		""" determine if the given episode is newer than all existing series episodes """
+		return self.__newest_episode < episode
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -245,6 +250,7 @@ class Series(object):
 		daily = []
 		single = []
 		multipart = []
+		newest = None
 
 		sanitized_name = self.sanitize_series_name(series=self)
 		if sanitized_name in self.config['tv']['filter']:
@@ -326,12 +332,17 @@ class Series(object):
 								else:
 									episode.quality = record['quality']
 
+							# determine if episode is newer than current newest
+							if newest is None or newest < episode:
+								newest = episode
+
 							logger.debug("created %r" % file)
 
 		self.__episodes = compiled
 		self.__daily_files = daily
 		self.__single_files = single
 		self.__multipart_files = multipart
+		self.__newest_episode = newest
 
 	def __check_episode_lists(self):
 		if self.__episodes is None:
@@ -444,6 +455,7 @@ class Series(object):
 		self.__single_files = None
 		self.__daily_files = None
 		self.__multipart_files = None
+		self.__newest_episode = None
 
 		# sanitize ignores list
 		self.__ignores = set([int(re.sub("[^\d]", "", str(i))) for i in ignores if i])

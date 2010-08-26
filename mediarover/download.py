@@ -20,6 +20,12 @@ class Download(Comparable):
 
 	# abstract methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def __eq__(self):
+		raise NotImplementedError
+
+	def __ne__(self):
+		raise NotImplementedError
+
 	def __hash__(self):
 		raise NotImplementedError
 
