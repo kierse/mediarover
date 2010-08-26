@@ -260,10 +260,9 @@ class Series(object):
 
 		for root in self.path:
 			for dirpath, dirnames, filenames in os.walk(root):
-				# remove any directories that start with a '.'
-				for i in range(len(dirnames)):
-					if dirnames[i].startswith('.'):
-						del dirnames[i]
+				# skip any directory that start with a '.'
+				if os.path.basename(dirpath).startswith('.'):
+					continue
 
 				# process files and identify episodes
 				for filename in filenames:
