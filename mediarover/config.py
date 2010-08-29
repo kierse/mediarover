@@ -233,8 +233,7 @@ def check_options_list(selections, **kargs):
 	return selections
 
 def build_series_filters(config, seed=None):
-	""" build a dict of filters for a given path and seed """
-	logger = logging.getLogger("mediarover.config")
+	""" build dict of series filters based on sane defaults or available global values """
 
 	if seed is None:
 		seed= {
