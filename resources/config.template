@@ -35,6 +35,10 @@
 	# NOTE: defaults to True
 	#allow_multipart = True
 
+	# only schedule episodes for download that are newer than what is currently found on disk.
+	# NOTE: defaults to True
+	#only_schedule_newer = True
+
 	[[quality]]
 
 		# allow Media Rover to manage episodes on disk and manage quality levels
@@ -157,6 +161,8 @@
 	#        default: False
 	#        description: this option tells Media Rover to only schedule episodes for download that are
 	#                     newer than what is currently on disk.
+	#                     NOTE: setting this option overrides the global value [tv] only_schedule_newer 
+	#                     for the targeted series only.
 	#
 	#  3. set series specific quality preferences. If [tv][quality][managed] is True, you have the option 
 	#     of specifying quality preferences on a per series basis. 
