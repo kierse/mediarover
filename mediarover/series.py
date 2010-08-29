@@ -511,7 +511,7 @@ def build_watch_list(config, process_aliases=True):
 					# locate and process any filters for current series.  If no user defined filters for 
 					# current series exist, build dict using default values
 					if sanitized_name not in config['tv']['filter']:
-						config['tv']['filter'][sanitized_name] = build_series_filters(config['tv']['quality'])
+						config['tv']['filter'][sanitized_name] = build_series_filters(config)
 
 					# incorporate any .ignore file settings
 					locate_and_process_ignore(config['tv']['filter'][sanitized_name], dir)

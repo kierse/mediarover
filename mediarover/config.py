@@ -232,7 +232,7 @@ def check_options_list(selections, **kargs):
 
 	return selections
 
-def build_series_filters(quality_defaults, seed=None):
+def build_series_filters(config, seed=None):
 	""" build a dict of filters for a given path and seed """
 	logger = logging.getLogger("mediarover.config")
 
@@ -242,14 +242,18 @@ def build_series_filters(quality_defaults, seed=None):
 			'ignore': [],
 			'alias': [],
 			'quality': dict(acceptable=None, desired=None),
-			'only_schedule_newer': False
+			'only_schedule_newer': None,
 		}
 
 	# determine quality values for current series
 	if seed['quality']['acceptable'] is None:
-		seed['quality']['acceptable'] = quality_defaults['acceptable']
+		seed['quality']['acceptable'] = config['tv']['quality']['acceptable']
 	if seed['quality']['desired'] is None:
-		seed['quality']['desired'] = quality_defaults['desired']
+		seed['quality']['desired'] = config['tv']['quality']['desired']
+
+	# determine scheduling preference
+	if seed['only_schedule_newer'] is None:
+		seed['only_schedule_newer'] = config['tv']['only_schedule_newer']
 
 	return seed
 
