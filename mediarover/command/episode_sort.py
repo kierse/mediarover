@@ -350,7 +350,7 @@ def __episode_sort(broker, options, **kwargs):
 		desirables = series.filter_undesirables(episode)
 		additional = None
 		if len(desirables) == 0:
-			logger.warning("duplicate episode detected: %s", filename)
+			logger.warning("duplicate episode detected!")
 			additional = "[%s].%s" % (episode.quality, strftime("%Y%m%d%H%M"))
 
 		# generate new filename for current episode
