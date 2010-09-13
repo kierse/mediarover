@@ -56,7 +56,11 @@ class SabnzbdJob(Job):
 		if self.__job.getElementsByTagName("msgid")[0].hasChildNodes():
 			factory = self.newzbin_factory
 		else:
-			factory = self.episode_factory
+			in_progress = self.meta_ds.get_in_progress(self.title())
+			if in_progress is None:
+				factory = self.episode_factory
+			else:
+				factory = Dependency(in_progress['source'], is_instance_of(EpisodeFactory)).__get__()
 
 		try:
 			download = factory.create_episode(self.title())
