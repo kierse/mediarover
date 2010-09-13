@@ -111,6 +111,9 @@ class MultiEpisode(Episode):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def parts(self):
+		return self.episodes
+
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -98,6 +98,9 @@ class SingleEpisode(Episode):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def parts(self):
+		return [self]
+
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
