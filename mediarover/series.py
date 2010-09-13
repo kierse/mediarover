@@ -243,7 +243,7 @@ class Series(object):
 		""" build list of episode parts that are newer than all existing series episodes """
 		list = []
 		for ep in episode.parts():
-			if isinstance(self.__newest_episode, ep) and self.__newest_episode < ep:
+			if isinstance(self.__newest_episode, type(ep)) and self.__newest_episode < ep:
 				list.append(ep)
 
 		return list
@@ -354,7 +354,6 @@ class Series(object):
 		self.__daily_files = daily
 		self.__single_files = single
 		self.__multipart_files = multipart
-		self.__newest_episode = newest
 
 	def __check_episode_lists(self):
 		if self.__episodes is None:
