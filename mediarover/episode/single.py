@@ -98,6 +98,9 @@ class SingleEpisode(Episode):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def parts(self):
+		return [self]
+
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -149,16 +152,20 @@ class SingleEpisode(Episode):
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def _series_prop(self):
-		return self._series
-
-	def _season_prop(self):
-		return self._season
-
-	def _episode_prop(self):
+	@property
+	def episode(self):
 		return self._episode
 
-	def _title_prop(self):
+	@property
+	def series(self):
+		return self._series
+
+	@property
+	def season(self):
+		return self._season
+
+	@property
+	def title(self):
 		return self._title
 
 	def _quality_prop(self, quality=None):
@@ -168,10 +175,6 @@ class SingleEpisode(Episode):
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	series = property(fget=_series_prop, doc="episode series object")
-	season = property(fget=_season_prop, doc="episode season number")
-	episode = property(fget=_episode_prop, doc="episode number")
-	title = property(fget=_title_prop, doc="episode title")
 	quality = property(fget=_quality_prop, fset=_quality_prop, doc="episode quality")
 
 	def __init__(self, series, season, episode, quality, title = ""):

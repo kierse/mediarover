@@ -95,6 +95,9 @@ class DailyEpisode(Episode):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def parts(self):
+		return [self]
+
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -147,23 +150,29 @@ class DailyEpisode(Episode):
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def _series_prop(self):
-		return self._series
-
-	def _season_prop(self):
-		return self._year
-
-	def _year_prop(self):
-		return self._year
-
-	def _month_prop(self):
-		return self._month
-
-	def _day_prop(self):
+	@property
+	def day(self):
 		return self._day
 
-	def _title_prop(self):
+	@property
+	def month(self):
+		return self._month
+
+	@property
+	def season(self):
+		return self._year
+
+	@property
+	def series(self):
+		return self._series
+
+	@property
+	def title(self):
 		return self._title
+
+	@property
+	def year(self):
+		return self._year
 
 	def _quality_prop(self, quality=None):
 		if quality is not None:
@@ -172,12 +181,6 @@ class DailyEpisode(Episode):
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	series = property(fget=_series_prop, doc="episode series object")
-	season = property(fget=_season_prop, doc="episode season")
-	year = property(fget=_year_prop, doc="episode year")
-	month = property(fget=_month_prop, doc="episode month")
-	day = property(fget=_day_prop, doc="episode day")
-	title = property(fget=_title_prop, doc="episode title")
 	quality = property(fget=_quality_prop, fset=_quality_prop, doc="episode quality")
 
 	def __init__(self, series, year, month, day, quality, title = ""):
