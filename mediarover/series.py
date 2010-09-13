@@ -233,7 +233,20 @@ class Series(object):
 
 	def is_episode_newer_than_current(self, episode):
 		""" determine if the given episode is newer than all existing series episodes """
-		return self.__newest_episode < episode
+		list = self.get_newer_parts(episode)
+		if len(list) > 0:
+			return True
+
+		return False
+
+	def get_newer_parts(self, episode):
+		""" build list of episode parts that are newer than all existing series episodes """
+		list = []
+		for ep in episode.parts():
+			if isinstance(self.__newest_episode, ep) and self.__newest_episode < ep:
+				list.append(ep)
+
+		return list
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -250,7 +263,6 @@ class Series(object):
 		daily = []
 		single = []
 		multipart = []
-		newest = None
 
 		sanitized_name = self.sanitize_series_name(series=self)
 		if sanitized_name in self.config['tv']['filter']:
@@ -332,8 +344,9 @@ class Series(object):
 									episode.quality = record['quality']
 
 							# determine if episode is newer than current newest
-							if newest is None or newest < episode:
-								newest = episode
+							newer = self.get_newer_parts(episode)
+							if len(newer) > 0:
+								self.__newest_episode = newer.pop()
 
 							logger.debug("created %r" % file)
 
