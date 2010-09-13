@@ -41,21 +41,16 @@ class SabnzbdQueue(Queue):
 		""" return list of Job items """
 		logger = logging.getLogger("mediarover.queue.sabnzbd")
 
-		# if jobs list hasn't been constructed yet, parse document tree
-		# and build list of current jobs
-		try:
-			self.__jobs
-		except AttributeError:
-			try:
-				self.__document
-			except AttributeError:
-				self.__get_document()
-
+		if not hasattr(self, '__jobs'):
+			self.__get_document()
 			self.__jobs = []
 			for rawJob in self.__document.getElementsByTagName("slot"):
 				cat = rawJob.getElementsByTagName("cat")[0].childNodes[0].data.lower()
 				if cat in self._supported_categories:
-					self.__jobs.append(SabnzbdJob(rawJob))
+					try:
+						self.__jobs.append(SabnzbdJob(rawJob))
+					except (InvalidItemTitle), e:
+						logger.warning(e)
 
 		# return job list to caller
 		return self.__jobs

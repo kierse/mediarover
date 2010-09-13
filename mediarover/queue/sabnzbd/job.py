@@ -65,9 +65,9 @@ class SabnzbdJob(Job):
 		try:
 			download = factory.create_episode(self.title())
 		except (InvalidMultiEpisodeData, MissingParameterError):
-			raise InvalidItemTitle("unable to parse job title and create Episode object: %s" % title)
+			raise InvalidItemTitle("unable to parse job title and create Episode object: '%s'" % title)
 		except InvalidEpisodeString:
-			raise InvalidItemTitle("unsupported job title format: %r" % self.title())
+			raise InvalidItemTitle("unsupported job title format: '%s'" % self.title())
 
 		# try and determine job quality
 		record = self.meta_ds.get_in_progress(self.title())
