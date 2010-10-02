@@ -36,6 +36,7 @@ from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.filesystem.factory import FilesystemFactory
 from mediarover.series import Series, build_watch_list
 from mediarover.utils.quality import guess_quality_level
+from mediarover.version import __app_version__
 
 from mediarover.constant import (CONFIG_DIR, CONFIG_OBJECT, METADATA_OBJECT, EPISODE_FACTORY_OBJECT, 
 											FILESYSTEM_FACTORY_OBJECT, NEWZBIN_FACTORY_OBJECT, RESOURCES_DIR, 
@@ -98,6 +99,7 @@ Examples:
 	register_source_factories(broker)
 
 	logger.info("--- STARTING ---")
+	logger.debug("platform: %s, app version: %s, schema: %d", sys.platform, __app_version__, broker[METADATA_OBJECT].schema_version)
 	logger.debug("using config directory: %s", broker[CONFIG_DIR])
 
 	try:
