@@ -27,7 +27,7 @@ class SingleEpisode(Episode):
 
 	__supported_patterns = (
 		# episode 1 regex, ie. s03e10
-		re.compile("s(?P<season>\d{1,2})e(?P<episode>\d{1,3})", re.IGNORECASE),
+		re.compile("s(?P<season>\d{1,2})(?:\.|\s)?e(?P<episode>\d{1,3})", re.IGNORECASE),
 
 		# episode 2 regex, ie. 3x10
 		re.compile("(?P<season>\d{1,2})x(?P<episode>\d{1,3})", re.IGNORECASE)
