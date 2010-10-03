@@ -169,11 +169,11 @@ class Metadata(object):
 		factories = {}
 
 		list = []
-		for row in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay FROM delayed_item"):
+		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay FROM delayed_item"):
 			if r['source'] not in factories:
 				factories[r['source']] = Dependency(r['source'], is_instance_of(ItemFactory))
 			factory = factories[r['source']].__get__()
-			items.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
+			list.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
 
 		return list
 
