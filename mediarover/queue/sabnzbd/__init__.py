@@ -18,6 +18,7 @@ import os
 import re
 import time
 import urllib
+import urllib2, HTTPError, URLError
 import xml.dom.minidom
 
 from mediarover.config import ConfigObj
@@ -90,7 +91,12 @@ class SabnzbdQueue(Queue):
 		# generate web service url and make call
 		url = "%s/api?%s" % (self.root, urllib.urlencode(args))
 		logger.debug("add to queue request: %s", url)
-		handle = urllib.urlopen(url)
+		try:
+			handle = urllib2.urlopen(url)
+		except (HTTPError), e:
+			raise QueueInsertionError("unable to add item '%s' to queue: %d" % (item.title(), e.code))
+		except (URLError), e:
+			raise QueueInsertionError("unable to add item '%s' to queue: %s" % (item.title(), e.reason))
 
 		# check response for status of request
 		response = handle.readline()
@@ -124,7 +130,12 @@ class SabnzbdQueue(Queue):
 		# generate web service url and make call
 		url = "%s/api?%s" % (self.root, urllib.urlencode(args))
 		logger.debug("removing job from queue: %s", url)
-		handle = urllib.urlopen(url)
+		try:
+			handle = urllib2.urlopen(url)
+		except (HTTPError), e:
+			raise QueueDeletionError("unable to remove job '%s' from queue: %d" % (job.title(), e.code))
+		except (URLError), e:
+			raise QueueDeletionError("unable to remove job '%s' from queue: %s" % (job.title(), e.reason))
 
 		# check response for status of request
 		response = handle.readline()
@@ -208,13 +219,19 @@ class SabnzbdQueue(Queue):
 		# nzb name isn't yet known (by SABnzbd).  Therefore we loop and give SABnzb 
 		# time to download the nzb and fully populate the queue.
 		for i in range(12):
-			response = urllib.urlopen(url)
-			data = response.read()
-			if regex.search(data):
-				logger.debug("queue still processing new scheduled downloads, waiting...")
-				time.sleep(5)
-			else:
-				break
+			try:
+				response = urllib2.urlopen(url)
+			except (HTTPError), e:
+				raise QueueRetrievalError("unable to retrieve queue: %d" % e.code)
+			except (URLError), e:
+				raise QueueRetrievalError("unable to retrieve queue: %s" % e.reason)
+			else: 
+				data = response.read()
+				if regex.search(data):
+					logger.debug("queue still processing new scheduled downloads, waiting...")
+					time.sleep(5)
+				else:
+					break
 		else:
 			logger.warning("giving up waiting for queue to finish processing newly scheduled downloads - duplicate downloads possible!")
 
@@ -247,9 +264,15 @@ class SabnzbdQueue(Queue):
 		url = "%s/api?mode=version" % self.root
 		logger.debug("checking queue version: %s" % url)
 
-		response = urllib.urlopen(url)
-		if not re.match("0.5.\d+", response.read()):
-			raise UnknownQueue("SABnzbd 0.5.0 or greater required!")
+		try:
+			response = urllib2.urlopen(url)
+		except (HTTPError), e:
+			raise UrlRetrievalError("unable to retrieve SABnzbd version: %d" % e.code)
+		except (URLError), e:
+			raise UrlRetrievalError("unable to retrieve SABnzbd version: %s" % e.reason)
+		else: 
+			if not re.match("0.5.\d+", response.read()):
+				raise UnknownQueue("SABnzbd 0.5.0 or greater required!")
 
 	def __init__(self, root, supported_categories, params):
 		

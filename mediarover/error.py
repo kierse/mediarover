@@ -33,4 +33,5 @@ class TooManyParametersError(Exception): pass
 class UnexpectedArgumentCount(Exception): pass
 class UnknownQueue(Exception): pass
 class UnsupportedCategory(Exception): pass
+class UrlRetrievalError(Exception): pass
 

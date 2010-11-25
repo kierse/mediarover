@@ -23,7 +23,7 @@ import sys
 from optparse import OptionParser
 from tempfile import TemporaryFile
 from time import strftime
-from urllib2 import URLError
+from urllib2 import HTTPError, URLError
 
 from mediarover.command import print_epilog, register_source_factories
 from mediarover.config import build_series_filters, read_config
@@ -170,12 +170,11 @@ def __schedule(broker, options):
 		logger.debug("creating source for feed %r", name)
 		try:
 			source = factory.create_source(**params)
+		except HTTPError, e:
+			logger.error("skipping source %r, remote server couldn't complete request: %d" % (name, e.code))
+			continue
 		except URLError, (e):
-			if hasattr(e, "code"):
-				error = "skipping source %r, remote server couldn't complete request: %d" % (name, e.code)
-			else:
-				error = "skipping source %r, error encountered while retrieving url: %r" % (name, e.reason)
-			logger.error(error)
+			logger.error("skipping source %r, error encountered while retrieving url: %r" % (name, e.reason))
 			continue
 		except InvalidRemoteData, (e):
 			logger.error("skipping source %r, unable to process remote data: %s", name, e)
