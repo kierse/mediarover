@@ -17,9 +17,9 @@ import logging
 import os
 import re
 import time
-import urllib
-import urllib2
 import xml.dom.minidom
+from urllib import urlencode
+from urllib2 import urlopen, HTTPError, URLError
 
 from mediarover.config import ConfigObj
 from mediarover.constant import CONFIG_OBJECT, METADATA_OBJECT
@@ -89,13 +89,13 @@ class SabnzbdQueue(Queue):
 			args['apikey'] = self._params['api_key']
 
 		# generate web service url and make call
-		url = "%s/api?%s" % (self.root, urllib.urlencode(args))
+		url = "%s/api?%s" % (self.root, urlencode(args))
 		logger.debug("add to queue request: %s", url)
 		try:
-			handle = urllib2.urlopen(url)
-		except (urllib2.HTTPError), e:
+			handle = urlopen(url)
+		except (HTTPError), e:
 			raise QueueInsertionError("unable to add item '%s' to queue: %d" % (item.title(), e.code))
-		except (urllib2.URLError), e:
+		except (URLError), e:
 			raise QueueInsertionError("unable to add item '%s' to queue: %s" % (item.title(), e.reason))
 
 		# check response for status of request
@@ -128,13 +128,13 @@ class SabnzbdQueue(Queue):
 			args['apikey'] = self._params['api_key']
 
 		# generate web service url and make call
-		url = "%s/api?%s" % (self.root, urllib.urlencode(args))
+		url = "%s/api?%s" % (self.root, urlencode(args))
 		logger.debug("removing job from queue: %s", url)
 		try:
-			handle = urllib2.urlopen(url)
-		except (urllib2.HTTPError), e:
+			handle = urlopen(url)
+		except (HTTPError), e:
 			raise QueueDeletionError("unable to remove job '%s' from queue: %d" % (job.title(), e.code))
-		except (urllib2.URLError), e:
+		except (URLError), e:
 			raise QueueDeletionError("unable to remove job '%s' from queue: %s" % (job.title(), e.reason))
 
 		# check response for status of request
@@ -207,7 +207,7 @@ class SabnzbdQueue(Queue):
 		else:
 			logger.warning("API key missing! The API key is needed in order to check the queue and schedule nzb's for download. Unless you disabled this feature (in the SABnzbd configuration), this is something you need to provide!")
 
-		url = "%s/api?%s" % (self.root, urllib.urlencode(args))
+		url = "%s/api?%s" % (self.root, urlencode(args))
 		logger.debug("retrieving queue from '%s'", url)
 
 		regex = re.compile("fetch")
@@ -220,10 +220,10 @@ class SabnzbdQueue(Queue):
 		# time to download the nzb and fully populate the queue.
 		for i in range(12):
 			try:
-				response = urllib2.urlopen(url)
-			except (urllib2.HTTPError), e:
+				response = urlopen(url)
+			except (HTTPError), e:
 				raise QueueRetrievalError("unable to retrieve queue: %d" % e.code)
-			except (urllib2.URLError), e:
+			except (URLError), e:
 				raise QueueRetrievalError("unable to retrieve queue: %s" % e.reason)
 			else: 
 				data = response.read()
@@ -265,10 +265,10 @@ class SabnzbdQueue(Queue):
 		logger.debug("checking queue version: %s" % url)
 
 		try:
-			response = urllib2.urlopen(url)
-		except (urllib2.HTTPError), e:
+			response = urlopen(url)
+		except (HTTPError), e:
 			raise UrlRetrievalError("unable to retrieve SABnzbd version: %d" % e.code)
-		except (urllib2.URLError), e:
+		except (URLError), e:
 			raise UrlRetrievalError("unable to retrieve SABnzbd version: %s" % e.reason)
 		else: 
 			if not re.match("0.5.\d+", response.read()):

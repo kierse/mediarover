@@ -23,7 +23,6 @@ import sys
 from optparse import OptionParser
 from tempfile import TemporaryFile
 from time import strftime
-from urllib2 import HTTPError, URLError
 
 from mediarover.command import print_epilog, register_source_factories
 from mediarover.config import build_series_filters, read_config
@@ -31,7 +30,8 @@ from mediarover.ds.metadata import Metadata
 from mediarover.episode.factory import EpisodeFactory
 from mediarover.error import (ConfigurationError, FailedDownload, FilesystemError, 
 										InvalidJobTitle, InvalidMultiEpisodeData, InvalidRemoteData,
-										MissingParameterError, QueueDeletionError, QueueInsertionError)
+										MissingParameterError, QueueDeletionError, QueueInsertionError, 
+										UrlRetrievalError)
 from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.filesystem.factory import FilesystemFactory
 from mediarover.series import Series, build_watch_list
@@ -170,14 +170,11 @@ def __schedule(broker, options):
 		logger.debug("creating source for feed %r", name)
 		try:
 			source = factory.create_source(**params)
-		except HTTPError, e:
-			logger.error("skipping source %r, remote server couldn't complete request: %d" % (name, e.code))
+		except UrlRetrievalError, e:
+			logger.error("skipping source '%s', reason: %s" % (name, e))
 			continue
-		except URLError, (e):
-			logger.error("skipping source %r, error encountered while retrieving url: %r" % (name, e.reason))
-			continue
-		except InvalidRemoteData, (e):
-			logger.error("skipping source %r, unable to process remote data: %s", name, e)
+		except InvalidRemoteData, e:
+			logger.error("skipping source '%s', unable to process remote data: %s", name, e)
 			continue
 		else:
 			logger.info("created source %r" % name)
