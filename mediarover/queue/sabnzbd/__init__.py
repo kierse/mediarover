@@ -42,7 +42,7 @@ class SabnzbdQueue(Queue):
 		""" return list of Job items """
 		logger = logging.getLogger("mediarover.queue.sabnzbd")
 
-		if not hasattr(self, '__jobs'):
+		if self.__jobs is None:
 			self.__get_document()
 			self.__jobs = []
 			for rawJob in self.__document.getElementsByTagName("slot"):
@@ -277,6 +277,9 @@ class SabnzbdQueue(Queue):
 	def __init__(self, root, supported_categories, params):
 		
 		super(SabnzbdQueue, self).__init__(root, supported_categories, params)
+
+		self.__jobs = None
+		self.__document = None
 
 		# try to determine sabnzbd version
 		if self._params['__check_version__']:
