@@ -405,6 +405,7 @@ class Series(object):
 				self.__aliases = aliases
 			else:
 				self.__aliases = [aliases]
+		return self.__aliases
 
 	def _desired_quality_prop(self):
 		if self.config['tv']['quality']['managed']:
@@ -431,8 +432,6 @@ class Series(object):
 		if ignores is not None:
 			self.__ignores = [int(i) for i in ignores]
 		return self.__ignores
-
-		return self.__aliases
 
 	def _name_prop(self):
 		return self.__name
