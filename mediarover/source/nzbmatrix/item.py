@@ -83,7 +83,6 @@ class NzbmatrixItem(AbstractItem):
 		self.__type = type
 		self.__priority = priority
 		self.__quality = quality
-		self.__delay = delay
 
 		if item is None:
 			self.__title = title
@@ -105,4 +104,11 @@ class NzbmatrixItem(AbstractItem):
 			raise InvalidRemoteData("report does not have a url")
 
 		self.__download = self.__build_download()
+
+		# if the given item quality matches the desired quality level of the 
+		# download series, set the download delay to 0
+		if self.__download.series.desired_quality == quality:
+			self.__delay = 0
+		else:
+			self.__delay = delay
 

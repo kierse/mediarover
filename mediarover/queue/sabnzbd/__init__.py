@@ -18,7 +18,7 @@ import os
 import re
 import time
 import urllib
-import urllib2, HTTPError, URLError
+import urllib2
 import xml.dom.minidom
 
 from mediarover.config import ConfigObj
@@ -93,9 +93,9 @@ class SabnzbdQueue(Queue):
 		logger.debug("add to queue request: %s", url)
 		try:
 			handle = urllib2.urlopen(url)
-		except (HTTPError), e:
+		except (urllib2.HTTPError), e:
 			raise QueueInsertionError("unable to add item '%s' to queue: %d" % (item.title(), e.code))
-		except (URLError), e:
+		except (urllib2.URLError), e:
 			raise QueueInsertionError("unable to add item '%s' to queue: %s" % (item.title(), e.reason))
 
 		# check response for status of request
@@ -132,9 +132,9 @@ class SabnzbdQueue(Queue):
 		logger.debug("removing job from queue: %s", url)
 		try:
 			handle = urllib2.urlopen(url)
-		except (HTTPError), e:
+		except (urllib2.HTTPError), e:
 			raise QueueDeletionError("unable to remove job '%s' from queue: %d" % (job.title(), e.code))
-		except (URLError), e:
+		except (urllib2.URLError), e:
 			raise QueueDeletionError("unable to remove job '%s' from queue: %s" % (job.title(), e.reason))
 
 		# check response for status of request
@@ -221,9 +221,9 @@ class SabnzbdQueue(Queue):
 		for i in range(12):
 			try:
 				response = urllib2.urlopen(url)
-			except (HTTPError), e:
+			except (urllib2.HTTPError), e:
 				raise QueueRetrievalError("unable to retrieve queue: %d" % e.code)
-			except (URLError), e:
+			except (urllib2.URLError), e:
 				raise QueueRetrievalError("unable to retrieve queue: %s" % e.reason)
 			else: 
 				data = response.read()
@@ -266,9 +266,9 @@ class SabnzbdQueue(Queue):
 
 		try:
 			response = urllib2.urlopen(url)
-		except (HTTPError), e:
+		except (urllib2.HTTPError), e:
 			raise UrlRetrievalError("unable to retrieve SABnzbd version: %d" % e.code)
-		except (URLError), e:
+		except (urllib2.URLError), e:
 			raise UrlRetrievalError("unable to retrieve SABnzbd version: %s" % e.reason)
 		else: 
 			if not re.match("0.5.\d+", response.read()):

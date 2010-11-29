@@ -399,6 +399,44 @@ class Series(object):
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def _aliases_prop(self, aliases = None):
+		if aliases is not None:
+			if isinstance(aliases, list):
+				self.__aliases = aliases
+			else:
+				self.__aliases = [aliases]
+
+	def _desired_quality_prop(self):
+		if self.config['tv']['quality']['managed']:
+			sanitized = self.sanitize_series_name(series=self)
+			if sanitized in self.config['tv']['filter']:
+				return self.config['tv']['filter'][sanitized]['quality']['desired']
+			else:
+				return self.config['tv']['quality']['desired']
+		else:
+			return None
+
+	def _episodes_prop(self):
+		self.__check_episode_lists()
+		return self.__episodes
+
+	def _files_prop(self):
+		self.__check_episode_lists()
+		files = list(self.__single_files)
+		files.extend(self.__daily_files)
+		files.extend(self.__multipart_files)
+		return files
+
+	def _ignores_prop(self, ignores = None):
+		if ignores is not None:
+			self.__ignores = [int(i) for i in ignores]
+		return self.__ignores
+
+		return self.__aliases
+
+	def _name_prop(self):
+		return self.__name
+
 	def _path_prop(self, path = None):
 		if path is not None:
 			if isinstance(path, list):
@@ -414,42 +452,15 @@ class Series(object):
 
 		return self.__path
 
-	def _name_prop(self):
-		return self.__name
-
-	def _ignores_prop(self, ignores = None):
-		if ignores is not None:
-			self.__ignores = [int(i) for i in ignores]
-		return self.__ignores
-
-	def _aliases_prop(self, aliases = None):
-		if aliases is not None:
-			if isinstance(aliases, list):
-				self.__aliases = aliases
-			else:
-				self.__aliases = [aliases]
-
-		return self.__aliases
-
-	def _episodes_prop(self):
-		self.__check_episode_lists()
-		return self.__episodes
-
-	def _files_prop(self):
-		self.__check_episode_lists()
-		files = list(self.__single_files)
-		files.extend(self.__daily_files)
-		files.extend(self.__multipart_files)
-		return files
-
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	path = property(fget=_path_prop, fset=_path_prop, doc="series filesystem path")
-	name = property(fget=_name_prop, doc="series name")
-	ignores = property(fget=_ignores_prop, fset=_ignores_prop, doc="season ignore list")
 	aliases = property(fget=_aliases_prop, fset=_aliases_prop, doc="aliases for current series")
+	desired_quality = property(fget=_desired_quality_prop, doc="desired quality level as defined in the config file.")
 	episodes = property(fget=_episodes_prop, doc="compiled list of single & daily episodes. Includes individual episodes from all multipart episodes found on disk.")
 	files = property(fget=_files_prop, doc="list of FilesystemEpisode objects found on disk for the current series.")
+	ignores = property(fget=_ignores_prop, fset=_ignores_prop, doc="season ignore list")
+	name = property(fget=_name_prop, doc="series name")
+	path = property(fget=_path_prop, fset=_path_prop, doc="series filesystem path")
 
 	def __init__(self, name, path = [], ignores = [], aliases = []):
 
