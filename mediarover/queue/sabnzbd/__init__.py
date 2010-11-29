@@ -242,19 +242,6 @@ class SabnzbdQueue(Queue):
 		if errors:
 			raise QueueRetrievalError("unable to retrieve queue: %s" % errors[0].childNodes[0].nodeValue)
 
-	def __clear(self):
-
-		# queue data is now stale, delete it so that next time
-		# the jobs are processed, the queue will be retrieved
-		try: del self.__jobs
-		except AttributeError: pass
-
-		try:
-			self.__document.unlink()
-			del self.__document
-		except AttributeError:
-			pass
-
 	def __version_check(self):
 		""" verify that the running version of SABnzbd is at least 0.5.0 """
 
