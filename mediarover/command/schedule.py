@@ -107,13 +107,13 @@ Examples:
 	except Exception, e:
 		logger.exception(e)
 		raise
+	else:
+		if options.dry_run:
+			logger.info("DONE, dry-run flag set...nothing to do!")
+		else:
+			logger.info("DONE")
 	finally:
 		broker[METADATA_OBJECT].cleanup()
-
-	if options.dry_run:
-		logger.info("DONE, dry-run flag set...nothing to do!")
-	else:
-		logger.info("DONE")
 
 def __schedule(broker, options):
 
