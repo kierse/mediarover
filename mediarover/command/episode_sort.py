@@ -99,16 +99,8 @@ Examples:
 
 	""" post configuration setup """
 
-	# capture all logging output in local file.  If sorting script exits unexpectedly,
-	# or encounters an error and gracefully exits, the log file will be placed in
-	# the download directory for debugging
-	tmp_file = None
-	if config['logging']['generate_sorting_log']:
-		tmp_file = TemporaryFile()
-		handler = logging.StreamHandler(tmp_file)
-		formatter = logging.Formatter('%(asctime)s %(levelname)s - %(message)s - %(filename)s:%(lineno)s')
-		handler.setFormatter(formatter)
-		logger.addHandler(handler)
+	if len(args) == 0:
+		print_epilog(parser, code=1)
 
 	# gather command line arguments
 	params = {'path': args[0].rstrip("/\ ")}
@@ -126,6 +118,17 @@ Examples:
 		params['category'] = args[4]
 		params['group'] = args[5]
 		params['status'] = args[6]
+
+	# capture all logging output in local file.  If sorting script exits unexpectedly,
+	# or encounters an error and gracefully exits, the log file will be placed in
+	# the download directory for debugging
+	tmp_file = None
+	if config['logging']['generate_sorting_log']:
+		tmp_file = TemporaryFile()
+		handler = logging.StreamHandler(tmp_file)
+		formatter = logging.Formatter('%(asctime)s %(levelname)s - %(message)s - %(filename)s:%(lineno)s')
+		handler.setFormatter(formatter)
+		logger.addHandler(handler)
 
 	broker.register(METADATA_OBJECT, Metadata())
 	broker.register(CONFIG_OBJECT, config)
