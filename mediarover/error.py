@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+class CleanupError(Exception): pass
 class ConfigurationError(Exception): pass
 class FailedDownload(Exception): pass
 class FilesystemError(Exception): pass

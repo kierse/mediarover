@@ -27,12 +27,12 @@ from mediarover.command import print_epilog, register_source_factories
 from mediarover.config import build_series_filters, read_config
 from mediarover.ds.metadata import Metadata
 from mediarover.episode.factory import EpisodeFactory
-from mediarover.error import (ConfigurationError, FailedDownload, FilesystemError, 
+from mediarover.error import (CleanupError, ConfigurationError, FailedDownload, FilesystemError, 
 										InvalidJobTitle, InvalidMultiEpisodeData, MissingParameterError)
 from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.filesystem.factory import FilesystemFactory
 from mediarover.series import Series, build_watch_list
-from mediarover.utils.filesystem import clean_path, find_disk_with_space
+from mediarover.utils.filesystem import find_disk_with_space
 from mediarover.utils.quality import guess_quality_level
 from mediarover.version import __app_version__
 
@@ -157,28 +157,13 @@ Examples:
 	message = None
 	try:
 		__episode_sort(broker, options, **params)
+	except (CleanupError), e:
+		logger.warning(e)
+		message = "WARNING: sort successful, errors encountered during cleanup!"
 	except (Exception), e:
 		fatal = 1
 		logger.exception(e)
-		if config['logging']['generate_sorting_log']:
-
-			# reset current position to start of file for reading...
-			tmp_file.seek(0)
-
-			# flush log data in temporary file handler to disk 
-			sort_log = open(os.path.join(params['path'], "sort.log"), "w")
-			shutil.copyfileobj(tmp_file, sort_log)
-			sort_log.close()
-
-		if isinstance(e, FailedDownload):
-			logger.warning("download failed, moving to trash...")
-			try:
-				_move_to_trash(broker[CONFIG_OBJECT]['tv']['tv_root'][0], params['path'])
-			except OSError, (e2):
-				logger.exception(FailedDownload("unable to move download directory to trash: %s" % e2.args[0]))
-			message = "FAILURE, %s!" % e.args[0]
-		else:
-			message = "FAILURE, unable to sort downloaded episode! See log file at %r for more details!" % os.path.join(broker[CONFIG_DIR], "logs", "sabnzbd_episode_sort.log")
+		message = "FAILURE, %s!" % e.args[0]
 	else:
 		if options.dry_run:
 			message = "DONE, dry-run flag set...nothing to do!"
@@ -186,6 +171,14 @@ Examples:
 			message = "SUCCESS, downloaded episode sorted!"
 	finally:
 		broker[METADATA_OBJECT].cleanup()
+		if fatal and config['logging']['generate_sorting_log']:
+			# reset current position to start of file for reading...
+			tmp_file.seek(0)
+
+			# flush log data in temporary file handler to disk 
+			sort_log = open(os.path.join(params['path'], "sort.log"), "w")
+			shutil.copyfileobj(tmp_file, sort_log)
+			sort_log.close()
 
 	print message
 	exit(fatal)
@@ -362,7 +355,7 @@ def __episode_sort(broker, options, **kwargs):
 		try:
 			shutil.move(orig_path, new_path)
 		except OSError, (e):
-			logger.error("unable to move downloaded episode to %r: %s", new_path, e.strerror)
+			logger.error("unable to move downloaded episode to '%s': %s", new_path, e.strerror)
 			raise
 	
 		# move successful, cleanup download directory
@@ -410,27 +403,15 @@ def __episode_sort(broker, options, **kwargs):
 						try:
 							os.remove(old.path)
 						except OSError, (e):
-							logger.error("unable to delete file %r: %s", old.path, e.strerror)
-							raise
+							raise CleanupError("unable to delete file at '%s': %s", old.path, e.strerror)
 						else:
-							logger.info("removing file %r", old.path)
+							logger.info("removing file '%s'", old.path)
 					
-			# clean up download directory by removing all files matching ignored extensions list.
-			# if unable to delete download directory (because it's not empty), move it to .trash
+			# clean up download directory by removing all remaining files
 			try:
-				clean_path(path, ignored)
-			except (OSError, FilesystemError):
-				logger.error("unable to remove download directory '%s'", path)
-
-				trash_path = _move_to_trash(tv_root[0], path)
-				logger.info("moving download directory '%s' to '%s'", path, trash_path)
+				shutil.rmtree(path)
+			except (shutil.Error), e:
+				raise CleanupError("unable to remove download directory '%s'", e)
 			else:
 				logger.info("removing download directory '%s'", path)
-
-def _move_to_trash(root, path):
-
-	trash_path = os.path.join(root, ".trash", os.path.basename(path))
-	shutil.move(path, trash_path)
-
-	return trash_path
 
