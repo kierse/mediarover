@@ -179,7 +179,11 @@ class SabnzbdQueue(Queue):
 			logger.debug("looking for '%s' in SABnzbd backup directory...", file)
 
 			for nzb in os.listdir(backup_dir):
-				if nzb.startswith(file):
+				try:
+					if nzb.startswith(file):
+				except (UnicodeDecodeError), e:
+					logger.warning("error reading file '%s': %s" % (nzb, e))
+				else:
 					return True
 
 		return False
