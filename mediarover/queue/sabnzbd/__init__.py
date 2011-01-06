@@ -74,7 +74,7 @@ class SabnzbdQueue(Queue):
 		}
 
 		args = {
-			'mode': 'addurl',
+			'mode': 'addid',
 			'cat': self.config[item.type()]['category'],
 			'name': item.url(),
 			'priority': priority[item.priority().lower()],
