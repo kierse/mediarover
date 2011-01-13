@@ -180,11 +180,10 @@ class SabnzbdQueue(Queue):
 
 			for nzb in os.listdir(backup_dir):
 				try:
-					nzb.startswith(file)
+					if nzb.startswith(file):
+						return True
 				except (UnicodeDecodeError), e:
 					logger.warning("error reading file '%s': %s" % (nzb, e))
-				else:
-					return True
 
 		return False
 
