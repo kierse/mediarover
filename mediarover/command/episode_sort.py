@@ -31,14 +31,14 @@ from mediarover.error import (CleanupError, ConfigurationError, FailedDownload, 
 										InvalidJobTitle, InvalidMultiEpisodeData, MissingParameterError)
 from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.filesystem.factory import FilesystemFactory
-from mediarover.series import Series, build_watch_list
+from mediarover.series import Series, build_series_lists
 from mediarover.utils.filesystem import find_disk_with_space
 from mediarover.utils.quality import guess_quality_level
 from mediarover.version import __app_version__
 
 from mediarover.constant import (CONFIG_DIR, CONFIG_OBJECT, METADATA_OBJECT, EPISODE_FACTORY_OBJECT, 
-											FILESYSTEM_FACTORY_OBJECT, NEWZBIN_FACTORY_OBJECT, RESOURCES_DIR, 
-											WATCHED_SERIES_LIST)
+											FILESYSTEM_FACTORY_OBJECT, IGNORED_SERIES_LIST, NEWZBIN_FACTORY_OBJECT, 
+											RESOURCES_DIR, WATCHED_SERIES_LIST)
 from mediarover.utils.quality import LOW, MEDIUM, HIGH
 
 def episode_sort(broker, args):
@@ -232,10 +232,11 @@ def __episode_sort(broker, options, **kwargs):
 
 	# build dict of watched series
 	# register series dictionary with dependency broker
-	watched_list = build_watch_list(config)
-	broker.register(WATCHED_SERIES_LIST, watched_list)
+	series_lists = build_series_lists(config)
+	broker.register(WATCHED_SERIES_LIST, series_lists[0])
+	broker.register(IGNORED_SERIES_LIST, series_lists[1])
 
-	logger.info("watching %d tv show(s)", len(watched_list))
+	logger.info("watching %d tv show(s)", len(series_lists[0]))
 	logger.debug("finished processing watched tv")
 
 	ignored = [ext.lower() for ext in config['tv']['ignored_extensions']]
@@ -285,6 +286,10 @@ def __episode_sort(broker, options, **kwargs):
 	# sanitize series name for later use
 	series = episode.series
 	sanitized_name = series.sanitize_series_name(series=series)
+
+	# check if series is being ignored
+	if sanitized_name not in broker[WATCHED_SERIES_LIST] and sanitized_name in broker[IGNORED_SERIES_LIST]:
+		raise ConfigurationError("unable to sort episode as parent series is being ignored")
 
 	# move downloaded file to new location and rename
 	if not options.dry_run:

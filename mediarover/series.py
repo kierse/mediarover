@@ -485,7 +485,7 @@ class Series(object):
 
 from mediarover.config import build_series_filters, locate_and_process_ignore
 
-def build_watch_list(config, process_aliases=True):
+def build_series_lists(config, process_aliases=True):
 	""" use given config object and build a dictionary of watched series """
 	logger = logging.getLogger("mediarover.series")
 
@@ -565,5 +565,5 @@ def build_watch_list(config, process_aliases=True):
 					logger.debug("watching series: %s", series)
 					watched_list.update(additions)
 	
-	return watched_list
+	return watched_list, skip_list
 
