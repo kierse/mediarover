@@ -34,7 +34,7 @@ from mediarover.error import (ConfigurationError, FailedDownload, FilesystemErro
 										UrlRetrievalError)
 from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.filesystem.factory import FilesystemFactory
-from mediarover.series import Series, build_watch_list
+from mediarover.series import Series, build_series_lists 
 from mediarover.utils.quality import guess_quality_level
 from mediarover.version import __app_version__
 
@@ -139,11 +139,11 @@ def __schedule(broker, options):
 		raise ConfigurationError("You must declare at least one tv_root directory!")
 
 	# build dict of watched series
-	watched_list = build_watch_list(config)
-	logger.info("watching %d tv show(s)", len(watched_list))
+	series_lists = build_series_lists(config)
+	logger.info("watching %d tv show(s)", len(series_lists[0]))
 
 	# register series dictionary with dependency broker
-	broker.register(WATCHED_SERIES_LIST, watched_list)
+	broker.register(WATCHED_SERIES_LIST, series_lists[0])
 
 	logger.debug("finished processing watched tv")
 	logger.info("begin processing sources")

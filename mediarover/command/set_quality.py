@@ -24,7 +24,7 @@ from mediarover.ds.metadata import Metadata
 from mediarover.episode.factory import EpisodeFactory
 from mediarover.error import ConfigurationError
 from mediarover.filesystem.factory import FilesystemFactory
-from mediarover.series import Series, build_watch_list
+from mediarover.series import Series, build_series_lists 
 
 from mediarover.constant import (CONFIG_DIR, CONFIG_OBJECT, METADATA_OBJECT, EPISODE_FACTORY_OBJECT, 
 											FILESYSTEM_FACTORY_OBJECT, RESOURCES_DIR, WATCHED_SERIES_LIST)
@@ -134,13 +134,13 @@ Series Options:
 
 	# build dict of watched series
 	# register series dictionary with dependency broker
-	watched_list = build_watch_list(config, process_aliases=False)
-	broker.register(WATCHED_SERIES_LIST, watched_list)
+	series_lists = build_series_lists(config, process_aliases=False)
+	broker.register(WATCHED_SERIES_LIST, series_lists[0])
 
 	# build list of series to iterate over
 	if series_name:
 		names = [Series.sanitize_series_name(name=series_name)]
-		if names[0] not in watched_list:
+		if names[0] not in broker[WATCHED_SERIES_LIST]:
 			print "ERROR: Unable to find series matching %r" % series_name
 			exit(2)
 		else:
@@ -149,7 +149,7 @@ Series Options:
 			if episode_num is not None:
 				episode_num = int(episode_num)
 	else:
-		names = watched_list.keys()
+		names = broker[WATCHED_SERIES_LIST].keys()
 		names.sort()
 
 	displayed_series_help = 0
@@ -159,7 +159,7 @@ Series Options:
 		print help
 
 	for sanitized in names:
-		series = watched_list[sanitized]
+		series = broker[WATCHED_SERIES_LIST][sanitized]
 
 		if options.series_prompt:
 			answer = __query_user("Process '%s'? ([y]/n/q/?)" % series.name, ['y','n','q','?'], 'y', help)
