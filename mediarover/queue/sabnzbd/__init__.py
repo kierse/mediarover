@@ -29,6 +29,13 @@ from mediarover.queue import Queue
 from mediarover.queue.sabnzbd.job import SabnzbdJob
 from mediarover.utils.injection import Dependency, is_instance_of
 
+PRIORITY = {
+	'low': -1,
+	'normal': 0,
+	'high': 1,
+	'force': 2,
+}
+
 class SabnzbdQueue(Queue):
 	""" Sabnzbd queue class """
 
@@ -66,18 +73,11 @@ class SabnzbdQueue(Queue):
 		"""
 		logger = logging.getLogger("mediarover.queue.sabnzbd")
 
-		priority = {
-			'low': -1,
-			'normal': 0,
-			'high': 1,
-			'force': 2,
-		}
-
 		args = {
 			'mode': 'addid',
 			'cat': self.config[item.type()]['category'],
 			'name': item.url(),
-			'priority': priority[item.priority().lower()],
+			'priority': PRIORITY[item.priority().lower()],
 		}
 
 		if 'username' and 'password' in self._params:
