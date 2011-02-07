@@ -274,10 +274,10 @@ def __episode_sort(broker, options, **kwargs):
 	# retrieve the proper factory object
 	in_progress = broker[METADATA_OBJECT].get_in_progress(job)
 	if in_progress is None:
-		if report_id is not None and report_id != "":
-			factory = broker[NEWZBIN_FACTORY_OBJECT]
-		else:
+		if report_id == "":
 			factory = broker[EPISODE_FACTORY_OBJECT]
+		else:
+			factory = broker[NEWZBIN_FACTORY_OBJECT]
 	else:
 		factory = broker[in_progress['source']]
 
