@@ -158,30 +158,34 @@ Examples:
 
 	fatal = 0
 	message = None
-	try:
-		__episode_sort(broker, options, **params)
-	except (CleanupError), e:
-		logger.warning(e)
-		message = "WARNING: sort successful, errors encountered during cleanup!"
-	except (Exception), e:
-		fatal = 1
-		logger.exception(e)
-		message = "FAILURE, %s!" % e.args[0]
-	else:
-		if options.dry_run:
-			message = "DONE, dry-run flag set...nothing to do!"
+	if os.path.exists(params['path']):
+		try:
+			__episode_sort(broker, options, **params)
+		except (CleanupError), e:
+			logger.warning(e)
+			message = "WARNING: sort successful, errors encountered during cleanup!"
+		except (Exception), e:
+			fatal = 1
+			logger.exception(e)
+			message = "FAILURE: %s!" % e.args[0]
 		else:
-			message = "SUCCESS, downloaded episode sorted!"
-	finally:
-		broker[METADATA_OBJECT].cleanup()
-		if fatal and config['logging']['generate_sorting_log']:
-			# reset current position to start of file for reading...
-			tmp_file.seek(0)
+			if options.dry_run:
+				message = "DONE: dry-run flag set...nothing to do!"
+			else:
+				message = "SUCCESS: downloaded episode sorted!"
+		finally:
+			broker[METADATA_OBJECT].cleanup()
+			if fatal and config['logging']['generate_sorting_log']:
+				# reset current position to start of file for reading...
+				tmp_file.seek(0)
 
-			# flush log data in temporary file handler to disk 
-			sort_log = open(os.path.join(params['path'], "sort.log"), "w")
-			shutil.copyfileobj(tmp_file, sort_log)
-			sort_log.close()
+				# flush log data in temporary file handler to disk 
+				sort_log = open(os.path.join(params['path'], "sort.log"), "w")
+				shutil.copyfileobj(tmp_file, sort_log)
+				sort_log.close()
+	else:
+		fatal = 1
+		message = "FAILURE: sort unsuccessful, given path does not exist!"
 
 	print message
 	exit(fatal)
