@@ -48,6 +48,14 @@ class SabnzbdJob(Job):
 		""" download object """
 		return self.__download
 
+	def size(self):
+		""" total download size (in MB) """
+		return self.__size
+
+	def remaining(self):
+		""" amount remaining to complete download (in MB) """
+		return self.__remaining
+
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def __parseJob(self):
@@ -87,4 +95,6 @@ class SabnzbdJob(Job):
 		self.__id = self.__job.getElementsByTagName("nzo_id")[0].childNodes[0].data
 		self.__title = self.__job.getElementsByTagName("filename")[0].childNodes[0].data
 		self.__download = self.__parseJob()
+		self.__size = self.__job.getElementsByTagName("mb")[0].childNodes[0].data
+		self.__remaining = self.__job.getElementsByTagName("mbleft")[0].childNodes[0].data
 
