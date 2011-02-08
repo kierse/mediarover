@@ -26,9 +26,11 @@ class Job:
 		raise NotImplementedError
 
 	def remaining(self):
+		""" amount remaining to be downloaded (in MB) """
 		raise NotImplementedError
 
 	def size(self):
+		""" total size of download (in MB) """
 		raise NotImplementedError
 
 	def title(self):
