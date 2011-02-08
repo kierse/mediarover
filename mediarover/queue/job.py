@@ -16,21 +16,21 @@
 class Job:
 	""" Queue job interface class """
 
-	def id(self):
-		raise NotImplementedError
-
-	def title(self):
-		raise NotImplementedError
-
 	def category(self):
 		raise NotImplementedError
 
 	def download(self):
 		raise NotImplementedError
 
-	def size(self):
+	def id(self):
 		raise NotImplementedError
 
 	def remaining(self):
+		raise NotImplementedError
+
+	def size(self):
+		raise NotImplementedError
+
+	def title(self):
 		raise NotImplementedError
 
