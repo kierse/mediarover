@@ -1,0 +1,18 @@
+---
+layout: announcement
+title: 0.6.0 released!
+desc: "Key fetures of this release: eliminated .trash folder, bugs, bugs, and more bugs"
+---
+
+Announcing Media Rover 0.6.0! 
+
+*Release Details:*
+
+* refactored code to eliminte the need for the .trash folder. Now, whenever Media Rover fails to sort an episode or isn't able to clean up after a sort, it will leave the download directory intact.
+* fixed several bugs with the newzbin source plugin. Should now work with schedule_delay flag
+* when sorting an episode for a series that is being ignored (via Media Rover config or .ignore file), Media Rover will now generate an error and exit
+* added check to ensure that the given download directory exists
+* added code to trap errors encountered while parsing nzb reports with unexpected characters
+* added code to trap errors encountered while checking nzb backup directory
+
+Get the latest code updates "here":http://mediarover.tv/#installation, or you can grab them straight from "GitHub":http://github.com/kierse/mediarover/archives/v0.6.0
