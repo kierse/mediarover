@@ -58,7 +58,7 @@ class SabnzbdJob(Job):
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def __parseJob(self):
+	def __build_download(self):
 		""" parse job data and build appropriate download object """
 
 		if self.__job.getElementsByTagName("msgid")[0].hasChildNodes():
@@ -94,7 +94,7 @@ class SabnzbdJob(Job):
 
 		self.__id = self.__job.getElementsByTagName("nzo_id")[0].childNodes[0].data
 		self.__title = self.__job.getElementsByTagName("filename")[0].childNodes[0].data
-		self.__download = self.__parseJob()
 		self.__size = self.__job.getElementsByTagName("mb")[0].childNodes[0].data
 		self.__remaining = self.__job.getElementsByTagName("mbleft")[0].childNodes[0].data
+		self.__download = self.__build_download()
 
