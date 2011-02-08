@@ -134,7 +134,7 @@ class Metadata(object):
 
 	def add_delayed_item(self, item):
 		""" add given item to delayed_item table """
-		self.__dbh.execute("INSERT INTO delayed_item (title, source, url, type, priority, quality, delay) VALUES (?,?,?,?,?,?,?)", (item.title(), item.source(), item.url(), item.type(), item.priority(), item.quality(), item.delay()))
+		self.__dbh.execute("INSERT INTO delayed_item (title, source, url, type, priority, quality, delay, size) VALUES (?,?,?,?,?,?,?,?)", (item.title(), item.source(), item.url(), item.type(), item.priority(), item.quality(), item.delay(), item.size()))
 		self.__dbh.commit()
 
 		logger = logging.getLogger("mediarover.ds.metadata")
@@ -156,11 +156,11 @@ class Metadata(object):
 
 		# iterate over all tuples with delay < 1 and create new item objects
 		items = []
-		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay FROM delayed_item WHERE delay < 1"):
+		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay, size FROM delayed_item WHERE delay < 1"):
 			if r['source'] not in factories:
 				factories[r['source']] = Dependency(r['source'], is_instance_of(ItemFactory))
 			factory = factories[r['source']].__get__()
-			items.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
+			items.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay'], r['size']))
 
 		return items
 	
@@ -169,11 +169,11 @@ class Metadata(object):
 		factories = {}
 
 		list = []
-		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay FROM delayed_item"):
+		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay, size FROM delayed_item"):
 			if r['source'] not in factories:
 				factories[r['source']] = Dependency(r['source'], is_instance_of(ItemFactory))
 			factory = factories[r['source']].__get__()
-			list.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
+			list.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay'], r['size']))
 
 		return list
 
