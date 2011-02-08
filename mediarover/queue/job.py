@@ -28,3 +28,9 @@ class Job:
 	def download(self):
 		raise NotImplementedError
 
+	def size(self):
+		raise NotImplementedError
+
+	def remaining(self):
+		raise NotImplementedError
+
