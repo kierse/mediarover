@@ -16,19 +16,19 @@
 import logging
 import re
 
-from mediarover.constant import TVNZB_FACTORY_OBJECT
+from mediarover.constant import NZBCLUB_FACTORY_OBJECT
 from mediarover.error import *
-from mediarover.factory import EpisodeFactory
 from mediarover.source.item import AbstractItem
+from mediarover.factory import EpisodeFactory
 from mediarover.utils.injection import is_instance_of, Dependency
 
-class TvnzbItem(AbstractItem):
+class NzbclubItem(AbstractItem):
 	""" wrapper object representing an unparsed report object """
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	factory = Dependency(TVNZB_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
+	factory = Dependency(NZBCLUB_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -49,7 +49,7 @@ class TvnzbItem(AbstractItem):
 		return self.__quality
 
 	def source(self):
-		return TVNZB_FACTORY_OBJECT
+		return NZBCLUB_FACTORY_OBJECT
 
 	def title(self):
 		""" report title from source item """
@@ -80,7 +80,7 @@ class TvnzbItem(AbstractItem):
 	def __init__(self, item, type, priority, quality, delay, title=None, url=None):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
-		self.__type = type 
+		self.__type = type
 		self.__priority = priority
 		self.__quality = quality
 		self.__delay = delay
@@ -95,9 +95,10 @@ class TvnzbItem(AbstractItem):
 			if titles:
 				self.__title = titles[0].childNodes[0].data
 
-			links = self.__item.getElementsByTagName("link")
-			if links:
-				self.__url = links[0].childNodes[0].data
+			enclosure = self.__item.getElementsByTagName("enclosure")
+			if enclosure and enclosure[0].getAttribute('url') is not "":
+				index = enclosure[0].getAttribute('url').rfind("/")
+				self.__url = "%s/nzb" % enclosure[0].getAttribute('url')[:index]
 
 		if self.__title is None:
 			raise InvalidRemoteData("report does not have a title")

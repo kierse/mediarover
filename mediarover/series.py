@@ -19,6 +19,7 @@ import os.path
 import re
 
 from mediarover.config import ConfigObj
+from mediarover.constant import CONFIG_OBJECT, FILESYSTEM_FACTORY_OBJECT, METADATA_OBJECT
 from mediarover.ds.metadata import Metadata
 from mediarover.error import FilesystemError, InvalidData, InvalidEpisodeString, InvalidMultiEpisodeData, MissingParameterError, TooManyParametersError
 from mediarover.factory import EpisodeFactory
@@ -32,9 +33,9 @@ class Series(object):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	config = Dependency('config', is_instance_of(ConfigObj))
-	factory = Dependency('filesystem_factory', is_instance_of(EpisodeFactory))
-	meta_ds = Dependency("metadata_data_store", is_instance_of(Metadata))
+	config = Dependency(CONFIG_OBJECT, is_instance_of(ConfigObj))
+	factory = Dependency(FILESYSTEM_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
+	meta_ds = Dependency(METADATA_OBJECT, is_instance_of(Metadata))
 
 	metadata_regex = re.compile("\s*\(.+?\)")
 
@@ -167,12 +168,17 @@ class Series(object):
 
 		return desirable
 
-	def locate_season_folder(self, season):
-		path = None
+	def locate_season_folder(self, season, path = None):
+		season_path = None
+
+		if path is None:
+			path = self.path
+		else:
+			path = [path]
 
 		metadata_regex = re.compile("\(.+?\)$")
 		number_regex = re.compile("[^\d]")
-		for root in self.path:
+		for root in path:
 			for dir in os.listdir(root):
 				if os.path.isdir(os.path.join(root, dir)):
 
@@ -182,12 +188,12 @@ class Series(object):
 
 					number = number_regex.sub("", clean_dir)
 					if len(number) and int(season) == int(number):
-						path = os.path.join(root, dir)
+						season_path = os.path.join(root, dir)
 						break
-			if path is not None:
+			if season_path is not None:
 				break
 		
-		return path
+		return season_path
 
 	def ignore(self, season):
 		""" return boolean indicating whether or not the given season number should be ignored """
@@ -223,6 +229,24 @@ class Series(object):
 		self.__single_files = None
 		self.__daily_files = None
 		self.__multipart_files = None
+		self.__newest_episode = None
+
+	def is_episode_newer_than_current(self, episode):
+		""" determine if the given episode is newer than all existing series episodes """
+		list = self.get_newer_parts(episode)
+		if len(list) > 0:
+			return True
+
+		return False
+
+	def get_newer_parts(self, episode):
+		""" build list of episode parts that are newer than all existing series episodes """
+		list = []
+		for ep in episode.parts():
+			if isinstance(self.__newest_episode, type(ep)) and self.__newest_episode < ep:
+				list.append(ep)
+
+		return list
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -319,6 +343,11 @@ class Series(object):
 								else:
 									episode.quality = record['quality']
 
+							# determine if episode is newer than current newest
+							newer = self.get_newer_parts(episode)
+							if len(newer) > 0:
+								self.__newest_episode = newer.pop()
+
 							logger.debug("created %r" % file)
 
 		self.__episodes = compiled
@@ -370,6 +399,43 @@ class Series(object):
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def _aliases_prop(self, aliases = None):
+		if aliases is not None:
+			if isinstance(aliases, list):
+				self.__aliases = aliases
+			else:
+				self.__aliases = [aliases]
+		return self.__aliases
+
+	def _desired_quality_prop(self):
+		if self.config['tv']['quality']['managed']:
+			sanitized = self.sanitize_series_name(series=self)
+			if sanitized in self.config['tv']['filter']:
+				return self.config['tv']['filter'][sanitized]['quality']['desired']
+			else:
+				return self.config['tv']['quality']['desired']
+		else:
+			return None
+
+	def _episodes_prop(self):
+		self.__check_episode_lists()
+		return self.__episodes
+
+	def _files_prop(self):
+		self.__check_episode_lists()
+		files = list(self.__single_files)
+		files.extend(self.__daily_files)
+		files.extend(self.__multipart_files)
+		return files
+
+	def _ignores_prop(self, ignores = None):
+		if ignores is not None:
+			self.__ignores = [int(i) for i in ignores]
+		return self.__ignores
+
+	def _name_prop(self):
+		return self.__name
+
 	def _path_prop(self, path = None):
 		if path is not None:
 			if isinstance(path, list):
@@ -385,42 +451,15 @@ class Series(object):
 
 		return self.__path
 
-	def _name_prop(self):
-		return self.__name
-
-	def _ignores_prop(self, ignores = None):
-		if ignores is not None:
-			self.__ignores = [int(i) for i in ignores]
-		return self.__ignores
-
-	def _aliases_prop(self, aliases = None):
-		if aliases is not None:
-			if isinstance(aliases, list):
-				self.__aliases = aliases
-			else:
-				self.__aliases = [aliases]
-
-		return self.__aliases
-
-	def _episodes_prop(self):
-		self.__check_episode_lists()
-		return self.__episodes
-
-	def _files_prop(self):
-		self.__check_episode_lists()
-		files = list(self.__single_files)
-		files.extend(self.__daily_files)
-		files.extend(self.__multipart_files)
-		return files
-
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	path = property(fget=_path_prop, fset=_path_prop, doc="series filesystem path")
-	name = property(fget=_name_prop, doc="series name")
-	ignores = property(fget=_ignores_prop, fset=_ignores_prop, doc="season ignore list")
 	aliases = property(fget=_aliases_prop, fset=_aliases_prop, doc="aliases for current series")
+	desired_quality = property(fget=_desired_quality_prop, doc="desired quality level as defined in the config file.")
 	episodes = property(fget=_episodes_prop, doc="compiled list of single & daily episodes. Includes individual episodes from all multipart episodes found on disk.")
 	files = property(fget=_files_prop, doc="list of FilesystemEpisode objects found on disk for the current series.")
+	ignores = property(fget=_ignores_prop, fset=_ignores_prop, doc="season ignore list")
+	name = property(fget=_name_prop, doc="series name")
+	path = property(fget=_path_prop, fset=_path_prop, doc="series filesystem path")
 
 	def __init__(self, name, path = [], ignores = [], aliases = []):
 
@@ -437,15 +476,16 @@ class Series(object):
 		self.__single_files = None
 		self.__daily_files = None
 		self.__multipart_files = None
+		self.__newest_episode = None
 
 		# sanitize ignores list
 		self.__ignores = set([int(re.sub("[^\d]", "", str(i))) for i in ignores if i])
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-from mediarover.config import build_series_filters
+from mediarover.config import build_series_filters, locate_and_process_ignore
 
-def build_watch_list(config, process_aliases=True):
+def build_series_lists(config, process_aliases=True):
 	""" use given config object and build a dictionary of watched series """
 	logger = logging.getLogger("mediarover.series")
 
@@ -492,10 +532,11 @@ def build_watch_list(config, process_aliases=True):
 
 					# locate and process any filters for current series.  If no user defined filters for 
 					# current series exist, build dict using default values
-					if sanitized_name in config['tv']['filter']:
-						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'], config['tv']['filter'][sanitized_name])
-					else:
-						config['tv']['filter'][sanitized_name] = build_series_filters(dir, config['tv']['quality'])
+					if sanitized_name not in config['tv']['filter']:
+						config['tv']['filter'][sanitized_name] = build_series_filters(config)
+
+					# incorporate any .ignore file settings
+					locate_and_process_ignore(config['tv']['filter'][sanitized_name], dir)
 
 					# check filters to see if user wants this series skipped...
 					if config['tv']['filter'][sanitized_name]["skip"]:
@@ -524,5 +565,5 @@ def build_watch_list(config, process_aliases=True):
 					logger.debug("watching series: %s", series)
 					watched_list.update(additions)
 	
-	return watched_list
+	return watched_list, skip_list
 

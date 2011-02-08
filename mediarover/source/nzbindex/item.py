@@ -16,19 +16,19 @@
 import logging
 import re
 
-from mediarover.constant import TVNZB_FACTORY_OBJECT
+from mediarover.constant import NZBINDEX_FACTORY_OBJECT
 from mediarover.error import *
-from mediarover.factory import EpisodeFactory
 from mediarover.source.item import AbstractItem
+from mediarover.factory import EpisodeFactory
 from mediarover.utils.injection import is_instance_of, Dependency
 
-class TvnzbItem(AbstractItem):
+class NzbindexItem(AbstractItem):
 	""" wrapper object representing an unparsed report object """
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	factory = Dependency(TVNZB_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
+	factory = Dependency(NZBINDEX_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -49,7 +49,7 @@ class TvnzbItem(AbstractItem):
 		return self.__quality
 
 	def source(self):
-		return TVNZB_FACTORY_OBJECT
+		return NZBINDEX_FACTORY_OBJECT
 
 	def title(self):
 		""" report title from source item """
@@ -80,7 +80,7 @@ class TvnzbItem(AbstractItem):
 	def __init__(self, item, type, priority, quality, delay, title=None, url=None):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
-		self.__type = type 
+		self.__type = type
 		self.__priority = priority
 		self.__quality = quality
 		self.__delay = delay

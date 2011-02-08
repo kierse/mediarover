@@ -29,6 +29,6 @@ def guess_quality_level(config, ext, default):
 		elif ext in config['tv']['quality']['extension'][HIGH]:
 			quality = HIGH
 		logger = logging.getLogger("mediarover.util.quality")
-		logger.debug("matched file extension '%s' to quality level to of '%s'" % (ext, quality))
+		logger.debug("matched file extension '%s' to quality level '%s'" % (ext, quality))
 	return quality
 

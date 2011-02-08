@@ -15,6 +15,7 @@
 	priority = option('normal', 'high', 'low', 'force', default='normal')
 	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com","tbn","jpg","png","gif","info","db","srr"))
 	allow_multipart = boolean(default=True)
+	only_schedule_newer = boolean(default=False)
 
 	[[quality]]
 		managed = boolean(default=False)
@@ -31,6 +32,7 @@
 			ignore = int_list(default=list())
 			skip = boolean(default=False)
 			alias = string_list(default=list())
+			only_schedule_newer = boolean(default=None)
 			[[[[quality]]]]
 				acceptable = options_list(options=list('all', 'low', 'medium', 'high', None), default=None)
 				desired = option('low', 'medium', 'high', None, default=None)
@@ -46,7 +48,7 @@
 [source]
 	[[__many__]]
 		url = url()
-		provider = option('newzbin','tvnzb','mytvnzb','nzbs','nzbmatrix')
+		provider = option('newzbin','tvnzb','mytvnzb','nzbs','nzbmatrix','nzbsrus','nzbclub','nzbindex')
 		type = option('tv', default='tv')
 		quality = option('low', 'medium', 'high', None, default=None)
 		timeout = integer(default=60)

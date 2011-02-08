@@ -48,11 +48,11 @@ class Source:
 import logging
 import re
 import socket
-import urllib2
 import xml.dom.minidom
+from urllib2 import urlopen, HTTPError, URLError
 from xml.parsers.expat import ExpatError
 
-from mediarover.error import InvalidRemoteData
+from mediarover.error import InvalidRemoteData, UrlRetrievalError
 
 class AbstractXmlSource(Source):
 	""" NZB abstract source class """
@@ -89,8 +89,13 @@ class AbstractXmlSource(Source):
 		socket.setdefaulttimeout(self.timeout())
 
 		# attempt to retrieve data at source url
-		url = urllib2.urlopen(self.url())
-			
+		try:
+			url = urlopen(self.url())
+		except (HTTPError), e:
+			raise UrlRetrievalError("unable to complete request: %d" % e.code)
+		except (URLError), e:
+			raise UrlRetrievalError("unable to retrieve source url: %s" % e.reason)
+
 		# parse xml response data and build DOM
 		# trap any expat errors
 		try:

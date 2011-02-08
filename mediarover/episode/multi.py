@@ -111,6 +111,9 @@ class MultiEpisode(Episode):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def parts(self):
+		return self.episodes
+
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -132,6 +135,13 @@ class MultiEpisode(Episode):
 	def __ne__(self, other):
 		return not self == other
 
+	def __gt__(self, other):
+		return not self < other
+
+	def __lt__(self, other):
+		other_ep = getattr(other, 'episode', self.episodes[-1].episode)
+		return (self.season, self.episodes[-1].episode) < (other.season, other_ep)
+
 	def __repr__(self):
 		episodes = []
 		for episode in self.episodes:
@@ -147,17 +157,21 @@ class MultiEpisode(Episode):
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def _series_prop(self):
-		return self.episodes[0].series
+	@property
+	def episodes(self):
+		return self._episodes	
 
-	def _season_prop(self):
+	@property
+	def season(self):
 		return self.episodes[0].season
 
-	def _title_prop(self):
-		return self._title
+	@property
+	def series(self):
+		return self.episodes[0].series
 
-	def _episodes_prop(self):
-		return self._episodes	
+	@property
+	def title(self):
+		return self._title
 
 	def _quality_prop(self, quality=None):
 		if quality is not None:
@@ -167,10 +181,6 @@ class MultiEpisode(Episode):
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	series = property(fget=_series_prop, doc="multiepisode series object")
-	season = property(fget=_season_prop, doc = "multiepisode season number")
-	episodes = property(fget=_episodes_prop, fset=_episodes_prop, doc="multiepisode episode list")
-	title = property(fget=_title_prop, doc="multiepisode title")
 	quality = property(fget=_quality_prop, fset=_quality_prop, doc="episode quality")
 
 	def __init__(self, series, season, start_episode, end_episode, quality, title = "", **kwargs):

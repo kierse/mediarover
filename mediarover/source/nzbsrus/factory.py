@@ -17,13 +17,15 @@ from mediarover.config import ConfigObj
 from mediarover.constant import CONFIG_OBJECT, WATCHED_SERIES_LIST
 from mediarover.error import *
 from mediarover.factory import EpisodeFactory, ItemFactory, SourceFactory
+from mediarover.episode.daily import DailyEpisode
+from mediarover.episode.multi import MultiEpisode
+from mediarover.episode.single import SingleEpisode
 from mediarover.series import Series
-from mediarover.source.newzbin import NewzbinSource
-from mediarover.source.newzbin.item import NewzbinItem
-from mediarover.source.newzbin.episode import NewzbinSingleEpisode, NewzbinMultiEpisode, NewzbinDailyEpisode
+from mediarover.source.nzbsrus import NzbsrusSource
+from mediarover.source.nzbsrus.item import NzbsrusItem
 from mediarover.utils.injection import is_instance_of, Dependency
 
-class NewzbinFactory(EpisodeFactory, ItemFactory, SourceFactory):
+class NzbsrusFactory(EpisodeFactory, ItemFactory, SourceFactory):
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -34,20 +36,20 @@ class NewzbinFactory(EpisodeFactory, ItemFactory, SourceFactory):
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def create_source(self, name, url, type, priority, timeout, quality, schedule_delay):
-		return NewzbinSource(name, url, type, priority, timeout, quality, schedule_delay)
+		return NzbsrusSource(name, url, type, priority, timeout, quality, schedule_delay)
 
 	def create_episode(self, string, **kwargs):
-		
+
 		# parse given string and extract episode attributes
-		if NewzbinMultiEpisode.handle(string):
-			params = NewzbinMultiEpisode.extract_from_string(string, **kwargs)
-		elif NewzbinSingleEpisode.handle(string):
-			params = NewzbinSingleEpisode.extract_from_string(string, **kwargs)
-		elif NewzbinDailyEpisode.handle(string):
-			params = NewzbinDailyEpisode.extract_from_string(string, **kwargs)
+		if MultiEpisode.handle(string):
+			params = MultiEpisode.extract_from_string(string, **kwargs)
+		elif SingleEpisode.handle(string):
+			params = SingleEpisode.extract_from_string(string, **kwargs)
+		elif DailyEpisode.handle(string):
+			params = DailyEpisode.extract_from_string(string, **kwargs)
 		else:
 			raise InvalidEpisodeString("unable to identify episode type: %r" % string)
-	
+
 		# locate series object.  If series is unknown, create new series
 		sanitized_series = Series.sanitize_series_name(name=params['series'])
 		if sanitized_series in self.watched_series:
@@ -62,12 +64,12 @@ class NewzbinFactory(EpisodeFactory, ItemFactory, SourceFactory):
 				params['quality'] = self.config['tv']['quality']['desired']
 
 		if 'start_episode' in params:
-			return NewzbinMultiEpisode(**params)
+			return MultiEpisode(**params)
 		elif 'year' in params:
-			return NewzbinDailyEpisode(**params)
+			return DailyEpisode(**params)
 		else:
-			return NewzbinSingleEpisode(**params)
+			return SingleEpisode(**params)
 
 	def create_item(self, title, url, type, priority, quality, delay):
-		return NewzbinItem(None, type, priority, quality, delay, title=title, url=url)
+		return NzbsrusItem(None, type, priority, quality, delay, title=title, url=url)
 

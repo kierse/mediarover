@@ -25,3 +25,12 @@ class Episode(Download):
 	def extract_from_string(cls, string, **kwargs):
 		raise NotImplementedError
 
+	def parts(self):
+		raise NotImplementedError
+
+	def __lt__(self, other):
+		raise NotImplementedError
+
+	def __gt__(self, other):
+		raise NotImplementedError
+

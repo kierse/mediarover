@@ -13,8 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-
+class CleanupError(Exception): pass
 class ConfigurationError(Exception): pass
 class FailedDownload(Exception): pass
 class FilesystemError(Exception): pass
@@ -35,4 +34,5 @@ class TooManyParametersError(Exception): pass
 class UnexpectedArgumentCount(Exception): pass
 class UnknownQueue(Exception): pass
 class UnsupportedCategory(Exception): pass
+class UrlRetrievalError(Exception): pass
 

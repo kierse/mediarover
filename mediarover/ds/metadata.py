@@ -24,9 +24,9 @@ import shutil
 import sqlite3
 import sys
 
+from mediarover.constant import CONFIG_DIR, RESOURCES_DIR
 from mediarover.error import SchemaMigrationError
-from mediarover.source.item import DelayedItem
-from mediarover.utils.configobj import ConfigObj
+from mediarover.factory import ItemFactory
 from mediarover.utils.injection import is_instance_of, Dependency
 from mediarover.version import __schema_version__
 
@@ -36,20 +36,19 @@ class Metadata(object):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	config = Dependency('config', is_instance_of(ConfigObj))
-	config_dir = Dependency('config_dir', is_instance_of(str))
-	resources = Dependency("resources_dir", is_instance_of(str))
+	config_dir = Dependency(CONFIG_DIR, is_instance_of(str))
+	resources = Dependency(RESOURCES_DIR, is_instance_of(str))
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def add_in_progress(self, title, type, quality):
+	def add_in_progress(self, item):
 		""" record given nzb in progress table with type, and quality """
-		self.__dbh.execute("INSERT INTO in_progress (title, type, quality) VALUES (?,?,?)", (title, type, quality))
+		self.__dbh.execute("INSERT INTO in_progress (title, source, type, quality) VALUES (?,?,?,?)", (item.title(), item.source(), item.type(), item.quality()))
 		self.__dbh.commit()
 
 	def get_in_progress(self, title):
 		""" retrieve tuple from the in_progress table for a given session id.  If given id doesn't exist, return None """
-		row = self.__dbh.execute("SELECT type, quality FROM in_progress WHERE title=?", (title,)).fetchone()
+		row = self.__dbh.execute("SELECT type, quality, source FROM in_progress WHERE title=?", (title,)).fetchone()
 		return row
 
 	def delete_in_progress(self, *titles):
@@ -135,7 +134,7 @@ class Metadata(object):
 
 	def add_delayed_item(self, item):
 		""" add given item to delayed_item table """
-		self.__dbh.execute("INSERT INTO delayed_item (title, url, type, priority, quality, delay) VALUES (?,?,?,?,?,?)", (item.title(), item.url(), item.type(), item.priority(), item.quality(), item.delay()))
+		self.__dbh.execute("INSERT INTO delayed_item (title, source, url, type, priority, quality, delay) VALUES (?,?,?,?,?,?,?)", (item.title(), item.source(), item.url(), item.type(), item.priority(), item.quality(), item.delay()))
 		self.__dbh.commit()
 
 		logger = logging.getLogger("mediarover.ds.metadata")
@@ -153,19 +152,29 @@ class Metadata(object):
 
 	def get_actionable_delayed_items(self):
 		""" return list of items from the delayed_item table that have delay value less than 1 """
-		
+		factories = {}
+
 		# iterate over all tuples with delay < 1 and create new item objects
 		items = []
-		for r in self.__dbh.execute("SELECT title, url, type, priority, quality, delay FROM delayed_item WHERE delay < 1"):
-			items.append(DelayedItem(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
+		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay FROM delayed_item WHERE delay < 1"):
+			if r['source'] not in factories:
+				factories[r['source']] = Dependency(r['source'], is_instance_of(ItemFactory))
+			factory = factories[r['source']].__get__()
+			items.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
 
 		return items
 	
 	def get_delayed_items(self):
 		""" return list of all items found in delayed_item table """
+		factories = {}
+
 		list = []
-		for r in self.__dbh.execute("SELECT title, url, type, priority, quality, delay FROM delayed_item"):
-			list.append(DelayedItem(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
+		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay FROM delayed_item"):
+			if r['source'] not in factories:
+				factories[r['source']] = Dependency(r['source'], is_instance_of(ItemFactory))
+			factory = factories[r['source']].__get__()
+			list.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
+
 		return list
 
 	def reduce_item_delay(self):
@@ -179,20 +188,25 @@ class Metadata(object):
 			schema to it. If rollback is True, attempt to revert to given schema number 
 		"""
 		# current schema version
-		current = int(self.schema_version)
+		current = self.schema_version
+		if version is None:
+			version = __schema_version__
+		else:
+			version = int(version)
 
 		# if caller has provided a desired schema version, check if there
 		# is anything to be done
-		if version is not None:
-			version = int(version)
-			if current == version:
+		if current == version:
+			print "Schema up-to-date. Nothing to do!"
+			return
+		elif rollback:
+			if current < version:
+				print "Error: can't rollback to newer version!"
 				return
-			elif rollback:
-				if current < version:
-					return
-			else:
-				if current > version:
-					return
+		else:
+			if current > version:
+				print "Error: given version is behind current, use --rollback"
+				return
 
 		# grab current isolation level then set it to 'EXCLUSIVE'
 		current_isolation = self.__dbh.isolation_level
@@ -229,7 +243,10 @@ class Metadata(object):
 					exec "import migration.%s" % name
 					module = getattr(migration, name)
 
-					print "migrating schema to version %d..." % num
+					if rollback:
+						print "reverting schema to version %d..." % num
+					else:
+						print "migrating schema to version %d..." % num
 					getattr(module, action)(self.__dbh)
 
 					# update schema version to num
@@ -242,6 +259,8 @@ class Metadata(object):
 
 		# all done, reset isolation_level
 		self.__dbh.isolation_level = current_isolation
+
+		print "Migration to schema version %d complete!" % version
 
 	def backup(self):
 		backup = "metadata.%s.rev-%d.db" % (strftime("%Y%m%d%H%M%S"), self.schema_version)
@@ -289,7 +308,7 @@ class Metadata(object):
 			self.__dbh.execute("PRAGMA user_version = %d" % int(version))
 			self.__dbh.commit()
 		row = self.__dbh.execute("PRAGMA user_version").fetchone()
-		return row[0]
+		return int(row[0])
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -306,11 +325,16 @@ class Metadata(object):
 		# tell connection to return Row objects instead of tuples
 		self.__dbh.row_factory = sqlite3.Row
 
-		# db exists, check that schema version is current
 		if exists:
-			if check_schema_version and self.schema_version != __schema_version__:
-				print "Metadata out of date! See `python mediarover.py migrate-metadata --help` for more details"
-				exit(1)
+			# db exists, check that schema version is current
+			if check_schema_version:
+				current_version = self.schema_version
+				if current_version > __schema_version__:
+					print "Metadata is ahead of expected version! You must rollback to version %d to proceed! See `python mediarover.py migrate-metadata --help` for more details" % __schema_version__
+					exit(1)
+				elif current_version < __schema_version__:
+					print "Metadata out of date! You must upgrade to version %d to proceed! See `python mediarover.py migrate-metadata --help` for more details" % __schema_version__
+					exit(1)
 
 		# db doesn't exist, create it
 		else:

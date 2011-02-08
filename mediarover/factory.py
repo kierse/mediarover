@@ -18,6 +18,11 @@ class EpisodeFactory(object):
 	def create_episode(self, string, **kwargs):
 		raise NotImplementedError
 
+class ItemFactory(object):
+
+	def create_item(self, title, url, type, priority, quality, delay):
+		raise NotImplementedError
+
 class SourceFactory(object):
 
 	def create_source(self, name, url, type, priority, timeout, quality, schedule_delay):

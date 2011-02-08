@@ -27,7 +27,7 @@ class SingleEpisode(Episode):
 
 	__supported_patterns = (
 		# episode 1 regex, ie. s03e10
-		re.compile("s(?P<season>\d{1,2})e(?P<episode>\d{1,3})", re.IGNORECASE),
+		re.compile("s(?P<season>\d{1,2})(?:\.|\s)?e(?P<episode>\d{1,3})", re.IGNORECASE),
 
 		# episode 2 regex, ie. 3x10
 		re.compile("(?P<season>\d{1,2})x(?P<episode>\d{1,3})", re.IGNORECASE)
@@ -98,6 +98,9 @@ class SingleEpisode(Episode):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def parts(self):
+		return [self]
+
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -131,6 +134,12 @@ class SingleEpisode(Episode):
 	def __ne__(self, other):
 		return not self == other
 
+	def __gt__(self, other):
+		return not self < other
+
+	def __lt__(self, other):
+		return (self.season, self.episode) < (other.season, other.episode)
+
 	def __hash__(self):
 		hash = "%s %dx%02d" % (self.series.sanitize_series_name(series=self.series), self.season, self.episode)
 		return hash.__hash__()
@@ -143,16 +152,20 @@ class SingleEpisode(Episode):
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def _series_prop(self):
-		return self._series
-
-	def _season_prop(self):
-		return self._season
-
-	def _episode_prop(self):
+	@property
+	def episode(self):
 		return self._episode
 
-	def _title_prop(self):
+	@property
+	def series(self):
+		return self._series
+
+	@property
+	def season(self):
+		return self._season
+
+	@property
+	def title(self):
 		return self._title
 
 	def _quality_prop(self, quality=None):
@@ -162,10 +175,6 @@ class SingleEpisode(Episode):
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	series = property(fget=_series_prop, doc="episode series object")
-	season = property(fget=_season_prop, doc="episode season number")
-	episode = property(fget=_episode_prop, doc="episode number")
-	title = property(fget=_title_prop, doc="episode title")
 	quality = property(fget=_quality_prop, fset=_quality_prop, doc="episode quality")
 
 	def __init__(self, series, season, episode, quality, title = ""):

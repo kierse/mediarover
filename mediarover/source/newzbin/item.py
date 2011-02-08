@@ -16,6 +16,7 @@
 import logging
 import re
 
+from mediarover.constant import NEWZBIN_FACTORY_OBJECT
 from mediarover.error import *
 from mediarover.source.item import AbstractItem
 from mediarover.factory import EpisodeFactory
@@ -27,7 +28,7 @@ class NewzbinItem(AbstractItem):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	factory = Dependency('newzbin', is_instance_of(EpisodeFactory))
+	factory = Dependency(NEWZBIN_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -47,6 +48,9 @@ class NewzbinItem(AbstractItem):
 		""" quality (if known) of current report """
 		return self.__quality
 
+	def source(self):
+		return NEWZBIN_FACTORY_OBJECT
+
 	def title(self):
 		""" title of current report """
 		return self.__title
@@ -61,64 +65,44 @@ class NewzbinItem(AbstractItem):
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def __parseItem(self):
+	def __build_download(self):
 		""" parse item data and build appropriate download object """
 
-		if self._report_category() == "TV":
-			try:
-				download = self.factory.create_episode(self.title(), quality=self.quality())
-			except (InvalidMultiEpisodeData, MissingParameterError):
-				raise InvalidItemTitle("unable to parse item title and create Episode object: %r" % self.title())
-			except InvalidEpisodeString:
-				raise InvalidItemTitle("unsupported item title format: %r" % self.title())
-			else:
-				return download
-
-		raise UnsupportedCategory("category %r unsupported!" % self._report_category())
-
-	def _report_category(self):
-		""" report category from source item """
-		categories = self.__item.getElementsByTagName("report:category")
-		if categories:
-			return categories[0].childNodes[0].data
+		try:
+			download = self.factory.create_episode(self.title(), quality=self.quality())
+		except (InvalidMultiEpisodeData, MissingParameterError):
+			raise InvalidItemTitle("unable to parse item title and create Episode object: %s" % self.title())
+		except InvalidEpisodeString:
+			raise InvalidItemTitle("unsupported item title format: %s" % self.title())
 		else:
-			raise InvalidRemoteData("report does not have a category")
+			return download
 
-	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	def _id_prop(self):
-		return self.__id
-
-	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	id = property(fget=_id_prop, doc="newzbin report id")
-
-	def __init__(self, item, type, priority, quality, delay):
+	def __init__(self, item, type, priority, quality, delay, title=None, url=None):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
-		self.__item = item
 		self.__type = type
 		self.__priority = priority
 		self.__quality = quality
 		self.__delay = delay
 
-		ids = self.__item.getElementsByTagName("report:id")
-		if ids:
-			self.__id = ids[0].childNodes[0].data
+		if item is None:
+			self.__title = title
+			self.__url = url
 		else:
-			raise InvalidRemoteData("report does not have an id")
+			self.__item = item
 
-		titles = self.__item.getElementsByTagName("title")
-		if titles:
-			self.__title = titles[0].childNodes[0].data
-		else:
+			titles = self.__item.getElementsByTagName("title")
+			if titles:
+				self.__title = titles[0].childNodes[0].data
+
+			links = self.__item.getElementsByTagName("report:nzb")
+			if links:
+				self.__url = links[0].childNodes[0].data
+
+		if self.__title is None:
 			raise InvalidRemoteData("report does not have a title")
-
-		links = self.__item.getElementsByTagName("report:nzb")
-		if links:
-			self.__url = links[0].childNodes[0].data
-		else:
+		if self.__url is None:
 			raise InvalidRemoteData("report does not have a url")
 
-		self.__download = self.__parseItem()
+		self.__download = self.__build_download()
 

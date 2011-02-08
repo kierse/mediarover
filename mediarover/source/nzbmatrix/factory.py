@@ -14,22 +14,24 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from mediarover.config import ConfigObj
+from mediarover.constant import CONFIG_OBJECT, WATCHED_SERIES_LIST
 from mediarover.error import *
-from mediarover.factory import EpisodeFactory, SourceFactory
+from mediarover.factory import EpisodeFactory, ItemFactory, SourceFactory
 from mediarover.episode.multi import MultiEpisode
 from mediarover.episode.single import SingleEpisode
 from mediarover.series import Series
 from mediarover.source.nzbmatrix import NzbmatrixSource
+from mediarover.source.nzbmatrix.item import NzbmatrixItem
 from mediarover.source.nzbmatrix.episode import NzbmatrixDailyEpisode
 from mediarover.utils.injection import is_instance_of, Dependency
 
-class NzbmatrixFactory(EpisodeFactory, SourceFactory):
+class NzbmatrixFactory(EpisodeFactory, ItemFactory, SourceFactory):
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	config = Dependency("config", is_instance_of(ConfigObj))
-	watched_series = Dependency('watched_series', is_instance_of(dict))
+	config = Dependency(CONFIG_OBJECT, is_instance_of(ConfigObj))
+	watched_series = Dependency(WATCHED_SERIES_LIST, is_instance_of(dict))
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -67,4 +69,7 @@ class NzbmatrixFactory(EpisodeFactory, SourceFactory):
 			return NzbmatrixDailyEpisode(**params)
 		else:
 			return SingleEpisode(**params)
+
+	def create_item(self, title, url, type, priority, quality, delay):
+		return NzbmatrixItem(None, type, priority, quality, delay, title=title, url=url)
 

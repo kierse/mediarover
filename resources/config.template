@@ -35,6 +35,10 @@
 	# NOTE: defaults to True
 	#allow_multipart = True
 
+	# only schedule episodes for download that are newer than what is currently found on disk.
+	# NOTE: defaults to True
+	#only_schedule_newer = True
+
 	[[quality]]
 
 		# allow Media Rover to manage episodes on disk and manage quality levels
@@ -151,6 +155,14 @@
 	#        description: this option tells Media Rover to match source items to the current series that
 	#                     normally wouldn't be matched. This option is typically used when the series name
 	#                     (contained in a source item title) does not match the series folder name on disk.
+	#
+	#     d) option: only_schedule_newer
+	#        values: True or False
+	#        default: False
+	#        description: this option tells Media Rover to only schedule episodes for download that are
+	#                     newer than what is currently on disk.
+	#                     NOTE: setting this option overrides the global value [tv] only_schedule_newer 
+	#                     for the targeted series only.
 	#
 	#  3. set series specific quality preferences. If [tv][quality][managed] is True, you have the option 
 	#     of specifying quality preferences on a per series basis. 
@@ -330,10 +342,11 @@
 #        Media Rover currently supports the following providers:
 #
 #          newzbin   (http://newzbin.com)
-#          tvnzb     (http://www.tvnzb.com)
-#          mytvznb   (any version 2.5 site)
+#          nzbclub   (http://nzbclub.com)
+#          nzbindex  (http://nzbindex.nl)
 #          nzbs      (http://www.nzbs.org)
 #          nzbmatrix (http://nzbmatrix.com)
+#          nzbsrus   (http://nzbsrus.com)
 #
 #     b) option: url
 #        value: web url (supports both http and https resources)

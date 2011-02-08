@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from mediarover.constant import METADATA_OBJECT, EPISODE_FACTORY_OBJECT, NEWZBIN_FACTORY_OBJECT
 from mediarover.ds.metadata import Metadata
 from mediarover.error import *
 from mediarover.factory import EpisodeFactory
@@ -25,9 +26,9 @@ class SabnzbdJob(Job):
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	meta_ds = Dependency("metadata_data_store", is_instance_of(Metadata))
-	episode_factory = Dependency("episode_factory", is_instance_of(EpisodeFactory))
-	newzbin_factory = Dependency("newzbin", is_instance_of(EpisodeFactory))
+	meta_ds = Dependency(METADATA_OBJECT, is_instance_of(Metadata))
+	episode_factory = Dependency(EPISODE_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
+	newzbin_factory = Dependency(NEWZBIN_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -55,14 +56,18 @@ class SabnzbdJob(Job):
 		if self.__job.getElementsByTagName("msgid")[0].hasChildNodes():
 			factory = self.newzbin_factory
 		else:
-			factory = self.episode_factory
+			in_progress = self.meta_ds.get_in_progress(self.title())
+			if in_progress is None:
+				factory = self.episode_factory
+			else:
+				factory = Dependency(in_progress['source'], is_instance_of(EpisodeFactory)).__get__()
 
 		try:
 			download = factory.create_episode(self.title())
 		except (InvalidMultiEpisodeData, MissingParameterError):
-			raise InvalidItemTitle("unable to parse job title and create Episode object: %s" % title)
+			raise InvalidItemTitle("unable to parse job title and create Episode object: '%s'" % title)
 		except InvalidEpisodeString:
-			raise InvalidItemTitle("unsupported job title format: %r" % self.title())
+			raise InvalidItemTitle("unsupported job title format: '%s'" % self.title())
 
 		# try and determine job quality
 		record = self.meta_ds.get_in_progress(self.title())

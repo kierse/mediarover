@@ -17,22 +17,31 @@ import logging
 import os
 import re
 import time
-import urllib
 import xml.dom.minidom
+from urllib import urlencode
+from urllib2 import urlopen, HTTPError, URLError
 
 from mediarover.config import ConfigObj
+from mediarover.constant import CONFIG_OBJECT, METADATA_OBJECT
 from mediarover.ds.metadata import Metadata
 from mediarover.error import *
 from mediarover.queue import Queue
 from mediarover.queue.sabnzbd.job import SabnzbdJob
 from mediarover.utils.injection import Dependency, is_instance_of
 
+PRIORITY = {
+	'low': -1,
+	'normal': 0,
+	'high': 1,
+	'force': 2,
+}
+
 class SabnzbdQueue(Queue):
 	""" Sabnzbd queue class """
 
 	# declare the metadata_data_source as a dependency
-	meta_ds = Dependency("metadata_data_store", is_instance_of(Metadata))
-	config = Dependency("config", is_instance_of(ConfigObj))
+	meta_ds = Dependency(METADATA_OBJECT, is_instance_of(Metadata))
+	config = Dependency(CONFIG_OBJECT, is_instance_of(ConfigObj))
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -40,21 +49,16 @@ class SabnzbdQueue(Queue):
 		""" return list of Job items """
 		logger = logging.getLogger("mediarover.queue.sabnzbd")
 
-		# if jobs list hasn't been constructed yet, parse document tree
-		# and build list of current jobs
-		try:
-			self.__jobs
-		except AttributeError:
-			try:
-				self.__document
-			except AttributeError:
-				self.__get_document()
-
+		if self.__jobs is None:
+			self.__get_document()
 			self.__jobs = []
 			for rawJob in self.__document.getElementsByTagName("slot"):
 				cat = rawJob.getElementsByTagName("cat")[0].childNodes[0].data.lower()
 				if cat in self._supported_categories:
-					self.__jobs.append(SabnzbdJob(rawJob))
+					try:
+						self.__jobs.append(SabnzbdJob(rawJob))
+					except (InvalidItemTitle), e:
+						logger.warning(e)
 
 		# return job list to caller
 		return self.__jobs
@@ -69,25 +73,13 @@ class SabnzbdQueue(Queue):
 		"""
 		logger = logging.getLogger("mediarover.queue.sabnzbd")
 
-		priority = {
-			'low': -1,
-			'normal': 0,
-			'high': 1,
-			'force': 2,
-		}
-
 		args = {
+			'mode': 'addid',
 			'cat': self.config[item.type()]['category'],
-			'priority': priority[item.priority().lower()],
+			'name': item.url(),
+			'priority': PRIORITY[item.priority().lower()],
 		}
 
-		if hasattr(item, "id"):
-			args['mode'] = 'addid'
-			args['name'] = item.id
-		else:
-			args['mode'] = 'addurl'
-			args['name'] = item.url()
-			
 		if 'username' and 'password' in self._params:
 			if self._params['username'] is not None and self._params['password'] is not None:
 				args['ma_username'] = self._params['username']
@@ -97,20 +89,25 @@ class SabnzbdQueue(Queue):
 			args['apikey'] = self._params['api_key']
 
 		# generate web service url and make call
-		url = "%s/api?%s" % (self.root, urllib.urlencode(args))
+		url = "%s/api?%s" % (self.root, urlencode(args))
 		logger.debug("add to queue request: %s", url)
-		handle = urllib.urlopen(url)
+		try:
+			handle = urlopen(url)
+		except (HTTPError), e:
+			raise QueueInsertionError("unable to add item '%s' to queue: %d" % (item.title(), e.code))
+		except (URLError), e:
+			raise QueueInsertionError("unable to add item '%s' to queue: %s" % (item.title(), e.reason))
 
 		# check response for status of request
 		response = handle.readline()
 		if response == "ok\n":
 			if self.config['tv']['quality']['managed']:
-				self.meta_ds.add_in_progress(item.title(), item.type(), item.quality())
+				self.meta_ds.add_in_progress(item)
 			logger.info("item '%s' successfully queued for download", item.title())
 		elif response.startswith("error"):
-			raise QueueInsertionError("unable to queue item '%s' for download: %s", args=(item.title(), response))
+			raise QueueInsertionError("unable to queue item '%s' for download: %s" % (item.title(), response))
 		else:
-			raise QueueInsertionError("unexpected response received from queue while attempting to schedule item '%s' for download: %s", args=(item.title(), response))
+			raise QueueInsertionError("unexpected response received from queue while attempting to schedule item '%s' for download: %s" % (item.title(), response))
 
 	def remove_from_queue(self, job):
 		""" remove item representing given download from queue """
@@ -131,9 +128,14 @@ class SabnzbdQueue(Queue):
 			args['apikey'] = self._params['api_key']
 
 		# generate web service url and make call
-		url = "%s/api?%s" % (self.root, urllib.urlencode(args))
+		url = "%s/api?%s" % (self.root, urlencode(args))
 		logger.debug("removing job from queue: %s", url)
-		handle = urllib.urlopen(url)
+		try:
+			handle = urlopen(url)
+		except (HTTPError), e:
+			raise QueueDeletionError("unable to remove job '%s' from queue: %d" % (job.title(), e.code))
+		except (URLError), e:
+			raise QueueDeletionError("unable to remove job '%s' from queue: %s" % (job.title(), e.reason))
 
 		# check response for status of request
 		response = handle.readline()
@@ -142,9 +144,9 @@ class SabnzbdQueue(Queue):
 				self.meta_ds.delete_in_progress(job.title())
 			logger.info("job '%s' successfully removed from queue", job.title())
 		elif response.startswith("error"):
-			raise QueueDeletionError("unable to remove job %r from queue: %s", args=(job.title(), response))
+			raise QueueDeletionError("unable to remove job %s from queue: %s" % (job.title(), response))
 		else:
-			raise QueueDeletionError("unexpected response received from queue while attempting to remove job %r: %s", args=(job.title(), response))
+			raise QueueDeletionError("unexpected response received from queue while attempting to remove job %r: %s" % (job.title(), response))
 
 	def in_queue(self, download):
 		""" return boolean indicating whether or not the given source item is in queue """
@@ -177,8 +179,11 @@ class SabnzbdQueue(Queue):
 			logger.debug("looking for '%s' in SABnzbd backup directory...", file)
 
 			for nzb in os.listdir(backup_dir):
-				if nzb.startswith(file):
-					return True
+				try:
+					if nzb.startswith(file):
+						return True
+				except (UnicodeDecodeError), e:
+					logger.warning("error reading file '%s': %s" % (nzb, e))
 
 		return False
 
@@ -205,7 +210,7 @@ class SabnzbdQueue(Queue):
 		else:
 			logger.warning("API key missing! The API key is needed in order to check the queue and schedule nzb's for download. Unless you disabled this feature (in the SABnzbd configuration), this is something you need to provide!")
 
-		url = "%s/api?%s" % (self.root, urllib.urlencode(args))
+		url = "%s/api?%s" % (self.root, urlencode(args))
 		logger.debug("retrieving queue from '%s'", url)
 
 		regex = re.compile("fetch")
@@ -217,13 +222,19 @@ class SabnzbdQueue(Queue):
 		# nzb name isn't yet known (by SABnzbd).  Therefore we loop and give SABnzb 
 		# time to download the nzb and fully populate the queue.
 		for i in range(12):
-			response = urllib.urlopen(url)
-			data = response.read()
-			if regex.search(data):
-				logger.debug("queue still processing new scheduled downloads, waiting...")
-				time.sleep(5)
-			else:
-				break
+			try:
+				response = urlopen(url)
+			except (HTTPError), e:
+				raise QueueRetrievalError("unable to retrieve queue: %d" % e.code)
+			except (URLError), e:
+				raise QueueRetrievalError("unable to retrieve queue: %s" % e.reason)
+			else: 
+				data = response.read()
+				if regex.search(data):
+					logger.debug("queue still processing new scheduled downloads, waiting...")
+					time.sleep(5)
+				else:
+					break
 		else:
 			logger.warning("giving up waiting for queue to finish processing newly scheduled downloads - duplicate downloads possible!")
 
@@ -234,19 +245,6 @@ class SabnzbdQueue(Queue):
 		if errors:
 			raise QueueRetrievalError("unable to retrieve queue: %s" % errors[0].childNodes[0].nodeValue)
 
-	def __clear(self):
-
-		# queue data is now stale, delete it so that next time
-		# the jobs are processed, the queue will be retrieved
-		try: del self.__jobs
-		except AttributeError: pass
-
-		try:
-			self.__document.unlink()
-			del self.__document
-		except AttributeError:
-			pass
-
 	def __version_check(self):
 		""" verify that the running version of SABnzbd is at least 0.5.0 """
 
@@ -256,13 +254,22 @@ class SabnzbdQueue(Queue):
 		url = "%s/api?mode=version" % self.root
 		logger.debug("checking queue version: %s" % url)
 
-		response = urllib.urlopen(url)
-		if not re.match("0.5.\d+", response.read()):
-			raise UnknownQueue("SABnzbd 0.5.0 or greater required!")
+		try:
+			response = urlopen(url)
+		except (HTTPError), e:
+			raise UrlRetrievalError("unable to retrieve SABnzbd version: %d" % e.code)
+		except (URLError), e:
+			raise UrlRetrievalError("unable to retrieve SABnzbd version: %s" % e.reason)
+		else: 
+			if not re.match("0.5.\d+", response.read()):
+				raise UnknownQueue("SABnzbd 0.5.0 or greater required!")
 
 	def __init__(self, root, supported_categories, params):
 		
 		super(SabnzbdQueue, self).__init__(root, supported_categories, params)
+
+		self.__jobs = None
+		self.__document = None
 
 		# try to determine sabnzbd version
 		if self._params['__check_version__']:

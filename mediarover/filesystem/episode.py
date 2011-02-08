@@ -19,6 +19,7 @@ import re
 from datetime import date
 
 from mediarover.comparable import Comparable
+from mediarover.constant import CONFIG_OBJECT
 from mediarover.config import ConfigObj
 from mediarover.error import *
 from mediarover.utils.injection import is_instance_of, Dependency
@@ -28,7 +29,7 @@ class FilesystemEpisode(Comparable):
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	config = Dependency('config', is_instance_of(ConfigObj))
+	config = Dependency(CONFIG_OBJECT, is_instance_of(ConfigObj))
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

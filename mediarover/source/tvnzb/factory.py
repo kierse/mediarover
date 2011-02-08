@@ -14,14 +14,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from mediarover.episode.factory import EpisodeFactory
-from mediarover.error import *
-from mediarover.factory import SourceFactory
+from mediarover.factory import ItemFactory, SourceFactory
 from mediarover.series import Series
 from mediarover.source.tvnzb import TvnzbSource
+from mediarover.source.tvnzb.item import TvnzbItem
 
-class TvnzbFactory(EpisodeFactory, SourceFactory):
+class TvnzbFactory(EpisodeFactory, ItemFactory, SourceFactory):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def create_source(self, name, url, type, priority, timeout, quality, schedule_delay):
 		return TvnzbSource(name, url, type, priority, timeout, quality, schedule_delay)
+
+	def create_item(self, title, url, type, priority, quality, delay):
+		return TvnzbItem(None, type, priority, quality, delay, title=title, url=url)
+

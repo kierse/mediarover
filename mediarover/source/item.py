@@ -30,6 +30,9 @@ class Item(Comparable):
 	def quality(self):
 		raise NotImplementedError
 
+	def source(self):
+		raise NotImplementedError
+
 	def title(self):
 		raise NotImplementedError
 
@@ -52,73 +55,4 @@ class AbstractItem(Item):
 
 	def __ne__(self, other):
 		return not self == other
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-from mediarover.error import InvalidEpisodeString, InvalidItemTitle, InvalidMultiEpisodeData, MissingParameterError
-from mediarover.factory import EpisodeFactory
-from mediarover.utils.injection import Dependency, is_instance_of
-
-class DelayedItem(AbstractItem):
-	""" wrapper object representing a delayed report item """
-
-	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	# declare module dependencies
-	factory = Dependency('episode_factory', is_instance_of(EpisodeFactory))
-
-	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	def delay(self):
-		""" return delay value for current item """
-		return self.__delay
-
-	def download(self):
-		""" return download object representing current item """
-		return self.__download
-
-	def priority(self):
-		""" source priority """
-		return self.__priority
-
-	def quality(self):
-		""" episode quality """
-		return self.__quality
-
-	def title(self):
-		""" item title """
-		return self.__title
-
-	def type(self):
-		""" item type """
-		return self.__type
-
-	def url(self):
-		""" item url """
-		return self.__url
-
-	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	def __parseItem(self):
-		""" parse item data and build appropriate download object """
-
-		try:
-			download = self.factory.create_episode(self.title(), quality=self.quality())
-		except (InvalidMultiEpisodeData, MissingParameterError):
-			raise InvalidItemTitle("unable to parse item title and create Episode object: %r" % self.title())
-		except InvalidEpisodeString:
-			raise InvalidItemTitle("unsupported item title format: %r" % self.title())
-		else:
-			return download
-
-	def __init__(self, title, url, type, priority, quality, delay):
-
-		self.__title = title
-		self.__url = url
-		self.__type = type
-		self.__priority = priority
-		self.__quality = quality
-		self.__delay = delay
-
-		self.__download = self.__parseItem()
 

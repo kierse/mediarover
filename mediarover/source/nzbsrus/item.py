@@ -16,19 +16,19 @@
 import logging
 import re
 
-from mediarover.constant import TVNZB_FACTORY_OBJECT
+from mediarover.constant import NZBSRUS_FACTORY_OBJECT
 from mediarover.error import *
 from mediarover.factory import EpisodeFactory
 from mediarover.source.item import AbstractItem
 from mediarover.utils.injection import is_instance_of, Dependency
 
-class TvnzbItem(AbstractItem):
+class NzbsrusItem(AbstractItem):
 	""" wrapper object representing an unparsed report object """
 
 	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	# declare module dependencies
-	factory = Dependency(TVNZB_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
+	factory = Dependency(NZBSRUS_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
 
 	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -49,7 +49,7 @@ class TvnzbItem(AbstractItem):
 		return self.__quality
 
 	def source(self):
-		return TVNZB_FACTORY_OBJECT
+		return NZBSRUS_FACTORY_OBJECT
 
 	def title(self):
 		""" report title from source item """
@@ -60,7 +60,7 @@ class TvnzbItem(AbstractItem):
 		return self.__type
 
 	def url(self):
-		""" return tvnzb nzb url """
+		""" return nzb url """
 		return self.__url
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -15,14 +15,18 @@
 
 from mediarover.error import *
 from mediarover.episode.factory import EpisodeFactory
-from mediarover.factory import SourceFactory
+from mediarover.factory import ItemFactory, SourceFactory
 from mediarover.series import Series
 from mediarover.source.nzbs import NzbsSource
+from mediarover.source.nzbs.item import NzbsItem
 
-class NzbsFactory(EpisodeFactory, SourceFactory):
+class NzbsFactory(EpisodeFactory, ItemFactory, SourceFactory):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def create_source(self, name, url, type, priority, timeout, quality, schedule_delay):
 		return NzbsSource(name, url, type, priority, timeout, quality, schedule_delay)
+
+	def create_item(self, title, url, type, priority, quality, delay):
+		return NzbsItem(None, type, priority, quality, delay, title=title, url=url)
 

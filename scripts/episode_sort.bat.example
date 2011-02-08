@@ -37,5 +37,5 @@ IF DEFINED LOCALAPPDATA (
 )
 
 REM invoke Media Rover episode sorting script
-%PYTHON% %ROOT%\mediarover.py episode-sort -c "%CONFIG%" %1 %2 %3 %4 %5 %6 %7
+%PYTHON% %ROOT%\mediarover.py episode-sort -c "%CONFIG%" %*
 
