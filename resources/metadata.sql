@@ -51,7 +51,8 @@ CREATE TABLE IF NOT EXISTS delayed_item
 	type TEXT NOT NULL,
 	priority TEXT NOT NULL,
 	quality TEXT NOT NULL,
-	delay INTEGER NOT NULL
+	delay INTEGER NOT NULL,
+	size INTEGER NOT NULL
 );
 
 PRAGMA user_version = ${schema_version};
