@@ -30,6 +30,10 @@ class Item(Comparable):
 	def quality(self):
 		raise NotImplementedError
 
+	def size(self):
+		""" size of report binary (in MB). If unavailable return 0 """
+		raise NotImplementedError
+
 	def source(self):
 		raise NotImplementedError
 
