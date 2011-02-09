@@ -388,10 +388,20 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 	# replace queued item and be scheduled for download
 	# ATTENTION: this call takes into account users preferences regarding single vs multi-part 
 	# episodes as well as desired quality level
-	if item.delay() == 0 and queue.in_queue(episode):
+	if queue.in_queue(episode):
 		job = queue.get_job_by_download(episode)
 		if series.should_episode_be_downloaded(episode, job.download()):
-			drop_from_queue.append(job)
+			if item.size < job.remaining():
+				if item.delay == 0:
+					drop_from_queue.append(job)
+				else:
+					# delay > 0 which means the current job may be done by the time
+					# this item is considered again. Pass and reevaluate then
+					pass
+			else:
+				# current item is larger than amount remaining to be downloaded for matched job
+				# set delay to 1 so that current job is given time to finish
+				item.delay = 1
 		else:
 			logger.info("skipping '%s', in download queue", item.title)
 			return
