@@ -43,7 +43,7 @@ class Metadata(object):
 
 	def add_in_progress(self, item):
 		""" record given nzb in progress table with type, and quality """
-		self.__dbh.execute("INSERT INTO in_progress (title, source, type, quality) VALUES (?,?,?,?)", (item.title(), item.source(), item.type(), item.quality()))
+		self.__dbh.execute("INSERT INTO in_progress (title, source, type, quality) VALUES (?,?,?,?)", (item.title, item.source, item.type, item.quality))
 		self.__dbh.commit()
 
 	def get_in_progress(self, title):
@@ -134,15 +134,15 @@ class Metadata(object):
 
 	def add_delayed_item(self, item):
 		""" add given item to delayed_item table """
-		self.__dbh.execute("INSERT INTO delayed_item (title, source, url, type, priority, quality, delay, size) VALUES (?,?,?,?,?,?,?,?)", (item.title(), item.source(), item.url(), item.type(), item.priority(), item.quality(), item.delay(), item.size()))
+		self.__dbh.execute("INSERT INTO delayed_item (title, source, url, type, priority, quality, delay, size) VALUES (?,?,?,?,?,?,?,?)", (item.title, item.source, item.url, item.type, item.priority, item.quality, item.delay, item.size))
 		self.__dbh.commit()
 
 		logger = logging.getLogger("mediarover.ds.metadata")
-		logger.info("delayed scheduling '%s' for download", item.title())
+		logger.info("delayed scheduling '%s' for download", item.title)
 
 	def delete_delayed_item(self, item):
 		""" remove given item from delayed_item table """
-		self.__dbh.execute("DELETE FROM delayed_item WHERE title=?", (item.title(),))
+		self.__dbh.execute("DELETE FROM delayed_item WHERE title=?", (item.title,))
 		self.__dbh.commit()
 
 	def delete_stale_delayed_items(self):
