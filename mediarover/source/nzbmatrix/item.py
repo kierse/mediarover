@@ -30,43 +30,57 @@ class NzbmatrixItem(AbstractItem):
 	# declare module dependencies
 	factory = Dependency(NZBMATRIX_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
 
-	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def delay(self):
+	def _delay_property(self, delay=None):
 		""" return delay value for current item """
+		if delay is not None:
+			self.__delay = delay
 		return self.__delay
 
+	@property
 	def download(self):
 		""" return a download object """
 		return self.__download
 
+	@property
 	def priority(self):
 		""" download priority of current report """
 		return self.__priority
 
+	@property
 	def quality(self):
 		""" quality (if known) of current report """
 		return self.__quality
 
+	@property
 	def size(self):
 		""" size of current report """
 		return self.__size
 
+	@property
 	def source(self):
 		return NZBMATRIX_FACTORY_OBJECT
 
+	@property
 	def title(self):
 		""" report title from source item """
 		return self.__title
 
+	@property
 	def type(self):
 		""" type of current report """
 		return self.__type
 
+	@property
 	def url(self):
 		""" return tvnzb nzb url """
 		return self.__url
 
+	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	delay = property(fget=_delay_property, fset=_delay_property, doc="schedule delay")
+	
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def __build_download(self):
