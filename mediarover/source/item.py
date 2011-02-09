@@ -18,31 +18,42 @@ from mediarover.comparable import Comparable
 class Item(Comparable):
 	""" Source item interface class """
 
+	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	@property
 	def delay(self):
 		return NotImplementedError
 
+	@property
 	def download(self):
 		raise NotImplementedError
 
+	@property
 	def priority(self):
 		raise NotImplementedError
 
+	@property
 	def quality(self):
 		raise NotImplementedError
 
+	@property
 	def size(self):
 		""" size of report binary (in MB). If unavailable return 0 """
 		raise NotImplementedError
 
+	@property
 	def source(self):
 		raise NotImplementedError
 
+	@property
 	def title(self):
 		raise NotImplementedError
 
+	@property
 	def type(self):
 		raise NotImplementedError
 
+	@property
 	def url(self):
 		return NotImplementedError
 
