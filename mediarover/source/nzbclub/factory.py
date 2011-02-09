@@ -70,6 +70,6 @@ class NzbclubFactory(EpisodeFactory, ItemFactory, SourceFactory):
 		else:
 			return SingleEpisode(**params)
 
-	def create_item(self, title, url, type, priority, quality, delay):
-		return NzbclubItem(None, type, priority, quality, delay, title=title, url=url)
+	def create_item(self, title, url, type, priority, quality, delay, size):
+		return NzbclubItem(None, type, priority, quality, delay, size=size, title=title, url=url)
 

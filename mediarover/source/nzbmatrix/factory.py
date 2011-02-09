@@ -70,6 +70,6 @@ class NzbmatrixFactory(EpisodeFactory, ItemFactory, SourceFactory):
 		else:
 			return SingleEpisode(**params)
 
-	def create_item(self, title, url, type, priority, quality, delay):
-		return NzbmatrixItem(None, type, priority, quality, delay, title=title, url=url)
+	def create_item(self, title, url, type, priority, quality, delay, size):
+		return NzbmatrixItem(None, type, priority, quality, delay, size=size, title=title, url=url)
 
