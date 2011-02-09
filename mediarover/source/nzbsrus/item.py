@@ -22,6 +22,8 @@ from mediarover.factory import EpisodeFactory
 from mediarover.source.item import AbstractItem
 from mediarover.utils.injection import is_instance_of, Dependency
 
+size_re = re.compile("^Size (?<size>\d+\.\d{2}) (?<units>[GM])iB")
+
 class NzbsrusItem(AbstractItem):
 	""" wrapper object representing an unparsed report object """
 
@@ -47,6 +49,10 @@ class NzbsrusItem(AbstractItem):
 	def quality(self):
 		""" quality (if known) of current report """
 		return self.__quality
+
+	def size(self):
+		""" size of current report """
+		return self.__size
 
 	def source(self):
 		return NZBSRUS_FACTORY_OBJECT
@@ -77,7 +83,7 @@ class NzbsrusItem(AbstractItem):
 		else:
 			return download
 
-	def __init__(self, item, type, priority, quality, delay, title=None, url=None):
+	def __init__(self, item, type, priority, quality, delay, size=0, title=None, url=None):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
 		self.__type = type 
@@ -86,6 +92,7 @@ class NzbsrusItem(AbstractItem):
 		self.__delay = delay
 
 		if item is None:
+			self.__size = size
 			self.__title = title
 			self.__url = url
 		else:
@@ -94,10 +101,24 @@ class NzbsrusItem(AbstractItem):
 			titles = self.__item.getElementsByTagName("title")
 			if titles:
 				self.__title = titles[0].childNodes[0].data
+			else:
+				self.__title = title
 
 			links = self.__item.getElementsByTagName("link")
 			if links:
 				self.__url = links[0].childNodes[0].data
+			else:
+				self.__url = url
+
+			description = self.__item.getElementsByTagName("description")
+			if description:
+				match = NzbsrusItem.size_re.match(description[0].childNodes[0].data)
+				if match.group('units') == 'G':
+					self.__size = match.group('size') * 1024
+				else:
+					self.__size = match.group('size')
+			else:
+				self.__size = size
 
 		if self.__title is None:
 			raise InvalidRemoteData("report does not have a title")

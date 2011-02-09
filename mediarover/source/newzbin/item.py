@@ -48,6 +48,10 @@ class NewzbinItem(AbstractItem):
 		""" quality (if known) of current report """
 		return self.__quality
 
+	def size(self):
+		""" size of current report """
+		return self.__size
+
 	def source(self):
 		return NEWZBIN_FACTORY_OBJECT
 
@@ -77,7 +81,7 @@ class NewzbinItem(AbstractItem):
 		else:
 			return download
 
-	def __init__(self, item, type, priority, quality, delay, title=None, url=None):
+	def __init__(self, item, type, priority, quality, delay, size=0, title=None, url=None):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
 		self.__type = type
@@ -86,6 +90,7 @@ class NewzbinItem(AbstractItem):
 		self.__delay = delay
 
 		if item is None:
+			self.__size = size
 			self.__title = title
 			self.__url = url
 		else:
@@ -94,10 +99,20 @@ class NewzbinItem(AbstractItem):
 			titles = self.__item.getElementsByTagName("title")
 			if titles:
 				self.__title = titles[0].childNodes[0].data
+			else:
+				self.__title = title
 
 			links = self.__item.getElementsByTagName("report:nzb")
 			if links:
 				self.__url = links[0].childNodes[0].data
+			else:
+				self.__url = url
+
+			sizes  = self.__item.getElementsByTagName("report:size")
+			if sizes: # in MB
+				self.__size = sizes[0].childNodes[0].data / 1024 / 1024
+			else:
+				self.__size = size;
 
 		if self.__title is None:
 			raise InvalidRemoteData("report does not have a title")

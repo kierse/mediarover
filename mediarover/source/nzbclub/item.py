@@ -48,6 +48,10 @@ class NzbclubItem(AbstractItem):
 		""" quality (if known) of current report """
 		return self.__quality
 
+	def size(self):
+		""" size of current report """
+		return self.__size
+
 	def source(self):
 		return NZBCLUB_FACTORY_OBJECT
 
@@ -77,7 +81,7 @@ class NzbclubItem(AbstractItem):
 		else:
 			return download
 
-	def __init__(self, item, type, priority, quality, delay, title=None, url=None):
+	def __init__(self, item, type, priority, quality, delay, size=0, title=None, url=None):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
 		self.__type = type
@@ -94,11 +98,24 @@ class NzbclubItem(AbstractItem):
 			titles = self.__item.getElementsByTagName("title")
 			if titles:
 				self.__title = titles[0].childNodes[0].data
+			else:
+				self.__title = title
 
 			enclosure = self.__item.getElementsByTagName("enclosure")
-			if enclosure and enclosure[0].getAttribute('url') is not "":
-				index = enclosure[0].getAttribute('url').rfind("/")
-				self.__url = "%s/nzb" % enclosure[0].getAttribute('url')[:index]
+			if enclosure:
+				if enclosure[0].getAttribute('url') is not "":
+					index = enclosure[0].getAttribute('url').rfind("/")
+					self.__url = "%s/nzb" % enclosure[0].getAttribute('url')[:index]
+				else:
+					self.__url = url
+
+				if enclosure[0].getAttribute('length').isnumeric():
+					self.__size = enclosure[0].getAttribute('length') / 1024 / 1024
+				else:
+					self.__size = size;
+			else:
+				self.__size = size;
+				self.__url = url
 
 		if self.__title is None:
 			raise InvalidRemoteData("report does not have a title")

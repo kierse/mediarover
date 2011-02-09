@@ -48,6 +48,10 @@ class NzbmatrixItem(AbstractItem):
 		""" quality (if known) of current report """
 		return self.__quality
 
+	def size(self):
+		""" size of current report """
+		return self.__size
+
 	def source(self):
 		return NZBMATRIX_FACTORY_OBJECT
 
@@ -77,7 +81,7 @@ class NzbmatrixItem(AbstractItem):
 		else:
 			return download
 
-	def __init__(self, item, type, priority, quality, delay, title=None, url=None):
+	def __init__(self, item, type, priority, quality, delay, size=0, title=None, url=None):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
 		self.__type = type
@@ -85,6 +89,7 @@ class NzbmatrixItem(AbstractItem):
 		self.__quality = quality
 
 		if item is None:
+			self.__size = size
 			self.__title = title
 			self.__url = url
 		else:
@@ -94,9 +99,20 @@ class NzbmatrixItem(AbstractItem):
 			if titles:
 				self.__title = titles[0].childNodes[0].data
 
-			links = self.__item.getElementsByTagName("link")
-			if links:
-				self.__url = links[0].childNodes[0].data
+			enclosure = self.__item.getElementsByTagName("enclosure")
+			if enclosure:
+				if enclosure[0].getAttribute("url") is not "":
+					self.__url = enclosure[0].getAttribute("url")
+				else:
+					self.__url = url
+
+				if enclosure[0].getAttribute("length").isnumeric():
+					self.__size = enclosure[0].getAttribute("length") / 1024 / 1024
+				else:
+					self.__size = size
+			else:
+				self.__size = size
+				self.__url = url
 
 		if self.__title is None:
 			raise InvalidRemoteData("report does not have a title")
