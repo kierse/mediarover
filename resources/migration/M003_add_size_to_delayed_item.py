@@ -29,7 +29,7 @@ CREATE TEMPORARY TABLE delayed_item_backup
 	quality TEXT NOT NULL,
 	delay INTEGER NOT NULL
 );
-INSERT INTO delayed_item_backup SELECT title,url,type,priority,quality,delay FROM delayed_item;
+INSERT INTO delayed_item_backup SELECT title,source,url,type,priority,quality,delay FROM delayed_item;
 DROP TABLE delayed_item;
 CREATE TABLE delayed_item
 (
@@ -41,7 +41,7 @@ CREATE TABLE delayed_item
 	quality TEXT NOT NULL,
 	delay INTEGER NOT NULL
 );
-INSERT INTO delayed_item SELECT title,url,type,priority,quality,delay FROM delayed_item_backup;
+INSERT INTO delayed_item SELECT title,source,url,type,priority,quality,delay FROM delayed_item_backup;
 DROP TABLE delayed_item_backup;
 COMMIT;
 	""")
