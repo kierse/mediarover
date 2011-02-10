@@ -13,18 +13,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from mediarover.source.mytvnzb.factory import MytvnzbFactory
 from mediarover.source.newzbin.factory import NewzbinFactory
 from mediarover.source.nzbclub.factory import NzbclubFactory
 from mediarover.source.nzbindex.factory import NzbindexFactory
 from mediarover.source.nzbmatrix.factory import NzbmatrixFactory
 from mediarover.source.nzbs.factory import NzbsFactory
 from mediarover.source.nzbsrus.factory import NzbsrusFactory
-from mediarover.source.tvnzb.factory import TvnzbFactory
 
-from mediarover.constant import (MYTVNZB_FACTORY_OBJECT, NEWZBIN_FACTORY_OBJECT, NZBCLUB_FACTORY_OBJECT,
-											NZBINDEX_FACTORY_OBJECT, NZBMATRIX_FACTORY_OBJECT, NZBS_FACTORY_OBJECT, 
-											NZBSRUS_FACTORY_OBJECT, TVNZB_FACTORY_OBJECT)
+from mediarover.constant import (NEWZBIN_FACTORY_OBJECT, NZBCLUB_FACTORY_OBJECT, 
+											NZBINDEX_FACTORY_OBJECT, NZBMATRIX_FACTORY_OBJECT, 
+											NZBS_FACTORY_OBJECT, NZBSRUS_FACTORY_OBJECT)
 
 def print_epilog(*args, **kwargs):
 	"""
