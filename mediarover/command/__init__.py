@@ -48,12 +48,10 @@ def print_epilog(*args, **kwargs):
 		exit(0)
 
 def register_source_factories(broker):
-	broker.register(MYTVNZB_FACTORY_OBJECT, MytvnzbFactory())
 	broker.register(NEWZBIN_FACTORY_OBJECT, NewzbinFactory())
 	broker.register(NZBCLUB_FACTORY_OBJECT, NzbclubFactory())
 	broker.register(NZBINDEX_FACTORY_OBJECT, NzbindexFactory())
 	broker.register(NZBMATRIX_FACTORY_OBJECT, NzbmatrixFactory())
 	broker.register(NZBS_FACTORY_OBJECT, NzbsFactory())
 	broker.register(NZBSRUS_FACTORY_OBJECT, NzbsrusFactory())
-	broker.register(TVNZB_FACTORY_OBJECT, TvnzbFactory())
 
