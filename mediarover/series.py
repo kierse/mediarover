@@ -370,31 +370,11 @@ class Series(object):
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	@classmethod
-	def sanitize_series_name(cls, **kwargs):
+	def sanitize_series_name(cls, name):
 		""" 
 			return a sanitized version of given series name
 			lowercase and remove all non alpha numeric characters 
-
-			args:
-			  name => string, series title
-			  series => Series object
-
-			*** one of name or series must be provided ***
 		"""
-		if 'series' not in kwargs and 'name' not in kwargs:
-			raise MissingParameterError("must provide one of series or name when calling sanitize_series_name")
-
-		if 'series' in kwargs and 'name' in kwargs:
-			raise TooManyParametersError("only one of series or name can be provided when calling sanitize_series_name")
-
-		if 'series' in kwargs:
-			name = kwargs['series'].name
-		elif 'name' in kwargs:
-			name = kwargs['name']
-			
-		if name is None:
-			raise InvalidData("value given to sanitize_series_name must not be None")
-
 		return re.sub("[^a-z0-9]", "", name.lower())
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
