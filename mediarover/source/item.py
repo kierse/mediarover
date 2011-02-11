@@ -123,7 +123,7 @@ class AbstractItem(Item):
 
 	def __eq__(self, other):
 		""" compare two item objects and check if they are equal or not """
-		return self.download() == other.download()
+		return self.download == other.download
 
 	def __ne__(self, other):
 		return not self == other
