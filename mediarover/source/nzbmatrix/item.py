@@ -98,9 +98,10 @@ class NzbmatrixItem(AbstractItem):
 	def __init__(self, item, type, priority, quality, delay, size=0, title=None, url=None):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
-		self.__type = type
-		self.__priority = priority
-		self.__quality = quality
+		self._type = type
+		self._priority = priority
+		self._quality = quality
+		self.__delay = delay
 
 		if item is None:
 			self.__size = size
@@ -135,10 +136,4 @@ class NzbmatrixItem(AbstractItem):
 
 		self.__download = self.__build_download()
 
-		# if the given item quality matches the desired quality level of the 
-		# download series, set the download delay to 0
-		if self.__download.series.desired_quality == quality:
-			self.__delay = 0
-		else:
-			self.__delay = delay
 
