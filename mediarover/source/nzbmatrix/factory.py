@@ -51,7 +51,7 @@ class NzbmatrixFactory(EpisodeFactory, ItemFactory, SourceFactory):
 			raise InvalidEpisodeString("unable to identify episode type: %r" % string)
 
 		# locate series object.  If series is unknown, create new series
-		sanitized_series = Series.sanitize_series_name(name=params['series'])
+		sanitized_series = Series.sanitize_series_name(params['series'])
 		if sanitized_series in self.watched_series:
 			params['series'] = self.watched_series[sanitized_series]
 		else:

@@ -139,7 +139,7 @@ class DailyEpisode(Episode):
 		return (self.year, self.month, self.day) < (other.year, other.month, other.day)
 
 	def __hash__(self):
-		hash = "%s %04d-%02d-%02d" % (Series.sanitize_series_name(series=self.series), self.year, self.month, self.day)
+		hash = "%s %04d-%02d-%02d" % (self.series.sanitized_name, self.year, self.month, self.day)
 		return hash.__hash__()
 
 	def __repr__(self):
