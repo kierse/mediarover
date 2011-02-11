@@ -237,8 +237,8 @@ def __schedule(broker, options):
 		in_queue = []
 		in_progress = set([row['title'] for row in broker[METADATA_OBJECT].list_in_progress()])
 		for job in queue.jobs():
-			if job.title() in in_progress:
-				in_queue.append(job.title())
+			if job.title in in_progress:
+				in_queue.append(job.title)
 
 		# find the difference between the two.  If there are any items in the in_progress
 		# table that aren't in the queue, remove them
@@ -293,7 +293,7 @@ def __schedule(broker, options):
 				try:
 					queue.remove_from_queue(job)
 				except QueueDeletionError:
-					logger.warning("unable to remove job %r from queue", job.title())
+					logger.warning("unable to remove job %r from queue", job.title)
 
 		# remove processed items from delayed_item table
 		broker[METADATA_OBJECT].delete_stale_delayed_items()
@@ -395,8 +395,8 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 	# episodes as well as desired quality level
 	if queue.in_queue(episode):
 		job = queue.get_job_by_download(episode)
-		if series.should_episode_be_downloaded(episode, job.download()):
-			if item.size < job.remaining():
+		if series.should_episode_be_downloaded(episode, job.download):
+			if item.size < job.remaining:
 				if item.delay == 0:
 					drop_from_queue.append(job)
 				else:
