@@ -32,29 +32,29 @@ class SabnzbdJob(Job):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def id(self):
-		""" job id from queue """
-		return self.__id
-
-	def title(self):
-		""" job title from queue """
-		return self.__title
-
+	@property
 	def category(self):
-		""" job category from queue """
 		return self.__category
 
+	@property
 	def download(self):
-		""" download object """
 		return self.__download
 
+	@property
+	def id(self):
+		return self.__id
+
+	@property
+	def remaining(self):
+		return self.__remaining
+
+	@property
 	def size(self):
-		""" total download size (in MB) """
 		return self.__size
 
-	def remaining(self):
-		""" amount remaining to complete download (in MB) """
-		return self.__remaining
+	@property
+	def title(self):
+		return self.__title
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -64,21 +64,21 @@ class SabnzbdJob(Job):
 		if self.__job.getElementsByTagName("msgid")[0].hasChildNodes():
 			factory = self.newzbin_factory
 		else:
-			in_progress = self.meta_ds.get_in_progress(self.title())
+			in_progress = self.meta_ds.get_in_progress(self.title)
 			if in_progress is None:
 				factory = self.episode_factory
 			else:
 				factory = Dependency(in_progress['source'], is_instance_of(EpisodeFactory)).__get__()
 
 		try:
-			download = factory.create_episode(self.title())
+			download = factory.create_episode(self.title)
 		except (InvalidMultiEpisodeData, MissingParameterError):
-			raise InvalidItemTitle("unable to parse job title and create Episode object: '%s'" % title)
+			raise InvalidItemTitle("unable to parse job title and create Episode object: '%s'" % self.title)
 		except InvalidEpisodeString:
-			raise InvalidItemTitle("unsupported job title format: '%s'" % self.title())
+			raise InvalidItemTitle("unsupported job title format: '%s'" % self.title)
 
 		# try and determine job quality
-		record = self.meta_ds.get_in_progress(self.title())
+		record = self.meta_ds.get_in_progress(self.title)
 		if record is not None:
 			download.quality = record['quality']
 
