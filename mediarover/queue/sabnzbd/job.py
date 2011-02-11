@@ -15,7 +15,7 @@
 
 from mediarover.constant import METADATA_OBJECT, EPISODE_FACTORY_OBJECT, NEWZBIN_FACTORY_OBJECT
 from mediarover.ds.metadata import Metadata
-from mediarover.error import *
+from mediarover.error import InvalidEpisodeString, InvalidItemTitle, InvalidMultiEpisodeData, MissingParameterError
 from mediarover.factory import EpisodeFactory
 from mediarover.queue.job import Job
 from mediarover.utils.injection import is_instance_of, Dependency
