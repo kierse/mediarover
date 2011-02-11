@@ -17,7 +17,7 @@ import logging
 import re
 
 from mediarover.constant import NZBSRUS_FACTORY_OBJECT
-from mediarover.error import *
+from mediarover.error import InvalidRemoteData
 from mediarover.factory import EpisodeFactory
 from mediarover.source.item import AbstractItem
 from mediarover.utils.injection import is_instance_of, Dependency
@@ -41,43 +41,8 @@ class NzbsrusItem(AbstractItem):
 		return self.__delay
 
 	@property
-	def download(self):
-		""" return a download object """
-		return self.__download
-
-	@property
-	def priority(self):
-		""" download priority of current report """
-		return self.__priority
-
-	@property
-	def quality(self):
-		""" quality (if known) of current report """
-		return self.__quality
-
-	@property
-	def size(self):
-		""" size of current report """
-		return self.__size
-
-	@property
 	def source(self):
 		return NZBSRUS_FACTORY_OBJECT
-
-	@property
-	def title(self):
-		""" report title from source item """
-		return self.__title
-
-	@property
-	def type(self):
-		""" type of current report """
-		return self.__type
-
-	@property
-	def url(self):
-		""" return nzb url """
-		return self.__url
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -85,46 +50,34 @@ class NzbsrusItem(AbstractItem):
 	
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def __build_download(self):
-		""" parse item data and build appropriate download object """
-
-		try:
-			download = self.factory.create_episode(self.title(), quality=self.quality())
-		except (InvalidMultiEpisodeData, MissingParameterError):
-			raise InvalidItemTitle("unable to parse item title and create Episode object: %s" % self.title())
-		except InvalidEpisodeString:
-			raise InvalidItemTitle("unsupported item title format: %s" % self.title())
-		else:
-			return download
-
 	def __init__(self, item, type, priority, quality, delay, size=0, title=None, url=None):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
-		self.__type = type 
-		self.__priority = priority
-		self.__quality = quality
+		self._type = type 
+		self._priority = priority
+		self._quality = quality
 		self.__delay = delay
 
 		if item is None:
-			self.__size = size
-			self.__title = title
-			self.__url = url
+			self._size = size
+			self._title = title
+			self._url = url
 		else:
-			self.__item = item
+			self._item = item
 
-			titles = self.__item.getElementsByTagName("title")
+			titles = self._item.getElementsByTagName("title")
 			if titles:
-				self.__title = titles[0].childNodes[0].data
+				self._title = titles[0].childNodes[0].data
 			else:
-				self.__title = title
+				self._title = title
 
-			links = self.__item.getElementsByTagName("link")
+			links = self._item.getElementsByTagName("link")
 			if links:
-				self.__url = links[0].childNodes[0].data
+				self._url = links[0].childNodes[0].data
 			else:
-				self.__url = url
+				self._url = url
 
-			description = self.__item.getElementsByTagName("description")
+			description = self._item.getElementsByTagName("description")
 			if description:
 				match = NzbsrusItem.size_re.match(description[0].childNodes[0].data)
 				if match.group('units') == 'G':
@@ -132,12 +85,12 @@ class NzbsrusItem(AbstractItem):
 				else:
 					self.__size = match.group('size')
 			else:
-				self.__size = size
+				self._size = size
 
-		if self.__title is None:
+		if self._title is None:
 			raise InvalidRemoteData("report does not have a title")
-		if self.__url is None:
+		if self._url is None:
 			raise InvalidRemoteData("report does not have a url")
 
-		self.__download = self.__build_download()
+		self._download = self.build_download()
 

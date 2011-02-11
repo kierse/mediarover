@@ -59,8 +59,65 @@ class Item(Comparable):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+from mediarover.error import InvalidEpisodeString, InvalidItemTitle, InvalidMultiEpisodeData, MissingParameterError
+
 class AbstractItem(Item):
 	""" Abstract source item class """
+
+	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	def build_download(self):
+		""" use item data to build appropriate download object """
+
+		try:
+			download = self.factory.create_episode(self.title, quality=self.quality)
+		except (InvalidMultiEpisodeData, MissingParameterError):
+			raise InvalidItemTitle("unable to parse item title and create Episode object: %s" % self.title)
+		except InvalidEpisodeString:
+			raise InvalidItemTitle("unsupported item title format: %s" % self.title)
+		else:
+			return download
+
+	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	@property
+	def download(self):
+		""" return download object representing current report """
+		return self._download
+
+	@property
+	def priority(self):
+		""" download priority of current report """
+		return self._priority
+
+	@property
+	def quality(self):
+		""" quality (if known) of current report """
+		return self._quality
+
+	@property
+	def size(self):
+		""" size of current report """
+		return self._size
+
+	@property
+	def source(self):
+		return NEWZBIN_FACTORY_OBJECT
+
+	@property
+	def title(self):
+		""" title of current report """
+		return self._title
+
+	@property
+	def type(self):
+		""" type of current report """
+		return self._type
+
+	@property
+	def url(self):
+		""" url of current report """
+		return self._url
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

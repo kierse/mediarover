@@ -17,7 +17,7 @@ import logging
 import re
 
 from mediarover.constant import NZBMATRIX_FACTORY_OBJECT
-from mediarover.error import *
+from mediarover.error import InvalidRemoteData
 from mediarover.source.item import AbstractItem
 from mediarover.factory import EpisodeFactory
 from mediarover.utils.injection import is_instance_of, Dependency
@@ -39,61 +39,14 @@ class NzbmatrixItem(AbstractItem):
 		return self.__delay
 
 	@property
-	def download(self):
-		""" return a download object """
-		return self.__download
-
-	@property
-	def priority(self):
-		""" download priority of current report """
-		return self.__priority
-
-	@property
-	def quality(self):
-		""" quality (if known) of current report """
-		return self.__quality
-
-	@property
-	def size(self):
-		""" size of current report """
-		return self.__size
-
-	@property
 	def source(self):
 		return NZBMATRIX_FACTORY_OBJECT
-
-	@property
-	def title(self):
-		""" report title from source item """
-		return self.__title
-
-	@property
-	def type(self):
-		""" type of current report """
-		return self.__type
-
-	@property
-	def url(self):
-		""" return tvnzb nzb url """
-		return self.__url
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	delay = property(fget=_delay_property, fset=_delay_property, doc="schedule delay")
 	
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	def __build_download(self):
-		""" use item data to build appropriate download object """
-
-		try:
-			download = self.factory.create_episode(self.title(), quality=self.quality())
-		except (InvalidMultiEpisodeData, MissingParameterError):
-			raise InvalidItemTitle("unable to parse item title and create Episode object: %s" % self.title())
-		except InvalidEpisodeString:
-			raise InvalidItemTitle("unsupported item title format: %s" % self.title())
-		else:
-			return download
 
 	def __init__(self, item, type, priority, quality, delay, size=0, title=None, url=None):
 		""" init method expects a DOM Element object (xml.dom.Element) """
@@ -104,36 +57,35 @@ class NzbmatrixItem(AbstractItem):
 		self.__delay = delay
 
 		if item is None:
-			self.__size = size
-			self.__title = title
-			self.__url = url
+			self._size = size
+			self._title = title
+			self._url = url
 		else:
-			self.__item = item
+			self._item = item
 
-			titles = self.__item.getElementsByTagName("title")
+			titles = self._item.getElementsByTagName("title")
 			if titles:
-				self.__title = titles[0].childNodes[0].data
+				self._title = titles[0].childNodes[0].data
 
-			enclosure = self.__item.getElementsByTagName("enclosure")
+			enclosure = self._item.getElementsByTagName("enclosure")
 			if enclosure:
 				if enclosure[0].getAttribute("url") is not "":
-					self.__url = enclosure[0].getAttribute("url")
+					self._url = enclosure[0].getAttribute("url")
 				else:
-					self.__url = url
+					self._url = url
 
 				if enclosure[0].getAttribute("length").isnumeric():
-					self.__size = enclosure[0].getAttribute("length") / 1024 / 1024
+					self._size = int(enclosure[0].getAttribute("length")) / 1024 / 1024
 				else:
-					self.__size = size
+					self._size = size
 			else:
-				self.__size = size
-				self.__url = url
+				self._size = size
+				self._url = url
 
-		if self.__title is None:
+		if self._title is None:
 			raise InvalidRemoteData("report does not have a title")
-		if self.__url is None:
+		if self._url is None:
 			raise InvalidRemoteData("report does not have a url")
 
-		self.__download = self.__build_download()
-
+		self._download = self.build_download()
 
