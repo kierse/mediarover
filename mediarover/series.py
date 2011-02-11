@@ -103,7 +103,7 @@ class Series(object):
 			parts = [episode]
 		
 		series = episode.series
-		sanitized_name = series.sanitize_series_name(series=series)
+		sanitized_name = series.sanitized_name
 
 		found = []
 		desirable = []
@@ -264,7 +264,7 @@ class Series(object):
 		single = []
 		multipart = []
 
-		sanitized_name = self.sanitize_series_name(series=self)
+		sanitized_name = self.sanitized_name
 		if sanitized_name in self.config['tv']['filter']:
 			desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
 		else:
@@ -370,34 +370,46 @@ class Series(object):
 	# class methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	@classmethod
-	def sanitize_series_name(cls, **kwargs):
+	def sanitize_series_name(cls, name):
 		""" 
 			return a sanitized version of given series name
 			lowercase and remove all non alpha numeric characters 
-
-			args:
-			  name => string, series title
-			  series => Series object
-
-			*** one of name or series must be provided ***
 		"""
-		if 'series' not in kwargs and 'name' not in kwargs:
-			raise MissingParameterError("must provide one of series or name when calling sanitize_series_name")
-
-		if 'series' in kwargs and 'name' in kwargs:
-			raise TooManyParametersError("only one of series or name can be provided when calling sanitize_series_name")
-
-		if 'series' in kwargs:
-			name = kwargs['series'].name
-		elif 'name' in kwargs:
-			name = kwargs['name']
-			
-		if name is None:
-			raise InvalidData("value given to sanitize_series_name must not be None")
-
 		return re.sub("[^a-z0-9]", "", name.lower())
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	@property
+	def desired_quality(self):
+		if self.config['tv']['quality']['managed']:
+			sanitized = self.sanitized_name
+			if sanitized in self.config['tv']['filter']:
+				return self.config['tv']['filter'][sanitized]['quality']['desired']
+			else:
+				return self.config['tv']['quality']['desired']
+		else:
+			return None
+
+	@property
+	def episodes(self):
+		self.__check_episode_lists()
+		return self.__episodes
+
+	@property
+	def files(self):
+		self.__check_episode_lists()
+		files = list(self.__single_files)
+		files.extend(self.__daily_files)
+		files.extend(self.__multipart_files)
+		return files
+
+	@property
+	def name(self):
+		return self.__name
+
+	@property
+	def sanitized_name(self):
+		return Series.sanitize_series_name(self.name)
 
 	def _aliases_prop(self, aliases = None):
 		if aliases is not None:
@@ -407,34 +419,10 @@ class Series(object):
 				self.__aliases = [aliases]
 		return self.__aliases
 
-	def _desired_quality_prop(self):
-		if self.config['tv']['quality']['managed']:
-			sanitized = self.sanitize_series_name(series=self)
-			if sanitized in self.config['tv']['filter']:
-				return self.config['tv']['filter'][sanitized]['quality']['desired']
-			else:
-				return self.config['tv']['quality']['desired']
-		else:
-			return None
-
-	def _episodes_prop(self):
-		self.__check_episode_lists()
-		return self.__episodes
-
-	def _files_prop(self):
-		self.__check_episode_lists()
-		files = list(self.__single_files)
-		files.extend(self.__daily_files)
-		files.extend(self.__multipart_files)
-		return files
-
 	def _ignores_prop(self, ignores = None):
 		if ignores is not None:
 			self.__ignores = [int(i) for i in ignores]
 		return self.__ignores
-
-	def _name_prop(self):
-		return self.__name
 
 	def _path_prop(self, path = None):
 		if path is not None:
@@ -454,11 +442,7 @@ class Series(object):
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	aliases = property(fget=_aliases_prop, fset=_aliases_prop, doc="aliases for current series")
-	desired_quality = property(fget=_desired_quality_prop, doc="desired quality level as defined in the config file.")
-	episodes = property(fget=_episodes_prop, doc="compiled list of single & daily episodes. Includes individual episodes from all multipart episodes found on disk.")
-	files = property(fget=_files_prop, doc="list of FilesystemEpisode objects found on disk for the current series.")
 	ignores = property(fget=_ignores_prop, fset=_ignores_prop, doc="season ignore list")
-	name = property(fget=_name_prop, doc="series name")
 	path = property(fget=_path_prop, fset=_path_prop, doc="series filesystem path")
 
 	def __init__(self, name, path = [], ignores = [], aliases = []):
@@ -514,7 +498,7 @@ def build_series_lists(config, process_aliases=True):
 			dir = os.path.join(root, name)
 			if os.path.isdir(dir):
 				
-				sanitized_name = Series.sanitize_series_name(name=name)
+				sanitized_name = Series.sanitize_series_name(name)
 
 				# already seen this series and have determined that user wants to skip it
 				if sanitized_name in skip_list:
@@ -554,7 +538,7 @@ def build_series_lists(config, process_aliases=True):
 						series.aliases = config['tv']['filter'][sanitized_name]['alias']
 						count = 0
 						for alias in series.aliases:
-							sanitized_alias = Series.sanitize_series_name(name=alias)
+							sanitized_alias = Series.sanitize_series_name(alias)
 							if sanitized_alias in watched_list:
 								logger.warning("duplicate series alias found for '%s'! Duplicate aliases can/will result in incorrect downloads and improper sorting! You've been warned..." % series)
 							additions[sanitized_alias] = series

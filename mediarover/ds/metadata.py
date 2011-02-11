@@ -71,7 +71,7 @@ class Metadata(object):
 
 		# if series doesn't exist, register it
 		if series is None:
-			sanitized = episode.series.sanitize_series_name(series=episode.series)
+			sanitized = episode.series.sanitized_name
 			args = (episode.series.name, sanitized)
 			series = self.__dbh.execute("INSERT INTO series (name, sanitized_name) VALUES (?,?)", args).lastrowid
 		else:
@@ -276,7 +276,7 @@ class Metadata(object):
 		""" query the database and return row data for the given series (if exists) """
 		details = None
 
-		args = (series.sanitize_series_name(series=series),)
+		args = (series.sanitized_name,)
 		row = self.__dbh.execute("SELECT id, name, sanitized_name FROM series WHERE sanitized_name=?", args).fetchone()
 		if row is not None:
 			details = row

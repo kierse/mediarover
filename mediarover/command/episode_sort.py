@@ -88,7 +88,7 @@ Examples:
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = build_series_filters(config, filters)
+		config['tv']['filter'][Series.sanitize_series_name(name)] = build_series_filters(config, filters)
 
 	""" logging setup """
 
@@ -148,7 +148,7 @@ Examples:
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = build_series_filters(config, filters)
+		config['tv']['filter'][Series.sanitize_series_name(name)] = build_series_filters(config, filters)
 
 	""" main """
 
@@ -289,7 +289,7 @@ def __episode_sort(broker, options, **kwargs):
 
 	# sanitize series name for later use
 	series = episode.series
-	sanitized_name = series.sanitize_series_name(series=series)
+	sanitized_name = series.sanitized_name
 
 	# check if series is being ignored
 	if sanitized_name not in broker[WATCHED_SERIES_LIST] and sanitized_name in broker[IGNORED_SERIES_LIST]:

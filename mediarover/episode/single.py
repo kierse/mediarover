@@ -141,7 +141,7 @@ class SingleEpisode(Episode):
 		return (self.season, self.episode) < (other.season, other.episode)
 
 	def __hash__(self):
-		hash = "%s %dx%02d" % (self.series.sanitize_series_name(series=self.series), self.season, self.episode)
+		hash = "%s %dx%02d" % (self.series.sanitized_name, self.season, self.episode)
 		return hash.__hash__()
 
 	def __repr__(self):

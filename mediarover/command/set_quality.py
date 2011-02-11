@@ -92,7 +92,7 @@ Examples:
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = build_series_filters(config, filters)
+		config['tv']['filter'][Series.sanitize_series_name(name)] = build_series_filters(config, filters)
 
 	""" logging setup """
 
@@ -139,7 +139,7 @@ Series Options:
 
 	# build list of series to iterate over
 	if series_name:
-		names = [Series.sanitize_series_name(name=series_name)]
+		names = [Series.sanitize_series_name(series_name)]
 		if names[0] not in broker[WATCHED_SERIES_LIST]:
 			print "ERROR: Unable to find series matching %r" % series_name
 			exit(2)

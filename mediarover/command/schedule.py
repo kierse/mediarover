@@ -79,7 +79,7 @@ Examples:
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = build_series_filters(config, filters)
+		config['tv']['filter'][Series.sanitize_series_name(name)] = build_series_filters(config, filters)
 
 	""" logging setup """
 
@@ -375,7 +375,7 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 
 	# if user only wants episodes that are newer than those currently on disk, 
 	# determine if episode meets this criteria
-	if broker[CONFIG_OBJECT]['tv']['filter'][Series.sanitize_series_name(series=series)]['only_schedule_newer']:
+	if broker[CONFIG_OBJECT]['tv']['filter'][series.sanitized_name]['only_schedule_newer']:
 		if not series.is_episode_newer_than_current(episode):
 
 			# seeing as we passed the above check (determining if episode should be downloaded), we know
