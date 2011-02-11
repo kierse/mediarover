@@ -241,11 +241,13 @@ class Series(object):
 
 	def get_newer_parts(self, episode):
 		""" build list of episode parts that are newer than all existing series episodes """
-		list = []
-		for ep in episode.parts():
-			if isinstance(self.__newest_episode, type(ep)) and self.__newest_episode < ep:
-				list.append(ep)
-
+		if self.__newest_episode:
+			list = []
+			for ep in episode.parts():
+				if isinstance(self.__newest_episode, type(ep)) and self.__newest_episode < ep:
+					list.append(ep)
+		else:
+			list = episode.parts()
 		return list
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
