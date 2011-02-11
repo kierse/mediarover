@@ -101,10 +101,6 @@ class AbstractItem(Item):
 		return self._size
 
 	@property
-	def source(self):
-		return NEWZBIN_FACTORY_OBJECT
-
-	@property
 	def title(self):
 		""" title of current report """
 		return self._title
