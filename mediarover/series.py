@@ -103,7 +103,7 @@ class Series(object):
 			parts = [episode]
 		
 		series = episode.series
-		sanitized_name = series.sanitize_series_name(series=series)
+		sanitized_name = series.sanitized_name
 
 		found = []
 		desirable = []
@@ -264,7 +264,7 @@ class Series(object):
 		single = []
 		multipart = []
 
-		sanitized_name = self.sanitize_series_name(series=self)
+		sanitized_name = self.sanitized_name
 		if sanitized_name in self.config['tv']['filter']:
 			desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
 		else:
@@ -498,7 +498,7 @@ def build_series_lists(config, process_aliases=True):
 			dir = os.path.join(root, name)
 			if os.path.isdir(dir):
 				
-				sanitized_name = Series.sanitize_series_name(name=name)
+				sanitized_name = Series.sanitize_series_name(name)
 
 				# already seen this series and have determined that user wants to skip it
 				if sanitized_name in skip_list:
@@ -538,7 +538,7 @@ def build_series_lists(config, process_aliases=True):
 						series.aliases = config['tv']['filter'][sanitized_name]['alias']
 						count = 0
 						for alias in series.aliases:
-							sanitized_alias = Series.sanitize_series_name(name=alias)
+							sanitized_alias = Series.sanitize_series_name(alias)
 							if sanitized_alias in watched_list:
 								logger.warning("duplicate series alias found for '%s'! Duplicate aliases can/will result in incorrect downloads and improper sorting! You've been warned..." % series)
 							additions[sanitized_alias] = series
