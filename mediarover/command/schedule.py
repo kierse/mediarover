@@ -380,11 +380,11 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 
 			# seeing as we passed the above check (determining if episode should be downloaded), we know
 			# that its either
-			#   a) missing, 
+			#   a) missing, or
 			#   b) of more desirable quality than whats currently on disk
 			#
-			# Because this episode is NOT newer, we can just check if it's already exists on disk.  If it 
-			# doesn't exist we can skip
+			# Because this episode is NOT newer, we can eliminate option a) by checking if it exists on disk.  
+			# If it doesn't exist we skip
 			if len(series.find_episode_on_disk(episode)) == 0:
 				logger.debug("skipping '%s', older than newest episode already on disk", item.title)
 				return
