@@ -35,7 +35,7 @@ class NewzbinSource(AbstractXmlSource):
 		except AttributeError:
 			self.__items = []
 			for rawItem in self._document.getElementsByTagName("item"):
-				if self.type().upper() == rawItem.getElementsByTagName("report:category")[0].childNodes[0].data.upper():
+				if self.type().lower() == rawItem.getElementsByTagName("report:category")[0].childNodes[0].data.lower():
 					title = rawItem.getElementsByTagName("title")[0].childNodes[0].data
 					try:
 						item = NewzbinItem(rawItem, self.type(), self.priority(), self.quality(), self.delay())

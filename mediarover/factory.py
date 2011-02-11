@@ -20,7 +20,7 @@ class EpisodeFactory(object):
 
 class ItemFactory(object):
 
-	def create_item(self, title, url, type, priority, quality, delay):
+	def create_item(self, title, url, type, priority, quality, delay, size):
 		raise NotImplementedError
 
 class SourceFactory(object):

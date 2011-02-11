@@ -21,7 +21,6 @@ import re
 import shutil
 import sys
 from optparse import OptionParser
-from tempfile import TemporaryFile
 from time import strftime
 
 from mediarover.command import print_epilog, register_source_factories
@@ -258,8 +257,6 @@ def __schedule(broker, options):
 				c) the watched series is missing the Episode representation of 
 					the current Item
 				d) the Item is not currently in the Queue list of Jobs
-
-			if item represents a Film object:
 	"""
 	scheduled = []
 	drop_from_queue = []
@@ -268,7 +265,7 @@ def __schedule(broker, options):
 	# are now eligible for processing
 	logger.info("retrieving delayed items...")
 	for item in broker[METADATA_OBJECT].get_actionable_delayed_items():
-		logger.debug("begin processing delayed item '%s'", item.title())
+		logger.debug("begin processing delayed item '%s'", item.title)
 		__process_item(broker, item, queue, scheduled, drop_from_queue)
 
 	# now process items from any configured sources
@@ -282,7 +279,7 @@ def __schedule(broker, options):
 			continue
 			
 		for item in items:
-			logger.debug("begin processing item '%s'", item.title())
+			logger.debug("begin processing item '%s'", item.title)
 
 			# process current item
 			__process_item(broker, item, queue, scheduled, drop_from_queue)
@@ -307,13 +304,13 @@ def __schedule(broker, options):
 		if len(scheduled) > 0:
 			logger.info("scheduling items for download")
 			for item in scheduled:
-				if item.delay() > 0:
+				if item.delay > 0:
 					delayed.append(item)
 					continue
 				try:
 					queue.add_to_queue(item)
 				except (IOError, QueueInsertionError), e:
-					logger.warning("unable to schedule item %s for download: %s" % (item.title(), e.args[0]))
+					logger.warning("unable to schedule item %s for download: %s" % (item.title, e.args[0]))
 		else:
 			logger.info("no items to schedule for download")
 
@@ -324,7 +321,7 @@ def __schedule(broker, options):
 				if item not in existing:
 					broker[METADATA_OBJECT].add_delayed_item(item)
 				else:
-					logger.debug("skipping %s, already delayed" % item.title())
+					logger.debug("skipping %s, already delayed" % item.title)
 
 		# reduce delay count for all items in delayed_item table
 		broker[METADATA_OBJECT].reduce_item_delay()
@@ -332,25 +329,25 @@ def __schedule(broker, options):
 		if len(scheduled) > 0:
 			logger.info("the following items were identified as being eligible for download:")
 			for item in scheduled:
-				logger.info(item.title())
+				logger.info(item.title)
 
 def __process_item(broker, item, queue, scheduled, drop_from_queue):
 
 	logger = logging.getLogger("mediarover")
 
 	# grab the episode and series object
-	episode = item.download()
+	episode = item.download
 	series = episode.series
 
 	# check that episode series has at least one path value.  If not, we aren't watching
 	# for its series so it can be skipped
 	if len(series.path) == 0:
-		logger.info("skipping '%s', not watching series", item.title())
+		logger.info("skipping '%s', not watching series", item.title)
 		return
 
 	# check if season of current episode is being ignored...
 	if series.ignore(episode.season): 
-		logger.info("skipping '%s', ignoring season", item.title())
+		logger.info("skipping '%s', ignoring season", item.title)
 		return
 
 	# if multiepisode job: check if user will accept, otherwise 
@@ -363,12 +360,17 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 		else:
 			return
 
+	# if item has a schedule delay, determine if it meets desired series quality
+	# if it does, set delay to 0 so it will be scheduled immediately
+	if item.delay and item.quality == series.desired_quality:
+		item.delay = 0
+
 	# check if episode is represented on disk (single or multi). If yes, determine whether 
 	# or not it should be scheduled for download.
 	# ATTENTION: this call takes into account users preferences regarding single vs multi-part 
 	# episodes as well as desired quality level
 	if not series.should_episode_be_downloaded(episode):
-		logger.info("skipping '%s'", item.title())
+		logger.info("skipping '%s'", item.title)
 		return
 
 	# if user only wants episodes that are newer than those currently on disk, 
@@ -384,24 +386,34 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 			# Because this episode is NOT newer, we can just check if it's already exists on disk.  If it 
 			# doesn't exist we can skip
 			if len(series.find_episode_on_disk(episode)) == 0:
-				logger.debug("skipping '%s', older than newest episode already on disk", item.title())
+				logger.debug("skipping '%s', older than newest episode already on disk", item.title)
 				return
 
 	# check if episode is already in the queue.  If yes, determine whether or not it should
 	# replace queued item and be scheduled for download
 	# ATTENTION: this call takes into account users preferences regarding single vs multi-part 
 	# episodes as well as desired quality level
-	if item.delay() == 0 and queue.in_queue(episode):
+	if queue.in_queue(episode):
 		job = queue.get_job_by_download(episode)
 		if series.should_episode_be_downloaded(episode, job.download()):
-			drop_from_queue.append(job)
+			if item.size < job.remaining():
+				if item.delay == 0:
+					drop_from_queue.append(job)
+				else:
+					# delay > 0 which means the current job may be done by the time
+					# this item is considered again. Pass and reevaluate then
+					pass
+			else:
+				# current item is larger than amount remaining to be downloaded for matched job
+				# set delay to 1 so that current job is given time to finish
+				item.delay = 1
 		else:
-			logger.info("skipping '%s', in download queue", item.title())
+			logger.info("skipping '%s', in download queue", item.title)
 			return
 
 	# make sure current item hasn't already been downloaded before
 	if queue.processed(item):
-		logger.info("skipping '%s', already processed by queue", item.title())
+		logger.info("skipping '%s', already processed by queue", item.title)
 		return
 
 	# check if episode has already been scheduled for download.  If yes, determine whether or not it
@@ -411,13 +423,13 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 	drop_from_scheduled = None
 	if item in scheduled:
 		old_item = scheduled[scheduled.index(item)]
-		desirable = series.should_episode_be_downloaded(episode, old_item.download())
+		desirable = series.should_episode_be_downloaded(episode, old_item.download)
 
 		# the current item has a delay:
 		#   a) if the old scheduled item is also delayed, consult desirability
 		#   b) otherwise, skip item
-		if item.delay():
-			if old_item.delay() and desirable:
+		if item.delay:
+			if old_item.delay and desirable:
 				drop_from_scheduled = old_item
 			else:
 				return
@@ -425,8 +437,8 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 		# the old item has a delay:
 		#   a) if the current item is also delayed, consult desirability
 		#   b) otherwise, replace old item
-		elif old_item.delay():
-			if item.delay() and series.should_episode_be_downloaded(old_item.download(), episode):
+		elif old_item.delay:
+			if item.delay and series.should_episode_be_downloaded(old_item.download, episode):
 				return
 			drop_from_scheduled = old_item
 
@@ -434,11 +446,11 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 		elif desirable:
 			drop_from_scheduled = old_item
 		else:
-			logger.info("skipping '%s', already scheduled for download", item.title())
+			logger.info("skipping '%s', already scheduled for download", item.title)
 			return
 
 	# we made it this far, schedule the current item for download!
-	logger.info("adding '%s' to download list", item.title())
+	logger.info("adding '%s' to download list", item.title)
 	scheduled.append(item)
 		
 	if drop_from_scheduled is not None:

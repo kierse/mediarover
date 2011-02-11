@@ -17,7 +17,7 @@ import logging
 import re
 
 from mediarover.constant import NZBCLUB_FACTORY_OBJECT
-from mediarover.error import *
+from mediarover.error import InvalidRemoteData
 from mediarover.source.item import AbstractItem
 from mediarover.factory import EpisodeFactory
 from mediarover.utils.injection import is_instance_of, Dependency
@@ -30,80 +30,64 @@ class NzbclubItem(AbstractItem):
 	# declare module dependencies
 	factory = Dependency(NZBCLUB_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
 
-	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def delay(self):
+	def _delay_property(self, delay=None):
 		""" return delay value for current item """
+		if delay is not None:
+			self.__delay = delay
 		return self.__delay
 
-	def download(self):
-		""" return a download object """
-		return self.__download
-
-	def priority(self):
-		""" download priority of current report """
-		return self.__priority
-
-	def quality(self):
-		""" quality (if known) of current report """
-		return self.__quality
-
+	@property
 	def source(self):
 		return NZBCLUB_FACTORY_OBJECT
 
-	def title(self):
-		""" report title from source item """
-		return self.__title
+	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def type(self):
-		""" type of current report """
-		return self.__type
-
-	def url(self):
-		""" return tvnzb nzb url """
-		return self.__url
+	delay = property(fget=_delay_property, fset=_delay_property, doc="schedule delay")
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def __build_download(self):
-		""" parse item data and build appropriate download object """
-
-		try:
-			download = self.factory.create_episode(self.title(), quality=self.quality())
-		except (InvalidMultiEpisodeData, MissingParameterError):
-			raise InvalidItemTitle("unable to parse item title and create Episode object: %s" % self.title())
-		except InvalidEpisodeString:
-			raise InvalidItemTitle("unsupported item title format: %s" % self.title())
-		else:
-			return download
-
-	def __init__(self, item, type, priority, quality, delay, title=None, url=None):
+	def __init__(self, item, type, priority, quality, delay, size=0, title=None, url=None):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
-		self.__type = type
-		self.__priority = priority
-		self.__quality = quality
+		self._type = type
+		self._priority = priority
+		self._quality = quality
 		self.__delay = delay
 
 		if item is None:
-			self.__title = title
-			self.__url = url
+			self._title = title
+			self._url = url
 		else:
-			self.__item = item
+			self._item = item
 
-			titles = self.__item.getElementsByTagName("title")
+			titles = self._item.getElementsByTagName("title")
 			if titles:
-				self.__title = titles[0].childNodes[0].data
+				self._title = titles[0].childNodes[0].data
+			else:
+				self._title = title
 
-			enclosure = self.__item.getElementsByTagName("enclosure")
-			if enclosure and enclosure[0].getAttribute('url') is not "":
-				index = enclosure[0].getAttribute('url').rfind("/")
-				self.__url = "%s/nzb" % enclosure[0].getAttribute('url')[:index]
+			enclosure = self._item.getElementsByTagName("enclosure")
+			if enclosure:
+				if enclosure[0].getAttribute('url') is not "":
+					index = enclosure[0].getAttribute('url').rfind("/")
+					self._url = "%s/nzb" % enclosure[0].getAttribute('url')[:index]
+				else:
+					self._url = url
 
-		if self.__title is None:
+				if enclosure[0].getAttribute('length').isnumeric():
+					self._size = int(enclosure[0].getAttribute('length')) / 1024 / 1024
+				else:
+					self._size = size;
+			else:
+				self._size = size;
+				self._url = url
+
+		if self._title is None:
 			raise InvalidRemoteData("report does not have a title")
-		if self.__url is None:
+		if self._url is None:
 			raise InvalidRemoteData("report does not have a url")
 
-		self.__download = self.__build_download()
+		self._download = self.build_download()
 

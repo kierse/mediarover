@@ -27,6 +27,6 @@ class NzbsFactory(EpisodeFactory, ItemFactory, SourceFactory):
 	def create_source(self, name, url, type, priority, timeout, quality, schedule_delay):
 		return NzbsSource(name, url, type, priority, timeout, quality, schedule_delay)
 
-	def create_item(self, title, url, type, priority, quality, delay):
-		return NzbsItem(None, type, priority, quality, delay, title=title, url=url)
+	def create_item(self, title, url, type, priority, quality, delay, size):
+		return NzbsItem(None, type, priority, quality, delay, size=size, title=title, url=url)
 

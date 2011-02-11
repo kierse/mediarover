@@ -43,7 +43,7 @@ class Metadata(object):
 
 	def add_in_progress(self, item):
 		""" record given nzb in progress table with type, and quality """
-		self.__dbh.execute("INSERT INTO in_progress (title, source, type, quality) VALUES (?,?,?,?)", (item.title(), item.source(), item.type(), item.quality()))
+		self.__dbh.execute("INSERT INTO in_progress (title, source, type, quality) VALUES (?,?,?,?)", (item.title, item.source, item.type, item.quality))
 		self.__dbh.commit()
 
 	def get_in_progress(self, title):
@@ -134,15 +134,15 @@ class Metadata(object):
 
 	def add_delayed_item(self, item):
 		""" add given item to delayed_item table """
-		self.__dbh.execute("INSERT INTO delayed_item (title, source, url, type, priority, quality, delay) VALUES (?,?,?,?,?,?,?)", (item.title(), item.source(), item.url(), item.type(), item.priority(), item.quality(), item.delay()))
+		self.__dbh.execute("INSERT INTO delayed_item (title, source, url, type, priority, quality, delay, size) VALUES (?,?,?,?,?,?,?,?)", (item.title, item.source, item.url, item.type, item.priority, item.quality, item.delay, item.size))
 		self.__dbh.commit()
 
 		logger = logging.getLogger("mediarover.ds.metadata")
-		logger.info("delayed scheduling '%s' for download", item.title())
+		logger.info("delayed scheduling '%s' for download", item.title)
 
 	def delete_delayed_item(self, item):
 		""" remove given item from delayed_item table """
-		self.__dbh.execute("DELETE FROM delayed_item WHERE title=?", (item.title(),))
+		self.__dbh.execute("DELETE FROM delayed_item WHERE title=?", (item.title,))
 		self.__dbh.commit()
 
 	def delete_stale_delayed_items(self):
@@ -156,11 +156,11 @@ class Metadata(object):
 
 		# iterate over all tuples with delay < 1 and create new item objects
 		items = []
-		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay FROM delayed_item WHERE delay < 1"):
+		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay, size FROM delayed_item WHERE delay < 1"):
 			if r['source'] not in factories:
 				factories[r['source']] = Dependency(r['source'], is_instance_of(ItemFactory))
 			factory = factories[r['source']].__get__()
-			items.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
+			items.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay'], r['size']))
 
 		return items
 	
@@ -169,11 +169,11 @@ class Metadata(object):
 		factories = {}
 
 		list = []
-		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay FROM delayed_item"):
+		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay, size FROM delayed_item"):
 			if r['source'] not in factories:
 				factories[r['source']] = Dependency(r['source'], is_instance_of(ItemFactory))
 			factory = factories[r['source']].__get__()
-			list.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
+			list.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay'], r['size']))
 
 		return list
 
