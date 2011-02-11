@@ -116,7 +116,7 @@ class SabnzbdQueue(Queue):
 		args = {
 			'mode': 'queue',
 			'name': 'delete',
-			'value': job.id(),
+			'value': job.id,
 		}
 
 		if 'username' and 'password' in self._params:
@@ -133,20 +133,20 @@ class SabnzbdQueue(Queue):
 		try:
 			handle = urlopen(url)
 		except (HTTPError), e:
-			raise QueueDeletionError("unable to remove job '%s' from queue: %d" % (job.title(), e.code))
+			raise QueueDeletionError("unable to remove job '%s' from queue: %d" % (job.title, e.code))
 		except (URLError), e:
-			raise QueueDeletionError("unable to remove job '%s' from queue: %s" % (job.title(), e.reason))
+			raise QueueDeletionError("unable to remove job '%s' from queue: %s" % (job.title, e.reason))
 
 		# check response for status of request
 		response = handle.readline()
 		if response == "ok\n":
 			if self.config['tv']['quality']['managed']:
-				self.meta_ds.delete_in_progress(job.title())
-			logger.info("job '%s' successfully removed from queue", job.title())
+				self.meta_ds.delete_in_progress(job.title)
+			logger.info("job '%s' successfully removed from queue", job.title)
 		elif response.startswith("error"):
-			raise QueueDeletionError("unable to remove job %s from queue: %s" % (job.title(), response))
+			raise QueueDeletionError("unable to remove job %s from queue: %s" % (job.title, response))
 		else:
-			raise QueueDeletionError("unexpected response received from queue while attempting to remove job %r: %s" % (job.title(), response))
+			raise QueueDeletionError("unexpected response received from queue while attempting to remove job %r: %s" % (job.title, response))
 
 	def in_queue(self, download):
 		""" return boolean indicating whether or not the given source item is in queue """
@@ -161,7 +161,7 @@ class SabnzbdQueue(Queue):
 
 		job = None
 		for j in self.jobs():
-			if j.download() == download:
+			if j.download == download:
 				job = j
 				break
 
