@@ -245,11 +245,10 @@ class Series(object):
 			list = []
 			for ep in episode.parts():
 				try:
-					self.__newest_episode < ep
+					if self.__newest_episode < ep:
+						list.append(ep)
 				except AttributeError:
 					pass
-				else:
-					list.append(ep)
 		else:
 			list = episode.parts()
 		return list
