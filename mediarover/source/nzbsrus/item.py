@@ -22,7 +22,7 @@ from mediarover.factory import EpisodeFactory
 from mediarover.source.item import AbstractItem
 from mediarover.utils.injection import is_instance_of, Dependency
 
-size_re = re.compile("^Size (?P<size>\d+\.\d{2}) (?P<units>[GM])iB")
+size_re = re.compile("Size (?P<size>\d+\.\d{2}) (?P<units>[GM])iB")
 
 class NzbsrusItem(AbstractItem):
 	""" wrapper object representing an unparsed report object """
@@ -79,11 +79,14 @@ class NzbsrusItem(AbstractItem):
 
 			description = self._item.getElementsByTagName("description")
 			if description:
-				match = NzbsrusItem.size_re.match(description[0].childNodes[0].data)
-				if match.group('units') == 'G':
-					self.__size = match.group('size') * 1024
+				match = size_re.match(description[0].childNodes[0].data)
+				if match:
+					if match.group('units') == 'G':
+						self._size = float(match.group('size')) * 1024
+					else:
+						self._size = float(match.group('size'))
 				else:
-					self.__size = match.group('size')
+					self._size = size
 			else:
 				self._size = size
 
