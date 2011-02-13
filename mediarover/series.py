@@ -528,27 +528,27 @@ def build_series_lists(config, process_aliases=True):
 					locate_and_process_ignore(config['tv']['filter'][sanitized_name], dir)
 
 					# check filters to see if user wants this series skipped...
-					if config['tv']['filter'][sanitized_name]["skip"]:
+					if config['tv']['filter'][sanitized_name]["ignore_series"]:
 						skip_list[sanitized_name] = series
-						logger.debug("found skip filter, ignoring series: %s", series.name)
+						logger.debug("found ignore_series flag, ignoring series: %s", series.name)
 						continue
 
 					# set season ignore list for current series
-					if len(config['tv']['filter'][sanitized_name]['ignore']):
-						logger.debug("ignoring the following seasons of %s: %s", series.name, config['tv']['filter'][sanitized_name]['ignore'])
-						series.ignores = config['tv']['filter'][sanitized_name]['ignore']
+					if len(config['tv']['filter'][sanitized_name]['ignore_season']):
+						logger.debug("ignoring the following seasons of %s: %s", series.name, config['tv']['filter'][sanitized_name]['ignore_season'])
+						series.ignores = config['tv']['filter'][sanitized_name]['ignore_season']
 
 					# process series aliases.  For each new alias, register series in watched_list
-					if process_aliases and len(config['tv']['filter'][sanitized_name]['alias']) > 0:
-						series.aliases = config['tv']['filter'][sanitized_name]['alias']
+					if process_aliases:
 						count = 0
-						for alias in series.aliases:
+						for alias in config['tv']['filter'][sanitized_name]['series_alias']:
 							sanitized_alias = Series.sanitize_series_name(alias)
 							if sanitized_alias in watched_list:
 								logger.warning("duplicate series alias found for '%s'! Duplicate aliases can/will result in incorrect downloads and improper sorting! You've been warned..." % series)
 							additions[sanitized_alias] = series
 							count += 1
-						logger.debug("%d alias(es) identified for series '%s'" % (count, series))
+						if count:
+							logger.debug("%d alias(es) identified for series '%s'" % (count, series))
 
 					# finally, add additions to watched list
 					logger.debug("watching series: %s", series)
