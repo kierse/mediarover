@@ -137,61 +137,63 @@
 	#     both folders it finds on disk and source items that match watched series.
 	#     Options include:
 	#
-	#     a) option: skip 
+	#     a) option: ignore_series
 	#        values: True or False
 	#        default: False
-	#        description: this option tells Media Rover to skip a series entirely. No new 
-	#                     nzb's will be scheduled for a series that has a skip flag set to True
+	#        description: this option tells Media Rover to ignore a series entirely. No new nzb's will 
+	#                     be scheduled for a series that has its ignore_series flag set to True
 	#
-	#     b) option: ignore
+	#     b) option: ignore_season
 	#        values: comma separated list (ie. 1,2,3,4)
 	#        default: none (empty list)
-	#        description: this option tells Media Rover to ignore any new items (for the current series)
-	#                     that are from a list of seasons.
+	#        description: this option tells Media Rover to ignore any new items that are from the given
+	#                     list of seasons.
 	#
-	#     c) option: alias
+	#     c) option: series_alias
 	#        values: comma separated list (ie. 1,2,3,4)
 	#        default: none (empty list)
 	#        description: this option tells Media Rover to match source items to the current series that
 	#                     normally wouldn't be matched. This option is typically used when the series name
 	#                     (contained in a source item title) does not match the series folder name on disk.
 	#
-	#     d) option: only_schedule_newer
+	#     d) option: archive
 	#        values: True or False
-	#        default: False
-	#        description: this option tells Media Rover to only schedule episodes for download that are
-	#                     newer than what is currently on disk.
-	#                     NOTE: setting this option overrides the global value [tv] only_schedule_newer 
+	#        default: [tv] [[library]] archive
+	#        description: this option tells Media Rover to archive episodes of the current series
+	#                     NOTE: setting this option overrides the global value [tv] [[library]] archive
 	#                     for the targeted series only.
 	#
-	#  3. set series specific quality preferences. If [tv][quality][managed] is True, you have the option 
-	#     of specifying quality preferences on a per series basis. 
-	#     NOTE: all quality options must be placed under a quality subsection (ie. [[[[quality]]]]).  
-	#     Options include:
+	#     e) option: episode_limit
+	#        values: number (greater than or equal to 0)
+	#        default: [tv] [[library]] episode_limit
+	#        description: this option tells Media Rover to keep the indicated number of episodes on disk
+	#                     for the current series.
+	#                     NOTE: setting this option overrides the global value [tv] [[library]] episode_limit
 	#
-	#     a) option: desired
+	#     e) option: desired_quality
 	#        values: low, medium, or high
-	#        default: [tv][quality][desired]
+	#        default: [tv] [[library]] [[[quality]]] desired
 	#        description: this option allows you to tell Media Rover your preferred quality level for
 	#                     the current series.
+	#                     NOTE: setting this option overrides the global value [tv] [[library]] [[[quality]]] desired
 	#
-	#     b) option: acceptable
+	#     f) option: acceptable_quality
 	#        values: comma separated list containing one or more of the following: all, low, medium, high
-	#        default: [tv][quality][acceptable]
+	#        default: [tv] [[library]] [[[quality]]] acceptable
 	#        description: this option tells Media Rover which quality levels you find acceptable for the 
 	#                     current series.
+	#                     NOTE: setting this option overrides the global value [tv] [[library]] [[[quality]]] acceptable
 	#
 	#  Example:
 	#
 	#     [tv]
 	#        [[ filter ]]
 	#           [[[ The Super Terrific Happy Hour ]]]
-	#             skip = False
-	#             ignore = 1,2,3 # don't download anything from season 1, 2, or 3
-	#             alias = "The Super Terrific Happy Hour (Us)", "STHH"
-	#             [[[[ quality ]]]]
-	#               desired = high
-	#               acceptable = medium, high
+	#             ignore_series = False
+	#             ignore_season = 1,2,3 # don't download anything from season 1, 2, or 3
+	#             series_alias = "The Super Terrific Happy Hour (Us)", "STHH"
+	#             desired_quality = high
+	#             acceptable_quality = medium, high
 	#     
 	# ATTENTION: filter names should exactly match series folder on disk in order to
 	#            guarantee consistent application of filters
@@ -444,7 +446,7 @@
 	
 	[[sabnzbd]]
 		root = http://localhost:8080/sabnzbd
-		api_key = <key>
+		api_key = 
 		backup_dir = 
 		#username = 
 		#password = 

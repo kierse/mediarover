@@ -29,13 +29,12 @@
 
 	[[filter]]
 		[[[__many__]]]
-			ignore = int_list(default=list())
-			skip = boolean(default=False)
-			alias = string_list(default=list())
-			only_schedule_newer = boolean(default=None)
-			[[[[quality]]]]
-				acceptable = options_list(options=list('all', 'low', 'medium', 'high', None), default=None)
-				desired = option('low', 'medium', 'high', None, default=None)
+			ignore_series = boolean(default=False)
+			ignore_season = int_list(default=list())
+			series_alias = string_list(default=list())
+			archive = boolean(default=None)
+			desired_quality = option('low', 'medium', 'high', None, default=None)
+			acceptable_quality = options_list(options=list('all', 'low', 'medium', 'high', None), default=None)
 
 	[[template]]
 		series = string(default=$(series)s)
