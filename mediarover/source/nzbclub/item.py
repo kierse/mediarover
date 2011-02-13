@@ -16,7 +16,7 @@
 import logging
 import re
 
-from mediarover.constant import NZBCLUB_FACTORY_OBJECT
+from mediarover.constant import NZBCLUB, NZBCLUB_FACTORY_OBJECT
 from mediarover.error import InvalidRemoteData
 from mediarover.source.item import AbstractItem
 from mediarover.factory import EpisodeFactory
@@ -40,7 +40,7 @@ class NzbclubItem(AbstractItem):
 
 	@property
 	def source(self):
-		return NZBCLUB_FACTORY_OBJECT
+		return NZBCLUB
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 

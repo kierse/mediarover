@@ -16,7 +16,7 @@
 import logging
 import re
 
-from mediarover.constant import NZBSRUS_FACTORY_OBJECT
+from mediarover.constant import NZBSRUS, NZBSRUS_FACTORY_OBJECT
 from mediarover.error import InvalidRemoteData
 from mediarover.factory import EpisodeFactory
 from mediarover.source.item import AbstractItem
@@ -42,7 +42,7 @@ class NzbsrusItem(AbstractItem):
 
 	@property
 	def source(self):
-		return NZBSRUS_FACTORY_OBJECT
+		return NZBSRUS
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 

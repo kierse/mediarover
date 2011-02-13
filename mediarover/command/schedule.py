@@ -38,8 +38,7 @@ from mediarover.utils.quality import guess_quality_level
 from mediarover.version import __app_version__
 
 from mediarover.constant import (CONFIG_DIR, CONFIG_OBJECT, METADATA_OBJECT, EPISODE_FACTORY_OBJECT, 
-											FILESYSTEM_FACTORY_OBJECT, NEWZBIN_FACTORY_OBJECT, RESOURCES_DIR, 
-											WATCHED_SERIES_LIST)
+											FILESYSTEM_FACTORY_OBJECT, RESOURCES_DIR, WATCHED_SERIES_LIST)
 from mediarover.utils.quality import LOW, MEDIUM, HIGH
 
 def schedule(broker, args):
