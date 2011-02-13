@@ -16,7 +16,7 @@
 import logging
 import re
 
-from mediarover.constant import NZBMATRIX_FACTORY_OBJECT
+from mediarover.constant import NZBMATRIX, NZBMATRIX_FACTORY_OBJECT
 from mediarover.error import InvalidRemoteData
 from mediarover.source.item import AbstractItem
 from mediarover.factory import EpisodeFactory
@@ -40,7 +40,7 @@ class NzbmatrixItem(AbstractItem):
 
 	@property
 	def source(self):
-		return NZBMATRIX_FACTORY_OBJECT
+		return NZBMATRIX
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 

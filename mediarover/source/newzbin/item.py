@@ -16,7 +16,7 @@
 import logging
 import re
 
-from mediarover.constant import NEWZBIN_FACTORY_OBJECT
+from mediarover.constant import NEWZBIN, NEWZBIN_FACTORY_OBJECT
 from mediarover.error import InvalidRemoteData
 from mediarover.source.item import AbstractItem
 from mediarover.factory import EpisodeFactory
@@ -40,7 +40,7 @@ class NewzbinItem(AbstractItem):
 
 	@property
 	def source(self):
-		return NEWZBIN_FACTORY_OBJECT
+		return NEWZBIN
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 

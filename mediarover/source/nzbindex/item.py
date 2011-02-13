@@ -16,7 +16,7 @@
 import logging
 import re
 
-from mediarover.constant import NZBINDEX_FACTORY_OBJECT
+from mediarover.constant import NZBINDEX, NZBINDEX_FACTORY_OBJECT
 from mediarover.error import InvalidRemoteData
 from mediarover.source.item import AbstractItem
 from mediarover.factory import EpisodeFactory
@@ -40,7 +40,7 @@ class NzbindexItem(AbstractItem):
 
 	@property
 	def source(self):
-		return NZBINDEX_FACTORY_OBJECT
+		return NZBINDEX
 
 	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
