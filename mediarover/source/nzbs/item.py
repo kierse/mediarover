@@ -18,8 +18,6 @@ import re
 
 from mediarover.constant import NZBS, NZBS_FACTORY_OBJECT
 from mediarover.error import InvalidRemoteData
-from mediarover.episode.single import SingleEpisode
-from mediarover.episode.multi import MultiEpisode
 from mediarover.factory import EpisodeFactory
 from mediarover.source.item import AbstractItem
 from mediarover.utils.injection import is_instance_of, Dependency
