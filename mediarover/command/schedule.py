@@ -34,7 +34,6 @@ from mediarover.error import (ConfigurationError, FailedDownload, FilesystemErro
 from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.filesystem.factory import FilesystemFactory
 from mediarover.series import Series, build_series_lists 
-from mediarover.utils.quality import guess_quality_level
 from mediarover.version import __app_version__
 
 from mediarover.constant import (CONFIG_DIR, CONFIG_OBJECT, METADATA_OBJECT, EPISODE_FACTORY_OBJECT, 
