@@ -42,8 +42,8 @@
 		# ALL missing episodes for download, regardless of age. When False, Media Rover will only
 		# schedule an episode for download if it is newer than what's found on disk.
 		#
-		# NOTE: defaults to False
-		#archive = False
+		# NOTE: defaults to True
+		#archive = True
 
 		# maximum number of episodes to keep on disk for a given series. This parameter works in
 		# conjunction with the archive parameter and is only consulted when archive is False

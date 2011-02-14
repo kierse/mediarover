@@ -17,7 +17,7 @@
 
 	[[library]]
 		allow_multipart = boolean(default=True)
-		archive = boolean(default=False)
+		archive = boolean(default=True)
 		episode_limit = integer(default=5)
 
 		[[[quality]]]
