@@ -222,14 +222,17 @@ class Series(object):
 
 		return params
 
-	def mark_episode_list_stale(self):
-		logger = logging.getLogger("mediarover.series")
-		logger.debug("clearing series file lists!")
-		self.__episodes = None
-		self.__single_files = None
-		self.__daily_files = None
-		self.__multipart_files = None
+	def mark_episode_list_stale(self, init = False):
+		if init is False:
+			logger = logging.getLogger("mediarover.series")
+			logger.debug("clearing series file lists!")
+		self.__scanned = False
+		self.__episodes = []
+		self.__single_files = []
+		self.__daily_files = []
+		self.__multipart_files = []
 		self.__newest_episode = None
+		self.__oldest_episode = None
 
 	def is_episode_newer_than_current(self, episode):
 		""" determine if the given episode is newer than all existing series episodes """
