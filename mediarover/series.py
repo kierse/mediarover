@@ -375,7 +375,7 @@ class Series(object):
 							if self.__is_older_than_oldest(episode):
 								self.__oldest_episode_file = file
 								if self.__newest_episode is None:
-									self.__newest_episode = episode.parts.pop()
+									self.__newest_episode = episode.parts().pop()
 							else:
 								newer = self.get_newer_parts(episode)
 								if len(newer) > 0:
@@ -396,8 +396,10 @@ class Series(object):
 	def __is_older_than_oldest(self, episode):
 		""" return boolean indicating whether the given episode is older than the current oldest """
 		result = False
-		if self.__oldest_episode_file:
-			oldest = self.__oldest_episode_file.parts()[0]
+		if self.__oldest_episode_file is None:
+			result = True
+		else:
+			oldest = self.__oldest_episode_file.episode.parts()[0]
 			if oldest > episode.parts()[0]:
 				result = True
 

@@ -373,7 +373,7 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 
 	# if user only wants episodes that are newer than those currently on disk, 
 	# determine if episode meets this criteria
-	if broker[CONFIG_OBJECT]['tv']['filter'][series.sanitized_name]['only_schedule_newer']:
+	if not broker[CONFIG_OBJECT]['tv']['filter'][series.sanitized_name]['archive']:
 		if not series.is_episode_newer_than_current(episode):
 
 			# seeing as we passed the above check (determining if episode should be downloaded), we know
