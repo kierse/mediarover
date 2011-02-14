@@ -31,74 +31,87 @@
 	# NOTE: defaults to: nfo,txt,sfv,srt,nzb,idx,log,par,par2,exe,bat,com,tbn,jpg,png,gif,info
 	#ignored_extensions = nfo,txt,sfv,srt,srr,nzb,idx,log,par,par2,exe,bat,com,tbn,jpg,png,gif,info,db
 
-	# allow Media Rover to schedule multi-part episodes for download
-	# NOTE: defaults to True
-	#allow_multipart = True
+	[[library]]
 
-	# only schedule episodes for download that are newer than what is currently found on disk.
-	# NOTE: defaults to True
-	#only_schedule_newer = True
-
-	[[quality]]
-
-		# allow Media Rover to manage episodes on disk and manage quality levels
-		# according to user defined preferences
-		# WARNING: SETTING THIS OPTION TO TRUE MAY RESULT IN EPISODES BEING DELETED
+		# allow Media Rover to schedule multi-part episodes for download
 		#
-		# Note: defaults to False
-		#managed = False
+		# NOTE: defaults to True
+		#allow_multipart = True
 
-		# list of acceptable quality levels that can be be scheduled for download
-		# Note: you may specify one or more options (separated by a comma)
+		# archive all series episodes. Setting this flag to True tells Media Rover to schedule
+		# ALL missing episodes for download, regardless of age. When False, Media Rover will only
+		# schedule an episode for download if it is newer than what's found on disk.
 		#
-		# options:
-		#  all - any quality level for a missing episode is acceptable
-		#  low - episodes from sources marked as low quality
-		#  medium - episodes from sources marked as medium quality
-		#  high - episodes from sources marked as high quality
-		#
-		# Note: defaults to 'all'
-		#acceptable = all
+		# NOTE: defaults to False
+		#archive = False
 
-		# default desired quality level for all downloaded episodes.  Media Rover
-		# will schedule episodes for download that already exist on disk in order
-		# to achieve the desired quality setting.
+		# maximum number of episodes to keep on disk for a given series. This parameter works in
+		# conjunction with the archive parameter and is only consulted when archive is False
+		# NOTE: setting this value to 0 disables episode count limits meaning no episodes will be deleted
+		# WARNING: SETTING THIS OPTION TO A VALUE GREATER THAN ZERO MAY RESULT IN EPISODES BEING DELETED
 		#
-		# options:
-		#  low - episodes from sources marked as low quality
-		#  medium - episodes from sources marked as medium quality
-		#  high - episodes from sources marked as high quality
-		#
-		# Note: only set if managed is True
-		#desired = 
+		# NOTE: defaults to 5
+		#episode_limit = 5
 
-		# instruct Media Rover to guess the quality of episodes that it encounters 
-		# when no quality details are known.  If this is false, Media Rover will
-		# assume all such files meet the desired quality level of the episode series.
-		#
-		# Note: defaults to True
-		#guess = True
+		[[[quality]]]
 
-		# ATTENTION: the extension options are only consulted when quality guessing is on (ie. [[quality]] guess = True)
-		[[[extension]]]
-			
-			# list of extensions that should be marked LOW quality
-			# ATTENTION: this list is only consulted when quality information for a given episode is unknown!
+			# allow Media Rover to manage quality of all episodes on disk according to
+			# user defined preferences
+			# WARNING: SETTING THIS OPTION TO TRUE MAY RESULT IN EPISODES BEING REPLACED
 			#
-			# Note: defaults to mp4
-			#low = mp4,
+			# NOTE: defaults to False
+			#managed = False
 
-			# list of extensions that should be marked MEDIUM quality
-			# ATTENTION: this list is only consulted when quality information for a given episode is unknown!
+			# list of acceptable quality levels that can be be scheduled for download
+			# NOTE: you may specify one or more options (separated by a comma)
 			#
-			# Note: defaults to avi
-			#medium = avi,
+			# options:
+			#  all - any quality level for a missing episode is acceptable
+			#  low - episodes from sources marked as low quality
+			#  medium - episodes from sources marked as medium quality
+			#  high - episodes from sources marked as high quality
+			#
+			# NOTE: defaults to 'all'
+			#acceptable = all
 
-			# list of extensions that should be marked HIGH quality
-			# ATTENTION: this list is only consulted when quality information for a given episode is unknown!
+			# default desired quality level for all series episodes. This is the quality 
+			# level that Media Rover will attempt to achieve for all episodes found on disk.
 			#
-			# Note: defaults to mkv
-			#high = mkv,
+			# options:
+			#  low - episodes from sources marked as low quality
+			#  medium - episodes from sources marked as medium quality
+			#  high - episodes from sources marked as high quality
+			#
+			# NOTE: only set if managed is True
+			#desired = 
+
+			# instruct Media Rover to guess the quality of episodes that it encounters 
+			# when no quality details are known.  If this is false, Media Rover will
+			# assume all such files meet the desired quality level of the episode series.
+			#
+			# NOTE: defaults to True
+			#guess = True
+
+			# ATTENTION: the extension options are only consulted when quality guessing is on (ie. [[quality]] guess = True)
+			[[[[extension]]]]
+				
+				# list of extensions that should be marked LOW quality
+				# ATTENTION: this list is only consulted when quality information for a given episode is unknown!
+				#
+				# NOTE: defaults to mp4
+				#low = mp4,
+
+				# list of extensions that should be marked MEDIUM quality
+				# ATTENTION: this list is only consulted when quality information for a given episode is unknown!
+				#
+				# NOTE: defaults to avi
+				#medium = avi,
+
+				# list of extensions that should be marked HIGH quality
+				# ATTENTION: this list is only consulted when quality information for a given episode is unknown!
+				#
+				# NOTE: defaults to mkv
+				#high = mkv,
 
 	# series specific filter options
 	# usage: in order to specify filters for a given series, define

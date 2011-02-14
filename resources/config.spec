@@ -14,18 +14,21 @@
 	category = string(default=tv)
 	priority = option('normal', 'high', 'low', 'force', default='normal')
 	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com","tbn","jpg","png","gif","info","db","srr"))
-	allow_multipart = boolean(default=True)
-	only_schedule_newer = boolean(default=True)
 
-	[[quality]]
-		managed = boolean(default=False)
-		acceptable = options_list(options=list('all', 'low', 'medium', 'high'), default=list('all'))
-		desired = option('low', 'medium', 'high', None, default=None)
-		guess = boolean(default=True)
-		[[[extension]]]
-			low = list(default=list('mp4'))
-			medium = list(default=list('avi'))
-			high = list(default=list('mkv'))
+	[[library]]
+		allow_multipart = boolean(default=True)
+		archive = boolean(default=False)
+		episode_limit = integer(default=5)
+
+		[[[quality]]]
+			managed = boolean(default=False)
+			acceptable = options_list(options=list('all', 'low', 'medium', 'high'), default=list('all'))
+			desired = option('low', 'medium', 'high', None, default=None)
+			guess = boolean(default=True)
+			[[[[extension]]]]
+				low = list(default=list('mp4'))
+				medium = list(default=list('avi'))
+				high = list(default=list('mkv'))
 
 	[[filter]]
 		[[[__many__]]]
@@ -33,6 +36,7 @@
 			ignore_season = int_list(default=list())
 			series_alias = string_list(default=list())
 			archive = boolean(default=None)
+			episode_limit = integer(default=None)
 			desired_quality = option('low', 'medium', 'high', None, default=None)
 			acceptable_quality = options_list(options=list('all', 'low', 'medium', 'high', None), default=None)
 
