@@ -115,23 +115,23 @@ class Series(object):
 
 			# not found == desirable
 			else:
-				if self.config['tv']['quality']['managed']:
+				if self.config['tv']['library']['quality']['managed']:
 					if sanitized_name in self.config['tv']['filter']:
-						if ep.quality not in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
+						if ep.quality not in self.config['tv']['filter'][sanitized_name]['acceptable_quality']:
 							logger.debug("episode not of acceptable quality, skipping")
 							continue
-					elif ep.quality not in self.config['tv']['quality']['acceptable']:
+					elif ep.quality not in self.config['tv']['library']['quality']['acceptable']:
 						logger.debug("episode not of acceptable quality, skipping")
 						continue
 				desirable.append(ep)
 
 		# make sure episode quality is acceptable
-		if self.config['tv']['quality']['managed'] and len(found) > 0:
+		if self.config['tv']['library']['quality']['managed'] and len(found) > 0:
 
 			if sanitized_name in self.config['tv']['filter']:
 
-				if episode.quality in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
-					desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
+				if episode.quality in self.config['tv']['filter'][sanitized_name]['acceptable_quality']:
+					desired = self.config['tv']['filter'][sanitized_name]['desired_quality']
 					given_quality = episode.quality.lower()
 					for given, current in found:
 						current_quality = current.quality.lower()
@@ -271,9 +271,9 @@ class Series(object):
 
 		sanitized_name = self.sanitized_name
 		if sanitized_name in self.config['tv']['filter']:
-			desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
+			desired = self.config['tv']['filter'][sanitized_name]['desired_quality']
 		else:
-			desired = self.config['tv']['quality']['desired']
+			desired = self.config['tv']['library']['quality']['desired']
 
 		for root in self.path:
 			for dirpath, dirnames, filenames in os.walk(root):
@@ -338,10 +338,10 @@ class Series(object):
 
 							# see if we can come up with a more accurate quality level 
 							# for current file
-							if len(list) > 0 and self.config['tv']['quality']['managed']:
+							if len(list) > 0 and self.config['tv']['library']['quality']['managed']:
 								record = self.meta_ds.get_episode(list[0])
 								if record is None:
-									if self.config['tv']['quality']['guess']:
+									if self.config['tv']['library']['quality']['guess']:
 										episode.quality = guess_quality_level(self.config, file.extension, episode.quality)
 									else:
 										logger.warning("quality level of '%s' unknown, defaulting to desired level of '%s'" % (episode, desired))
@@ -355,13 +355,14 @@ class Series(object):
 
 							logger.debug("created %r" % file)
 
+		self.__scanned = True
 		self.__episodes = compiled
 		self.__daily_files = daily
 		self.__single_files = single
 		self.__multipart_files = multipart
 
 	def __check_episode_lists(self):
-		if self.__episodes is None:
+		if self.__scanned is False:
 			self.__find_series_episodes()
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -386,12 +387,12 @@ class Series(object):
 
 	@property
 	def desired_quality(self):
-		if self.config['tv']['quality']['managed']:
+		if self.config['tv']['library']['quality']['managed']:
 			sanitized = self.sanitized_name
 			if sanitized in self.config['tv']['filter']:
-				return self.config['tv']['filter'][sanitized]['quality']['desired']
+				return self.config['tv']['filter'][sanitized]['desired_quality']
 			else:
-				return self.config['tv']['quality']['desired']
+				return self.config['tv']['library']['quality']['desired']
 		else:
 			return None
 
@@ -461,11 +462,7 @@ class Series(object):
 		self.path = path
 
 		# initialize episode related attributes
-		self.__episodes = None
-		self.__single_files = None
-		self.__daily_files = None
-		self.__multipart_files = None
-		self.__newest_episode = None
+		self.mark_episode_list_stale(True)
 
 		# sanitize ignores list
 		self.__ignores = set([int(re.sub("[^\d]", "", str(i))) for i in ignores if i])
