@@ -240,6 +240,7 @@ def build_series_filters(config, seed=None):
 			'acceptable_quality': None,
 			'archive': None,
 			'desired_quality': None,
+			'episode_limit': None,
 			'ignore_season': [],
 			'ignore_series': False, 
 			'series_alias': [],
@@ -254,6 +255,9 @@ def build_series_filters(config, seed=None):
 	# determine scheduling preference
 	if seed['archive'] is None:
 		seed['archive'] = config['tv']['library']['archive']
+
+	if seed['archive'] == False and seed['episode_limit'] is None:
+		seed['episode_limit'] = config['tv']['library']['episode_limit']
 
 	return seed
 
