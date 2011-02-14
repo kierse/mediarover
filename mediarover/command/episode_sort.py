@@ -415,8 +415,8 @@ def __episode_sort(broker, options, **kwargs):
 				# NOTE: if the number of series episodes exceeds the indicated amount by more than one
 				# display a warning message indicating as much. DO NOT remove more than one file!
 				# We don't want to accidentally wipe out an entire series due to improper configuration!
-				if config['tv']['filter'][series.sanitized_name]['archive'] is False:
-					limit = config['tv']['filter'][series.sanitized_name]['episode_limit']
+				if sanitized_name in config['tv']['filter'] and config['tv']['filter'][sanitized_name]['archive'] is False:
+					limit = config['tv']['filter'][sanitized_name]['episode_limit']
 					if limit > 0:
 						count = len(series.files)
 						if count > limit:
