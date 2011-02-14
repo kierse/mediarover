@@ -421,7 +421,9 @@ def __episode_sort(broker, options, **kwargs):
 						count = len(series.files)
 						if count > limit:
 							if count > limit + 1:
-								logger.warning("the series '%s' has more episodes on disk than the configured limit of %d" % (series, limit))
+								logger.warning("the series '%s' has more episodes on disk than the configured limit of %d. Only 1 will be removed" % (series, limit))
+							else:
+								logger.info("removing oldest episode...")
 							series.delete_oldest_episode_file()
 
 				if len(remove) > 0:
