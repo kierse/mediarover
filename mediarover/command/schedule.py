@@ -122,8 +122,8 @@ def __schedule(broker, options):
 
 	# grab quality management flag.  This will determine if Media Rover
 	# will actively manage the quality of filesystem episodes or not
-	manage_quality = config['tv']['quality']['managed']
-	if manage_quality and config['tv']['quality']['desired'] is None:
+	manage_quality = config['tv']['library']['quality']['managed']
+	if manage_quality and config['tv']['library']['quality']['desired'] is None:
 		raise ConfigurationError("when quality management is on you must indicate a desired quality level at [tv] [[quality]] desired =")
 
 	# check if user has requested a dry-run
@@ -351,7 +351,7 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 
 	# if multiepisode job: check if user will accept, otherwise 
 	# continue to next job
-	if not broker[CONFIG_OBJECT]['tv']['allow_multipart']:
+	if not broker[CONFIG_OBJECT]['tv']['library']['allow_multipart']:
 		try:
 			episode.episodes
 		except AttributeError:

@@ -177,17 +177,17 @@ Series Options:
 		if config['tv']['filter'][sanitized]['quality']['desired'] is not None:
 			default = config['tv']['filter'][sanitized]['quality']['desired']
 		else:
-			default = config['tv']['quality']['desired']
+			default = config['tv']['library']['quality']['desired']
 
 		# if quality guessing is on, populate extension lists (if they weren't 
 		# provided by user)
-		if config['tv']['quality']['managed'] and config['tv']['quality']['guess']:
+		if config['tv']['library']['quality']['managed'] and config['tv']['library']['quality']['guess']:
 			if len(options.low) == 0:
-				options.low = config['tv']['quality']['extension'][LOW]
+				options.low = config['tv']['library']['quality']['extension'][LOW]
 			if len(options.medium) == 0:
-				options.medium = config['tv']['quality']['extension'][MEDIUM]
+				options.medium = config['tv']['library']['quality']['extension'][MEDIUM]
 			if len(options.high) == 0:
-				options.high = config['tv']['quality']['extension'][HIGH]
+				options.high = config['tv']['library']['quality']['extension'][HIGH]
 
 		low = list()
 		medium = list()

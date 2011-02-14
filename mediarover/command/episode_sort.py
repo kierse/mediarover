@@ -196,7 +196,7 @@ def __episode_sort(broker, options, **kwargs):
 
 	# ensure user has indicated a desired quality level if quality management is turned on
 	config = broker[CONFIG_OBJECT]
-	if config['tv']['quality']['managed'] and config['tv']['quality']['desired'] is None:
+	if config['tv']['library']['quality']['managed'] and config['tv']['library']['quality']['desired'] is None:
 		raise ConfigurationError("when quality management is on you must indicate a desired quality level at [tv] [[quality]] desired =")
 
 	"""
@@ -303,12 +303,12 @@ def __episode_sort(broker, options, **kwargs):
 		logger.debug("created %r" % file)
 
 		# determine quality of given job if quality management is turned on
-		if config['tv']['quality']['managed']:
+		if config['tv']['library']['quality']['managed']:
 			if 'quality' in kwargs:
 				episode.quality = kwargs['quality']
 			else:
 				if in_progress is None:
-					if config['tv']['quality']['guess']:
+					if config['tv']['library']['quality']['guess']:
 						episode.quality = guess_quality_level(config, file.extension, episode.quality)
 					else:
 						logger.info("unable to find quality information in metadata db, assuming default quality level!")
@@ -378,7 +378,7 @@ def __episode_sort(broker, options, **kwargs):
 			file.path = new_path
 
 			# remove job from in_progress
-			if config['tv']['quality']['managed']:
+			if config['tv']['library']['quality']['managed']:
 				broker[METADATA_OBJECT].delete_in_progress(job)
 
 			if additional is None:
@@ -387,7 +387,7 @@ def __episode_sort(broker, options, **kwargs):
 				series.mark_episode_list_stale()
 
 				# update metadata db with newly sorted episode information
-				if config['tv']['quality']['managed']:
+				if config['tv']['library']['quality']['managed']:
 					for ep in desirables:
 						broker[METADATA_OBJECT].add_episode(ep)
 

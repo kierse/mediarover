@@ -101,7 +101,7 @@ class SabnzbdQueue(Queue):
 		# check response for status of request
 		response = handle.readline()
 		if response == "ok\n":
-			if self.config['tv']['quality']['managed']:
+			if self.config['tv']['library']['quality']['managed']:
 				self.meta_ds.add_in_progress(item)
 			logger.info("item '%s' successfully queued for download", item.title)
 		elif response.startswith("error"):
@@ -140,7 +140,7 @@ class SabnzbdQueue(Queue):
 		# check response for status of request
 		response = handle.readline()
 		if response == "ok\n":
-			if self.config['tv']['quality']['managed']:
+			if self.config['tv']['library']['quality']['managed']:
 				self.meta_ds.delete_in_progress(job.title)
 			logger.info("job '%s' successfully removed from queue", job.title)
 		elif response.startswith("error"):
