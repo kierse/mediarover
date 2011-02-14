@@ -367,10 +367,15 @@ class Series(object):
 								else:
 									episode.quality = record['quality']
 
-							# determine if episode is newer than current newest
-							newer = self.get_newer_parts(episode)
-							if len(newer) > 0:
-								self.__newest_episode = newer.pop()
+							# determine if episode is older than oldest or newer than newest
+							if self.__is_older_than_oldest(episode):
+								self.__oldest_episode_file = file
+								if self.__newest_episode is None:
+									self.__newest_episode = episode.parts.pop()
+							else:
+								newer = self.get_newer_parts(episode)
+								if len(newer) > 0:
+									self.__newest_episode = newer.pop()
 
 							logger.debug("created %r" % file)
 
@@ -383,6 +388,16 @@ class Series(object):
 	def __check_episode_lists(self):
 		if self.__scanned is False:
 			self.__find_series_episodes()
+
+	def __is_older_than_oldest(self, episode):
+		""" return boolean indicating whether the given episode is older than the current oldest """
+		result = False
+		if self.__oldest_episode_file:
+			oldest = self.__oldest_episode_file.parts()[0]
+			if oldest > episode.parts()[0]:
+				result = True
+
+		return result
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
