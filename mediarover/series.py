@@ -254,7 +254,23 @@ class Series(object):
 					pass
 		else:
 			list = episode.parts()
+
 		return list
+
+	def delete_oldest_episode_file(self):
+		""" delete oldest episode from from series folders """
+		if self.__oldest_episode_file:
+			os.unlink(self.__oldest_episode_file.path)
+	
+	def delete_episode_files(self, *files):
+		""" delete the list of episode files from series folders """
+		for file in files:
+			try:
+				os.unlink(file.path)
+			except OSError, (e):
+				logger.error("unable to delete file at '%s': %s", % (file.path, e.strerror))
+			else:
+				logger.info("removing file '%s'", old.path)
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
