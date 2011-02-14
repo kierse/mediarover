@@ -410,6 +410,20 @@ def __episode_sort(broker, options, **kwargs):
 					elif file != found:
 						remove.append(found)
 
+				# if series isn't being archived, delete oldest episode on disk if series episode count
+				# exceeds the indicated value
+				# NOTE: if the number of series episodes exceeds the indicated amount by more than one
+				# display a warning message indicating as much. DO NOT remove more than one file!
+				# We don't want to accidentally wipe out an entire series due to improper configuration!
+				if config['tv']['filter'][series.sanitized_name]['archive'] is False:
+					limit = config['tv']['filter'][series.sanitized_name]['episode_limit']
+					if limit > 0:
+						count = len(series.files)
+						if count > limit:
+							if count > limit + 1:
+								logger.warning("the series '%s' has more episodes on disk than the configured limit of %d" % (series, limit))
+							series.delete_oldest_episode_file()
+
 				if len(remove) > 0:
 					for old in remove:
 						try:
