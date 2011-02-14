@@ -425,13 +425,7 @@ def __episode_sort(broker, options, **kwargs):
 							series.delete_oldest_episode_file()
 
 				if len(remove) > 0:
-					for old in remove:
-						try:
-							os.remove(old.path)
-						except OSError, (e):
-							raise CleanupError("unable to delete file at '%s': %s", old.path, e.strerror)
-						else:
-							logger.info("removing file '%s'", old.path)
+					series.delete_episode_files(*remove)
 					
 			# clean up download directory by removing all remaining files
 			try:

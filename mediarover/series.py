@@ -232,7 +232,7 @@ class Series(object):
 		self.__daily_files = []
 		self.__multipart_files = []
 		self.__newest_episode = None
-		self.__oldest_episode = None
+		self.__oldest_episode_file = None
 
 	def is_episode_newer_than_current(self, episode):
 		""" determine if the given episode is newer than all existing series episodes """
@@ -268,7 +268,7 @@ class Series(object):
 			try:
 				os.unlink(file.path)
 			except OSError, (e):
-				logger.error("unable to delete file at '%s': %s", % (file.path, e.strerror))
+				logger.error("unable to delete file at '%s': %s" % (file.path, e.strerror))
 			else:
 				logger.info("removing file '%s'", old.path)
 
