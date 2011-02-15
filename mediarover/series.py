@@ -115,23 +115,23 @@ class Series(object):
 
 			# not found == desirable
 			else:
-				if self.config['tv']['quality']['managed']:
+				if self.config['tv']['library']['quality']['managed']:
 					if sanitized_name in self.config['tv']['filter']:
-						if ep.quality not in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
+						if ep.quality not in self.config['tv']['filter'][sanitized_name]['acceptable_quality']:
 							logger.debug("episode not of acceptable quality, skipping")
 							continue
-					elif ep.quality not in self.config['tv']['quality']['acceptable']:
+					elif ep.quality not in self.config['tv']['library']['quality']['acceptable']:
 						logger.debug("episode not of acceptable quality, skipping")
 						continue
 				desirable.append(ep)
 
 		# make sure episode quality is acceptable
-		if self.config['tv']['quality']['managed'] and len(found) > 0:
+		if self.config['tv']['library']['quality']['managed'] and len(found) > 0:
 
 			if sanitized_name in self.config['tv']['filter']:
 
-				if episode.quality in self.config['tv']['filter'][sanitized_name]['quality']['acceptable']:
-					desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
+				if episode.quality in self.config['tv']['filter'][sanitized_name]['acceptable_quality']:
+					desired = self.config['tv']['filter'][sanitized_name]['desired_quality']
 					given_quality = episode.quality.lower()
 					for given, current in found:
 						current_quality = current.quality.lower()
@@ -222,14 +222,17 @@ class Series(object):
 
 		return params
 
-	def mark_episode_list_stale(self):
-		logger = logging.getLogger("mediarover.series")
-		logger.debug("clearing series file lists!")
-		self.__episodes = None
-		self.__single_files = None
-		self.__daily_files = None
-		self.__multipart_files = None
+	def mark_episode_list_stale(self, init = False):
+		if init is False:
+			logger = logging.getLogger("mediarover.series")
+			logger.debug("clearing series file lists!")
+		self.__scanned = False
+		self.__episodes = []
+		self.__single_files = []
+		self.__daily_files = []
+		self.__multipart_files = []
 		self.__newest_episode = None
+		self.__oldest_episode_file = None
 
 	def is_episode_newer_than_current(self, episode):
 		""" determine if the given episode is newer than all existing series episodes """
@@ -251,7 +254,27 @@ class Series(object):
 					pass
 		else:
 			list = episode.parts()
+
 		return list
+
+	def delete_oldest_episode_file(self):
+		""" delete oldest episode from from series folders """
+		logger = logging.getLogger("mediarover.series")
+		if self.__oldest_episode_file:
+			logger.info("removing file '%s'", self.__oldest_episode_file.path)
+			os.unlink(self.__oldest_episode_file.path)
+		else:
+			logger.warning("unable to remove '%s', file doesn't exist", self.__oldest_episode_file.path)
+	
+	def delete_episode_files(self, *files):
+		""" delete the list of episode files from series folders """
+		for file in files:
+			try:
+				os.unlink(file.path)
+			except OSError, (e):
+				logger.error("unable to delete file at '%s': %s" % (file.path, e.strerror))
+			else:
+				logger.info("removing file '%s'", old.path)
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -271,9 +294,9 @@ class Series(object):
 
 		sanitized_name = self.sanitized_name
 		if sanitized_name in self.config['tv']['filter']:
-			desired = self.config['tv']['filter'][sanitized_name]['quality']['desired']
+			desired = self.config['tv']['filter'][sanitized_name]['desired_quality']
 		else:
-			desired = self.config['tv']['quality']['desired']
+			desired = self.config['tv']['library']['quality']['desired']
 
 		for root in self.path:
 			for dirpath, dirnames, filenames in os.walk(root):
@@ -338,31 +361,49 @@ class Series(object):
 
 							# see if we can come up with a more accurate quality level 
 							# for current file
-							if len(list) > 0 and self.config['tv']['quality']['managed']:
+							if len(list) > 0 and self.config['tv']['library']['quality']['managed']:
 								record = self.meta_ds.get_episode(list[0])
 								if record is None:
-									if self.config['tv']['quality']['guess']:
+									if self.config['tv']['library']['quality']['guess']:
 										episode.quality = guess_quality_level(self.config, file.extension, episode.quality)
 									else:
 										logger.warning("quality level of '%s' unknown, defaulting to desired level of '%s'" % (episode, desired))
 								else:
 									episode.quality = record['quality']
 
-							# determine if episode is newer than current newest
-							newer = self.get_newer_parts(episode)
-							if len(newer) > 0:
-								self.__newest_episode = newer.pop()
+							# determine if episode is older than oldest or newer than newest
+							if self.__is_older_than_oldest(episode):
+								self.__oldest_episode_file = file
+								if self.__newest_episode is None:
+									self.__newest_episode = episode.parts().pop()
+							else:
+								newer = self.get_newer_parts(episode)
+								if len(newer) > 0:
+									self.__newest_episode = newer.pop()
 
 							logger.debug("created %r" % file)
 
+		self.__scanned = True
 		self.__episodes = compiled
 		self.__daily_files = daily
 		self.__single_files = single
 		self.__multipart_files = multipart
 
 	def __check_episode_lists(self):
-		if self.__episodes is None:
+		if self.__scanned is False:
 			self.__find_series_episodes()
+
+	def __is_older_than_oldest(self, episode):
+		""" return boolean indicating whether the given episode is older than the current oldest """
+		result = False
+		if self.__oldest_episode_file is None:
+			result = True
+		else:
+			oldest = self.__oldest_episode_file.episode.parts()[0]
+			if oldest > episode.parts()[0]:
+				result = True
+
+		return result
 
 	# overriden methods  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -386,12 +427,12 @@ class Series(object):
 
 	@property
 	def desired_quality(self):
-		if self.config['tv']['quality']['managed']:
+		if self.config['tv']['library']['quality']['managed']:
 			sanitized = self.sanitized_name
 			if sanitized in self.config['tv']['filter']:
-				return self.config['tv']['filter'][sanitized]['quality']['desired']
+				return self.config['tv']['filter'][sanitized]['desired_quality']
 			else:
-				return self.config['tv']['quality']['desired']
+				return self.config['tv']['library']['quality']['desired']
 		else:
 			return None
 
@@ -461,11 +502,7 @@ class Series(object):
 		self.path = path
 
 		# initialize episode related attributes
-		self.__episodes = None
-		self.__single_files = None
-		self.__daily_files = None
-		self.__multipart_files = None
-		self.__newest_episode = None
+		self.mark_episode_list_stale(True)
 
 		# sanitize ignores list
 		self.__ignores = set([int(re.sub("[^\d]", "", str(i))) for i in ignores if i])
@@ -528,27 +565,27 @@ def build_series_lists(config, process_aliases=True):
 					locate_and_process_ignore(config['tv']['filter'][sanitized_name], dir)
 
 					# check filters to see if user wants this series skipped...
-					if config['tv']['filter'][sanitized_name]["skip"]:
+					if config['tv']['filter'][sanitized_name]["ignore_series"]:
 						skip_list[sanitized_name] = series
-						logger.debug("found skip filter, ignoring series: %s", series.name)
+						logger.debug("found ignore_series flag, ignoring series: %s", series.name)
 						continue
 
 					# set season ignore list for current series
-					if len(config['tv']['filter'][sanitized_name]['ignore']):
-						logger.debug("ignoring the following seasons of %s: %s", series.name, config['tv']['filter'][sanitized_name]['ignore'])
-						series.ignores = config['tv']['filter'][sanitized_name]['ignore']
+					if len(config['tv']['filter'][sanitized_name]['ignore_season']):
+						logger.debug("ignoring the following seasons of %s: %s", series.name, config['tv']['filter'][sanitized_name]['ignore_season'])
+						series.ignores = config['tv']['filter'][sanitized_name]['ignore_season']
 
 					# process series aliases.  For each new alias, register series in watched_list
-					if process_aliases and len(config['tv']['filter'][sanitized_name]['alias']) > 0:
-						series.aliases = config['tv']['filter'][sanitized_name]['alias']
+					if process_aliases:
 						count = 0
-						for alias in series.aliases:
+						for alias in config['tv']['filter'][sanitized_name]['series_alias']:
 							sanitized_alias = Series.sanitize_series_name(alias)
 							if sanitized_alias in watched_list:
 								logger.warning("duplicate series alias found for '%s'! Duplicate aliases can/will result in incorrect downloads and improper sorting! You've been warned..." % series)
 							additions[sanitized_alias] = series
 							count += 1
-						logger.debug("%d alias(es) identified for series '%s'" % (count, series))
+						if count:
+							logger.debug("%d alias(es) identified for series '%s'" % (count, series))
 
 					# finally, add additions to watched list
 					logger.debug("watching series: %s", series)

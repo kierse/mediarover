@@ -1,5 +1,10 @@
 """ Application wide constants """
 
+# quality constants
+LOW = 'low'
+MEDIUM = 'medium'
+HIGH = 'high'
+
 # source labels
 NEWZBIN = 'newzbin'
 NZBCLUB = 'nzbclub'

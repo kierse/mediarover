@@ -237,22 +237,27 @@ def build_series_filters(config, seed=None):
 
 	if seed is None:
 		seed= {
-			'skip': False, 
-			'ignore': [],
-			'alias': [],
-			'quality': dict(acceptable=None, desired=None),
-			'only_schedule_newer': None,
+			'acceptable_quality': None,
+			'archive': None,
+			'desired_quality': None,
+			'episode_limit': None,
+			'ignore_season': [],
+			'ignore_series': False, 
+			'series_alias': [],
 		}
 
 	# determine quality values for current series
-	if seed['quality']['acceptable'] is None:
-		seed['quality']['acceptable'] = config['tv']['quality']['acceptable']
-	if seed['quality']['desired'] is None:
-		seed['quality']['desired'] = config['tv']['quality']['desired']
+	if seed['acceptable_quality'] is None:
+		seed['acceptable_quality'] = config['tv']['library']['quality']['acceptable']
+	if seed['desired_quality'] is None:
+		seed['desired_quality'] = config['tv']['library']['quality']['desired']
 
 	# determine scheduling preference
-	if seed['only_schedule_newer'] is None:
-		seed['only_schedule_newer'] = config['tv']['only_schedule_newer']
+	if seed['archive'] is None:
+		seed['archive'] = config['tv']['library']['archive']
+
+	if seed['archive'] == False and seed['episode_limit'] is None:
+		seed['episode_limit'] = config['tv']['library']['episode_limit']
 
 	return seed
 
@@ -261,26 +266,26 @@ def locate_and_process_ignore(current, path):
 	logger = logging.getLogger("mediarover.config")
 
 	# avoid a little I/O overhead and only look for the
-	# ignore file if skip isn't True
-	if 'skip' not in current or current['skip'] is False:
+	# ignore file if ignore_series isn't True
+	if 'ignore_series' not in current or current['ignore_series'] is False:
 
 		# check given path for .ignore file
 		if os.path.exists(os.path.join(path, ".ignore")):
 			logger.debug("found ignore file: %s", path)
 
-			file_ignores = []
+			ignore_seasons = []
 			with open(os.path.join(path, ".ignore")) as file:
 				for line in file:
 					if line.rstrip("\n") == "*":
-						current['skip'] = True
+						current['ignore_series'] = True
 						break
 					else:
 						num = re.sub('[^\d]', '', line)
 						if num:
-							file_ignores.append(num)
+							ignore_seasons.append(num)
 
 			# replace existing ignore list with current
-			current['ignore'] = file_ignores
+			current['ignore_season'] = ignore_seasons
 
 # private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

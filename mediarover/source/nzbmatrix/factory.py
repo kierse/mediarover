@@ -59,9 +59,9 @@ class NzbmatrixFactory(EpisodeFactory, ItemFactory, SourceFactory):
 
 		if 'quality' not in kwargs:
 			if sanitized_series in self.config['tv']['filter']:
-				params['quality'] = self.config['tv']['filter'][sanitized_series]['quality']['desired']
+				params['quality'] = self.config['tv']['filter'][sanitized_series]['desired_quality']
 			else:
-				params['quality'] = self.config['tv']['quality']['desired']
+				params['quality'] = self.config['tv']['library']['quality']['desired']
 
 		if 'start_episode' in params:
 			return MultiEpisode(**params)

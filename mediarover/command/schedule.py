@@ -34,7 +34,6 @@ from mediarover.error import (ConfigurationError, FailedDownload, FilesystemErro
 from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.filesystem.factory import FilesystemFactory
 from mediarover.series import Series, build_series_lists 
-from mediarover.utils.quality import guess_quality_level
 from mediarover.version import __app_version__
 
 from mediarover.constant import (CONFIG_DIR, CONFIG_OBJECT, METADATA_OBJECT, EPISODE_FACTORY_OBJECT, 
@@ -122,8 +121,8 @@ def __schedule(broker, options):
 
 	# grab quality management flag.  This will determine if Media Rover
 	# will actively manage the quality of filesystem episodes or not
-	manage_quality = config['tv']['quality']['managed']
-	if manage_quality and config['tv']['quality']['desired'] is None:
+	manage_quality = config['tv']['library']['quality']['managed']
+	if manage_quality and config['tv']['library']['quality']['desired'] is None:
 		raise ConfigurationError("when quality management is on you must indicate a desired quality level at [tv] [[quality]] desired =")
 
 	# check if user has requested a dry-run
@@ -351,7 +350,7 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 
 	# if multiepisode job: check if user will accept, otherwise 
 	# continue to next job
-	if not broker[CONFIG_OBJECT]['tv']['allow_multipart']:
+	if not broker[CONFIG_OBJECT]['tv']['library']['allow_multipart']:
 		try:
 			episode.episodes
 		except AttributeError:
@@ -374,7 +373,7 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 
 	# if user only wants episodes that are newer than those currently on disk, 
 	# determine if episode meets this criteria
-	if broker[CONFIG_OBJECT]['tv']['filter'][series.sanitized_name]['only_schedule_newer']:
+	if not broker[CONFIG_OBJECT]['tv']['filter'][series.sanitized_name]['archive']:
 		if not series.is_episode_newer_than_current(episode):
 
 			# seeing as we passed the above check (determining if episode should be downloaded), we know
