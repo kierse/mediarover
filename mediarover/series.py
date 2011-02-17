@@ -588,7 +588,10 @@ def build_series_lists(config, process_aliases=True):
 							logger.debug("%d alias(es) identified for series '%s'" % (count, series))
 
 					# finally, add additions to watched list
-					logger.debug("watching series: %s", series)
+					if config['tv']['filter'][sanitized_name]['archive']:
+						logger.debug("watching archived series: %s", series)
+					else:
+						logger.debug("watching series: %s", series)
 					watched_list.update(additions)
 	
 	return watched_list, skip_list
