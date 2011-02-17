@@ -358,12 +358,6 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 		else:
 			return
 
-	# if item has a schedule delay, determine if it meets desired series quality
-	# if it does, set delay to 0 so it will be scheduled immediately
-	if item.delay and item.quality == series.desired_quality:
-		logger.info("item '%s' meets desired series quality, ignoring schedule delay...", item.title)
-		item.delay = 0
-
 	# check if episode is represented on disk (single or multi). If yes, determine whether 
 	# or not it should be scheduled for download.
 	# ATTENTION: this call takes into account users preferences regarding single vs multi-part 
@@ -371,6 +365,12 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 	if not series.should_episode_be_downloaded(episode):
 		logger.info("skipping '%s'", item.title)
 		return
+
+	# if item has a schedule delay, determine if it meets desired series quality
+	# if it does, set delay to 0 so it will be scheduled immediately
+	if item.delay and item.quality == series.desired_quality:
+		logger.info("item '%s' meets desired series quality, ignoring schedule delay...", item.title)
+		item.delay = 0
 
 	# if user only wants episodes that are newer than those currently on disk, 
 	# determine if episode meets this criteria
