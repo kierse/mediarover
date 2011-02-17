@@ -268,6 +268,7 @@ class Series(object):
 	
 	def delete_episode_files(self, *files):
 		""" delete the list of episode files from series folders """
+		logger = logging.getLogger("mediarover.series")
 		for file in files:
 			try:
 				os.unlink(file.path)
