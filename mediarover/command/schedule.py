@@ -361,6 +361,7 @@ def __process_item(broker, item, queue, scheduled, drop_from_queue):
 	# if item has a schedule delay, determine if it meets desired series quality
 	# if it does, set delay to 0 so it will be scheduled immediately
 	if item.delay and item.quality == series.desired_quality:
+		logger.info("item '%s' meets desired series quality, ignoring schedule delay...", item.title)
 		item.delay = 0
 
 	# check if episode is represented on disk (single or multi). If yes, determine whether 
