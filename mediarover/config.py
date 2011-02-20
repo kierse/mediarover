@@ -173,30 +173,28 @@ def check_url(url):
 
 	return url
 
-def check_int_list(data):
+def check_int_list(int_list, **kwargs):
 	""" 
 		make sure given data contains only integers.  If data is only one
 		integer, return as list
 
 		Convert all strings to integers
 	"""
-	int_list = []
-	orig = data
+	if int_list is None:
+		if 'default' in kwargs:
+			int_list = kwargs['default']
+		else:
+			raise VdtValueError("missing required value!")
+	
+	# make sure selection is a list
+	if not isinstance(int_list, list):
+		int_list = [int_list]
 
-	try:
-		data.join("")
-	except AttributeError:
-		pass
-	else:
-		data = [data]
-
-	for num in data:
+	for num in int_list:
 		try:
 			num = int(num)
 		except ValueError:
-			raise VdtValueError("'%s' contains non-digit characters!" % orig)
-		else:
-			int_list.append(num)
+			raise VdtValueError("%s (non-digit)" % num)
 
 	return int_list
 
@@ -214,7 +212,7 @@ def check_options_list(selections, **kargs):
 		else:
 			raise VdtValueError("missing required value!")
 
-	# make sure selection is is a list
+	# make sure selection is a list
 	if not isinstance(selections, list):
 		selections = [selections]
 
