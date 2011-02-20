@@ -24,7 +24,7 @@ from tempfile import TemporaryFile
 from time import strftime
 
 from mediarover.command import print_epilog, register_source_factories
-from mediarover.config import build_series_filters, read_config
+from mediarover.config import build_series_filters, get_processed_app_config
 from mediarover.ds.metadata import Metadata
 from mediarover.episode.factory import EpisodeFactory
 from mediarover.error import (CleanupError, ConfigurationError, FailedDownload, FilesystemError, 
@@ -79,7 +79,7 @@ Examples:
 
 	# create config object using user config values
 	try:
-		config = read_config(broker[RESOURCES_DIR], broker[CONFIG_DIR])
+		config = get_processed_app_config(broker[RESOURCES_DIR], broker[CONFIG_DIR])
 	except (ConfigurationError), e:
 		print e
 		exit(1)
