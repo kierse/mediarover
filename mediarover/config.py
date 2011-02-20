@@ -31,58 +31,57 @@ from mediarover.version import __config_version__
 
 # public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def read_config(resources, path):
-	""" build and validate a ConfigObj using config file found at given filesystem path """
+def get_processed_app_config(resources, path):
+	""" build and validate all application configs and merge them into one object """
 
 	_locate_config_files(path)
+
+	# get main config
+	mediarover_config = build_mediarover_config(resources, path)
+
+	# get series filter config
+	series_filter = build_series_filter_config(resources, path)
+	if series_filter:
+		mediarover_config['tv']['filter'] = series_filter
+
+	return mediarover_config
+
+def build_mediarover_config(resources, path):
+	""" build and validate config object using mediarover.conf at given path """
 
 	# grab contents of config file
 	with open(os.path.join(path, "mediarover.conf"), "r") as f:
 		file = f.readlines()
 
-	version_check = re.compile("__version__")
+	config = ConfigObj(file, configspec=os.path.join(resources, "config.spec"))
 
-	# TODO the next time the user is required to regenerate the config file this code will no longer
-	# be needed.  Between version 1 and version 2, __version__ was moved into the __SYSTEM__ subsection
-	version = 0
-	if version_check.search(file[0]):
-		value = file[0]
-	elif version_check.search(file[-1]):
-		value = file[-1]
-	
-	if value:
-		(left, sep, right) = value.partition("=")
-		version = right.strip(" \n")
+	# validate config object
+	_validate_config(config, _get_validator(), "mediarover.conf")
 
 	# check if users config file is current
-	if version > 0:
+	if '__SYSTEM__' in config and '__version__' in config['__SYSTEM__']:
+		version = config['__SYSTEM__']['__version__']
 		if int(version) < int(__config_version__.get('min', __config_version__['version'])):
 			raise ConfigurationError("Configuration file is out of date and needs to be regenerated! See `python mediarover.py write-configs --help` for instructions")
 	else:
 		raise ConfigurationError("Out of date or corrupt configuration file! See `python mediarover.py write-configs --help` for instructions")
 
-	spec = os.path.join(resources, "config.spec")
-	config = ConfigObj(file, configspec=spec)
-
-	# validate config options
-	results = config.validate(_get_validator(), preserve_errors=True)
-	if results != True:
-		results = flatten_errors(config, results)
-		message = ["ERROR: Encountered the following configuration error(s):"]
-		for error in results:
-			level = 1
-			section = []
-			dict = config
-			for key in error[0]:
-				section.append(("[" * level) + key + ("]" * level))
-				dict = dict[key]
-				level += 1
-			message.append(" %s %s = %s" % (" ".join(section), error[1], error[2]))
-		raise ConfigurationError("Invalid Data in configuration file\n\n%s\n" % "\n".join(message))
-
 	return config
 
-def generate_config_files(resources, path):
+def build_series_filter_config(resources, path):
+	""" build and validate config object using series_filter.conf at given path """
+
+	series_filter = ConfigObj(
+		os.path.join(path, "series_filter.conf"), 
+		configspec=os.path.join(resources, "series_filter.spec")
+	)
+
+	# validate series_filter object
+	_validate_config(series_filter, _get_validator(), "series_filter.conf")
+
+	return series_filter
+
+def generate_config_files(resources, path, tv_root=None):
 	""" write default application configs to given path """
 
 	# build config directory structure
@@ -106,7 +105,10 @@ def generate_config_files(resources, path):
 		# read in config template from resources directory
 		with open(os.path.join(resources, "config.template"), "r") as f:
 			template = f.read()
-			template = template % {'version': __config_version__['version']}
+			template = template % {
+				'tv_root': tv_root or '',
+				'version': __config_version__['version']
+			}
 
 		# write file to disk
 		_write_new_config_file(os.path.join(path, "mediarover.conf"), template)
@@ -126,6 +128,67 @@ def generate_config_files(resources, path):
 			data = template.safe_substitute(file=os.path.join(logs, log))
 
 			_write_new_config_file(os.path.join(path, config), data)
+
+def generate_series_filters(resources, path, config):
+	""" using the given config file, scan all configured tv_roots and build default filters for all NEW series found """
+	logger = logging.getLogger("mediarover.config")
+
+	def sanitize_series_name(name):
+		return re.sub("[^a-z0-9]", "", name.lower())
+
+	series_filter = build_series_filter_config(resources, path)
+
+	existing_series = list()
+	for name in series_filter:
+		existing_series.append(sanitize_series_name(name))
+	existing_series = frozenset(existing_series)
+
+	for root in config['tv']['tv_root']:
+		# first things first, check that tv root directory exists and that we
+		# have read access to it
+		if not os.access(root, os.F_OK):
+			logger.warning("TV root rootectory (%s) does not exist!", root)
+			continue
+		if not os.access(root, os.R_OK):
+			logger.warning("Missing read access to tv root directory (%s)", root)
+			continue
+
+		# grab list of series names
+		dir_list = os.listdir(root)
+		for name in dir_list:
+
+			# skip hidden directories
+			if name.startswith("."):
+				continue
+
+			series_filter[name] = build_series_filters(config, series_filter.get(name))
+
+	# grab formatted series filters
+	path = series_filter.filename
+	series_filter.filename = None
+	lines = series_filter.write()
+
+	# sort and beautify the results
+	result = ""
+	subsection = "\n[{series}]\n"
+	filters = "\t{filter} = {value}\n"
+
+	series_list = series_filter.keys()
+	series_list.sort()
+	for series in series_list:
+		items = series_filter[series].items()
+		result += subsection.format(series=series)
+		for filter, value in items:
+			if value in ['',None,[]]:
+				value = ''
+				filter = "#" + filter
+			if isinstance(value, list):
+				value = ",".join(map(lambda x: str(x), value))
+			result += filters.format(filter=filter, value=value)
+
+	# write series filters to disk
+	file = open(path, "w")
+	file.write(result)
 
 def check_filesystem_path(path):
 	""" make sure given path is a valid, filesystem path """
@@ -198,6 +261,29 @@ def check_int_list(int_list, **kwargs):
 
 	return int_list
 
+def check_string_list(string_list, **kwargs):
+	"""
+		convert given data to a list of strings. If data is only one
+		string, return as list
+	"""
+	if string_list is None:
+		if 'default' in kwargs:
+			string_list = kwargs['default']
+		else:
+			raise VdtValueError("missing required value!")
+	
+	# make sure selection is a list
+	if not isinstance(string_list, list):
+		string_list = [string_list]
+
+	for string in string_list:
+		try:
+			string = str(string)
+		except ValueError:
+			raise VdtValueError(string)
+
+	return string_list
+
 def check_options_list(selections, **kargs):
 	"""
 		make sure given list of options are valid.  If given a string,
@@ -245,16 +331,20 @@ def build_series_filters(config, seed=None):
 		}
 
 	# determine quality values for current series
-	if seed['acceptable_quality'] is None:
+	if not seed['acceptable_quality']:
 		seed['acceptable_quality'] = config['tv']['library']['quality']['acceptable']
-	if seed['desired_quality'] is None:
+	if not seed['desired_quality']:
 		seed['desired_quality'] = config['tv']['library']['quality']['desired']
 
 	# determine scheduling preference
-	if seed['archive'] is None:
+	# because "" and None are treated as False (a valid value) need to specifically check
+	# for these values
+	if seed['archive'] in ["", None]:
 		seed['archive'] = config['tv']['library']['archive']
 
-	if seed['archive'] == False and seed['episode_limit'] is None:
+	# 0 is acceptable value for episode_limit therefore must check if its
+	# empty string or None
+	if seed['archive'] == False and seed['episode_limit'] in ["", None]:
 		seed['episode_limit'] = config['tv']['library']['episode_limit']
 
 	return seed
@@ -298,6 +388,24 @@ def _locate_config_files(path):
 	else:
 		raise ConfigurationError("Configuration directory (%s) does not exist.  Do you need to run `python mediarover.py write-configs`?" % path)
 
+def _validate_config(config, validator, filename):
+	""" validate the given config object using the given validator """
+
+	results = config.validate(validator, preserve_errors=True)
+	if results != True:
+		results = flatten_errors(config, results)
+		message = ["ERROR: Encountered the following error(s) in %s:" % filename]
+		for error in results:
+			level = 1
+			section = []
+			dict = config
+			for key in error[0]:
+				section.append(("[" * level) + key + ("]" * level))
+				dict = dict[key]
+				level += 1
+			message.append(" %s %s = %s" % (" ".join(section), error[1], error[2]))
+		raise ConfigurationError("Invalid Data in configuration file\n\n%s\n" % "\n".join(message))
+
 def _get_validator():
 	""" return validator object with all custom functions defined """
 
@@ -306,6 +414,7 @@ def _get_validator():
 	vdt.functions['path_list'] = check_filesystem_path_list
 	vdt.functions['url'] = check_url
 	vdt.functions['int_list'] = check_int_list
+	vdt.functions['string_list'] = check_string_list
 	vdt.functions['options_list'] = check_options_list
 
 	return vdt
