@@ -27,7 +27,7 @@ qualname = mediarover
 class = handlers.RotatingFileHandler
 level = DEBUG
 formatter = default
-args = ('${file}', None, 1024000, 5)
+args = ('{file}', None, 1024000, 5)
 
 [handler_screen]
 class = StreamHandler
