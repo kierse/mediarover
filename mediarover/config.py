@@ -81,7 +81,7 @@ def build_series_filter_config(resources, path):
 
 	return series_filter
 
-def generate_config_files(resources, path, tv_root=None):
+def generate_config_files(resources, path, tv_root=None, create_filter_config=True):
 	""" write default application configs to given path """
 
 	# build config directory structure
@@ -112,7 +112,7 @@ def generate_config_files(resources, path, tv_root=None):
 
 	# write series_filter config file template (if series_filter.conf doesn't
 	# already exist)
-	if not os.path.exists(os.path.join(path, "series_filter.conf")):
+	if create_filter_config and not os.path.exists(os.path.join(path, "series_filter.conf")):
 		shutil.copyfile(
 			os.path.join(resources, "series_filter.template"),
 			os.path.join(path, "series_filter.conf")

@@ -54,7 +54,8 @@ Advanced Example:
 	
 	if options.write:
 		tv_root = args[0] if len(args) > 0 else None
-		generate_config_files(broker[RESOURCES_DIR], broker[CONFIG_DIR], tv_root)
+		create_filter_config = False if options.generate_filters else True
+		generate_config_files(broker[RESOURCES_DIR], broker[CONFIG_DIR], tv_root, create_filter_config)
 
 	if options.generate_filters:
 		try:
