@@ -207,12 +207,17 @@
 	#             series_alias = "The Super Terrific Happy Hour (Us)", "STHH"
 	#             desired_quality = high
 	#             acceptable_quality = medium, high
+	#             archive = False 
+	#             episode_limit = 5
 	#     
 	# ATTENTION: filter names should exactly match series folder on disk in order to
 	#            guarantee consistent application of filters
 	#
 	# NOTE: SOME filters can optionally be stored on the filesystem in the series directory.  See
 	#       http://wiki.github.com/kierse/mediarover/config-filter for more details
+	#
+	# NOTE: Filters can also be placed in the series_filter.conf file, located in the Media Rover config directory. 
+	#       Please note, filters found in series_filter.conf take precedent over those found below!
 	#
 	# See http://wiki.github.com/kierse/mediarover/config-filter for examples
 	# 
