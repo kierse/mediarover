@@ -150,11 +150,11 @@ def generate_series_filters(resources, path, config=None):
 		if _have_write_permission(os.path.join(path, "series_filter.conf")):
 			series_filter = build_series_filter_config(resources, path)
 
-			existing_series = list()
+			existing_series = dict()
 			for name in series_filter:
-				existing_series.append(sanitize_series_name(name))
-			existing_series = frozenset(existing_series)
+				existing_series[sanitize_series_name(name)] = name
 
+			processed = set()
 			for root in config['tv']['tv_root']:
 				# first things first, check that tv root directory exists and that we
 				# have read access to it
@@ -173,7 +173,13 @@ def generate_series_filters(resources, path, config=None):
 					if name.startswith("."):
 						continue
 
-					series_filter[name] = build_series_filters(config, series_filter.get(name))
+					sanitized = sanitize_series_name(name)
+					if sanitized in processed:
+						continue
+					else:
+						processed.add(sanitized)
+						name = existing_series.get(sanitized, name)
+						series_filter[name] = build_series_filters(config, series_filter.get(name))
 
 			# grab formatted series filters
 			series_filter.filename = None
