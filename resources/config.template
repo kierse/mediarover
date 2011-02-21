@@ -11,7 +11,7 @@
 	# tv root directory
 	# directory containing all tv shows to watch for
 	# NOTE: multiple directories can be specified but must be comma separated 
-	tv_root = %(tv_root)s
+	tv_root = {tv_root}
 
 	# umask value used when creating any files or folders.  This option is 
 	# used by the sorting script when creating series or season directories
@@ -466,4 +466,4 @@
 
 # WARNING: DO NOT MAKE CHANGES BELOW THIS LINE!
 [__SYSTEM__]
-	__version__ = %(version)d 
+	__version__ = {version}
