@@ -174,8 +174,8 @@ Series Options:
 			print "Processing '%s'..." % series.name
 
 		# determine default quality for current series
-		if config['tv']['filter'][sanitized]['quality']['desired'] is not None:
-			default = config['tv']['filter'][sanitized]['quality']['desired']
+		if config['tv']['filter'][sanitized]['desired_quality'] is not None:
+			default = config['tv']['filter'][sanitized]['desired_quality']
 		else:
 			default = config['tv']['library']['quality']['desired']
 
