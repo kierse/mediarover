@@ -53,10 +53,14 @@ Advanced Example:
 		broker.register(CONFIG_DIR, options.config)
 	
 	if options.write:
-		tv_root = args[0] if len(args) > 0 else None
-		generate_config_files(broker[RESOURCES_DIR], broker[CONFIG_DIR], tv_root)
-
-	if options.generate_filters:
+		if len(args) > 0:
+			tv_root = args[0]
+			generate_filters = options.generate_filters
+		else:
+			tv_root = None
+			generate_filters = False
+		generate_config_files(broker[RESOURCES_DIR], broker[CONFIG_DIR], tv_root, generate_filters)
+	elif options.generate_filters:
 		try:
 			config = get_processed_app_config(broker[RESOURCES_DIR], broker[CONFIG_DIR])
 		except (ConfigurationError), e:
