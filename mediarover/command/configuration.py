@@ -62,6 +62,6 @@ Advanced Example:
 		except (ConfigurationError), e:
 			print e
 			exit(1)
-
-		generate_series_filters(broker[RESOURCES_DIR], broker[CONFIG_DIR], config)
+		else:
+			generate_series_filters(broker[RESOURCES_DIR], broker[CONFIG_DIR], config)
 
