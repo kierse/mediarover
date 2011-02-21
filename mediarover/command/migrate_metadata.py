@@ -16,7 +16,7 @@
 from optparse import OptionParser
 
 from mediarover.command import print_epilog
-from mediarover.config import read_config
+from mediarover.config import get_processed_app_config
 from mediarover.constant import CONFIG_DIR, METADATA_OBJECT, RESOURCES_DIR
 from mediarover.ds.metadata import Metadata
 from mediarover.error import ConfigurationError
@@ -66,7 +66,7 @@ Examples:
 
 	# create config object using user config values
 	try:
-		config = read_config(broker[RESOURCES_DIR], broker[CONFIG_DIR])
+		config = get_processed_app_config(broker[RESOURCES_DIR], broker[CONFIG_DIR])
 	except (ConfigurationError), e:
 		print e
 		exit(1)

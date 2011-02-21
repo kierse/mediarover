@@ -531,7 +531,6 @@ def build_series_lists(config, process_aliases=True):
 	
 		# grab list of shows
 		dir_list = os.listdir(root)
-		dir_list.sort()
 		for name in dir_list:
 
 			# skip hidden directories

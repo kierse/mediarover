@@ -19,11 +19,11 @@ import sys
 from optparse import OptionParser
 
 from mediarover.command import print_epilog
+from mediarover.command.configuration import configuration
 from mediarover.command.episode_sort import episode_sort
 from mediarover.command.migrate_metadata import migrate_metadata
 from mediarover.command.schedule import schedule
 from mediarover.command.set_quality import set_quality
-from mediarover.command.write_configs import write_configs
 from mediarover.utils.injection import initialize_broker
 from mediarover.version import __app_version__
 
@@ -39,8 +39,8 @@ def run():
 Available commands are:
    schedule          Process configured sources and schedule nzb's for download
    episode-sort      Sort downloaded episode
+   configuration     Generate default configuration and logging files
    set-quality       Register quality of series episodes on disk
-   write-configs     Generate default configuration and logging files
    migrate-metadata  Migrate metadata database from one version to another
 
 See 'python mediarover.py COMMAND --help' for more information on a specific command."""
@@ -79,8 +79,8 @@ See 'python mediarover.py COMMAND --help' for more information on a specific com
 		episode_sort(broker, args)
 	elif command == 'set-quality':
 		set_quality(broker, args)
-	elif command == 'write-configs':
-		write_configs(broker, args)
+	elif command == 'configuration':
+		configuration(broker, args)
 	elif command == 'migrate-metadata':
 		migrate_metadata(broker, args)
 	else:

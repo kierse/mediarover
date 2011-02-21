@@ -13,7 +13,7 @@
 	umask = integer(default=022)
 	category = string(default=tv)
 	priority = option('normal', 'high', 'low', 'force', default='normal')
-	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com","tbn","jpg","png","gif","info","db","srr"))
+	ignored_extensions = string_list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com","tbn","jpg","png","gif","info","db","srr"))
 
 	[[library]]
 		allow_multipart = boolean(default=True)
@@ -26,9 +26,9 @@
 			desired = option('low', 'medium', 'high', None, default=None)
 			guess = boolean(default=True)
 			[[[[extension]]]]
-				low = list(default=list('mp4'))
-				medium = list(default=list('avi'))
-				high = list(default=list('mkv'))
+				low = string_list(default=list('mp4'))
+				medium = string_list(default=list('avi'))
+				high = string_list(default=list('mkv'))
 
 	[[filter]]
 		[[[__many__]]]
@@ -68,4 +68,4 @@
 
 [__SYSTEM__]
 	__version__ = integer(default=0)
-	__available_queues__ = list(default=list('sabnzbd'))
+	__available_queues__ = string_list(default=list('sabnzbd'))
