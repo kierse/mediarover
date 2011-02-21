@@ -21,7 +21,6 @@ import os
 import os.path
 import re
 import sys
-from string import Template
 from time import strftime
 
 from mediarover.error import ConfigurationError
@@ -104,14 +103,11 @@ def generate_config_files(resources, path, tv_root=None):
 		
 		# read in config template from resources directory
 		with open(os.path.join(resources, "config.template"), "r") as f:
-			template = f.read()
-			template = template % {
-				'tv_root': tv_root or '',
-				'version': __config_version__['version']
-			}
+			data = f.read()
+			data = data.format(tv_root=tv_root or '', version=__config_version__['version'])
 
 		# write file to disk
-		_write_new_config_file(os.path.join(path, "mediarover.conf"), template)
+		_write_new_config_file(os.path.join(path, "mediarover.conf"), data)
 
 	# read in logging template from resources directory
 	with open(os.path.join(resources, "logging.template"), "r") as f:
@@ -124,9 +120,7 @@ def generate_config_files(resources, path, tv_root=None):
 		if _have_write_permission(os.path.join(path, config)):
 
 			# update default template and set default location of log file
-			template = Template(logging_template)
-			data = template.safe_substitute(file=os.path.join(logs, log))
-
+			data = logging_template.format(file=os.path.join(logs, log))
 			_write_new_config_file(os.path.join(path, config), data)
 
 def generate_series_filters(resources, path, config):
