@@ -275,7 +275,7 @@ class Series(object):
 			except OSError, (e):
 				logger.error("unable to delete file at '%s': %s" % (file.path, e.strerror))
 			else:
-				logger.info("removing file '%s'", old.path)
+				logger.info("removing file '%s'", file.path)
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
