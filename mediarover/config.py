@@ -415,11 +415,11 @@ def _locate_config_files(path):
 	if os.path.exists(path):
 		for file in ("mediarover.conf", "logging.conf", "sabnzbd_episode_sort_logging.conf"):
 			if not os.path.exists(os.path.join(path, file)):
-				raise ConfigurationError("Missing config file '%s'.  Run `python mediarover.py write-configs --config=%s`" % (os.path.join(path, file), path))
+				raise ConfigurationError("Missing config file '%s'.  Run `python mediarover.py configuration --write --config=%s`" % (os.path.join(path, file), path))
 			if not os.access(os.path.join(path, file), os.R_OK):
 				raise ConfigurationError("Unable to read config file '%s' - check file permissions!" % os.path.join(path, file))
 	else:
-		raise ConfigurationError("Configuration directory (%s) does not exist.  Do you need to run `python mediarover.py write-configs`?" % path)
+		raise ConfigurationError("Configuration directory (%s) does not exist.  Do you need to run `python mediarover.py configuration --write`?" % path)
 
 def _validate_config(config, validator, filename):
 	""" validate the given config object using the given validator """
