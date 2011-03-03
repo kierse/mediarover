@@ -49,6 +49,9 @@ Advanced Example:
 
 	(options, args) = parser.parse_args(args)
 
+	if len(args) == 0:
+		print_epilog(parser, code=1)
+
 	if options.config:
 		broker.register(CONFIG_DIR, options.config)
 	

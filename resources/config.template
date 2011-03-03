@@ -148,6 +148,7 @@
 	#
 	#  2. set series specific options. These options deterine how Media Rover treats
 	#     both folders it finds on disk and source items that match watched series.
+	#
 	#     Options include:
 	#
 	#     a) option: ignore_series
@@ -163,7 +164,7 @@
 	#                     list of seasons.
 	#
 	#     c) option: series_alias
-	#        values: comma separated list (ie. 1,2,3,4)
+	#        values: comma separated list (ie. "Some Show", "Some Show (US)", "A longer name for some show")
 	#        default: none (empty list)
 	#        description: this option tells Media Rover to match source items to the current series that
 	#                     normally wouldn't be matched. This option is typically used when the series name
@@ -216,12 +217,18 @@
 	# NOTE: SOME filters can optionally be stored on the filesystem in the series directory.  See
 	#       http://wiki.github.com/kierse/mediarover/config-filter for more details
 	#
-	# NOTE: Filters can also be placed in the series_filter.conf file, located in the Media Rover config directory. 
-	#       Please note, filters found in series_filter.conf take precedent over those found below!
-	#
-	# See http://wiki.github.com/kierse/mediarover/config-filter for examples
-	# 
 	[[filter]]
+
+		# ATTENTION: Did you know that Media Rover can automatically generate your series filters for you?
+		#            Once you've configured the [tv] subsection above, run the following on the command line:
+		# 
+		#              > python mediarover.py configuration --generate-filters
+		#
+		#            This will add a new file to your Media Rover config directory called series_filter.conf
+		#            containing a filter block for each series found in the directories pointed to by your
+		#            tv_root option. These filters will use the application and user defaults indicated in
+		#            the documentation above. Any changes you make to the generated series filters will be
+		#            preserved and incorporated the next time you tell Media Rover to generate filters.
 		
 	[[template]]
 
