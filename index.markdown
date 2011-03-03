@@ -34,11 +34,11 @@ Usage instructions:
 
 Generate the default configuration and logging files:
 
-	> python mediarover.py write-configs
+	> python mediarover.py configuration --write
 
 ...you may also specify an alternate location for configuration/logging data:
 
-	> python mediarover.py write-configs -c /path/to/config/dir
+	> python mediarover.py configuration --write --config /path/to/config/dir
 
 Note: before running Media Rover, several required values in the configuration file will need to be set.  Consult the [wiki][9] for a list of available options and a description of their use.
 
