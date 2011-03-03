@@ -15,18 +15,16 @@
 
 import logging
 
-LOW = 'low'
-MEDIUM = 'medium'
-HIGH = 'high'
+from mediarover.constant import LOW, MEDIUM, HIGH
 
 def guess_quality_level(config, ext, default):
 	quality = default
-	if config['tv']['quality']['guess']:
-		if ext in config['tv']['quality']['extension'][LOW]:
+	if config['tv']['library']['quality']['guess']:
+		if ext in config['tv']['library']['quality']['extension'][LOW]:
 			quality = LOW
-		elif ext in config['tv']['quality']['extension'][MEDIUM]:
+		elif ext in config['tv']['library']['quality']['extension'][MEDIUM]:
 			quality = MEDIUM
-		elif ext in config['tv']['quality']['extension'][HIGH]:
+		elif ext in config['tv']['library']['quality']['extension'][HIGH]:
 			quality = HIGH
 		logger = logging.getLogger("mediarover.util.quality")
 		logger.debug("matched file extension '%s' to quality level '%s'" % (ext, quality))

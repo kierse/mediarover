@@ -15,7 +15,7 @@
 
 from mediarover.constant import METADATA_OBJECT, EPISODE_FACTORY_OBJECT, NEWZBIN_FACTORY_OBJECT
 from mediarover.ds.metadata import Metadata
-from mediarover.error import *
+from mediarover.error import InvalidEpisodeString, InvalidItemTitle, InvalidMultiEpisodeData, MissingParameterError
 from mediarover.factory import EpisodeFactory
 from mediarover.queue.job import Job
 from mediarover.utils.injection import is_instance_of, Dependency
@@ -32,45 +32,53 @@ class SabnzbdJob(Job):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def id(self):
-		""" job id from queue """
-		return self.__id
-
-	def title(self):
-		""" job title from queue """
-		return self.__title
-
+	@property
 	def category(self):
-		""" job category from queue """
 		return self.__category
 
+	@property
 	def download(self):
-		""" download object """
 		return self.__download
+
+	@property
+	def id(self):
+		return self.__id
+
+	@property
+	def remaining(self):
+		return self.__remaining
+
+	@property
+	def size(self):
+		return self.__size
+
+	@property
+	def title(self):
+		return self.__title
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def __parseJob(self):
+	def __build_download(self):
 		""" parse job data and build appropriate download object """
 
 		if self.__job.getElementsByTagName("msgid")[0].hasChildNodes():
 			factory = self.newzbin_factory
 		else:
-			in_progress = self.meta_ds.get_in_progress(self.title())
+			in_progress = self.meta_ds.get_in_progress(self.title)
 			if in_progress is None:
 				factory = self.episode_factory
 			else:
 				factory = Dependency(in_progress['source'], is_instance_of(EpisodeFactory)).__get__()
 
 		try:
-			download = factory.create_episode(self.title())
+			download = factory.create_episode(self.title)
 		except (InvalidMultiEpisodeData, MissingParameterError):
-			raise InvalidItemTitle("unable to parse job title and create Episode object: '%s'" % title)
+			raise InvalidItemTitle("unable to parse job title and create Episode object: '%s'" % self.title)
 		except InvalidEpisodeString:
-			raise InvalidItemTitle("unsupported job title format: '%s'" % self.title())
+			raise InvalidItemTitle("unsupported job title format: '%s'" % self.title)
 
 		# try and determine job quality
-		record = self.meta_ds.get_in_progress(self.title())
+		record = self.meta_ds.get_in_progress(self.title)
 		if record is not None:
 			download.quality = record['quality']
 
@@ -86,5 +94,7 @@ class SabnzbdJob(Job):
 
 		self.__id = self.__job.getElementsByTagName("nzo_id")[0].childNodes[0].data
 		self.__title = self.__job.getElementsByTagName("filename")[0].childNodes[0].data
-		self.__download = self.__parseJob()
+		self.__size = self.__job.getElementsByTagName("mb")[0].childNodes[0].data
+		self.__remaining = self.__job.getElementsByTagName("mbleft")[0].childNodes[0].data
+		self.__download = self.__build_download()
 

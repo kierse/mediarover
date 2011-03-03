@@ -75,9 +75,9 @@ class SabnzbdQueue(Queue):
 
 		args = {
 			'mode': 'addid',
-			'cat': self.config[item.type()]['category'],
-			'name': item.url(),
-			'priority': PRIORITY[item.priority().lower()],
+			'cat': self.config[item.type]['category'],
+			'name': item.url,
+			'priority': PRIORITY[item.priority.lower()],
 		}
 
 		if 'username' and 'password' in self._params:
@@ -94,20 +94,20 @@ class SabnzbdQueue(Queue):
 		try:
 			handle = urlopen(url)
 		except (HTTPError), e:
-			raise QueueInsertionError("unable to add item '%s' to queue: %d" % (item.title(), e.code))
+			raise QueueInsertionError("unable to add item '%s' to queue: %d" % (item.title, e.code))
 		except (URLError), e:
-			raise QueueInsertionError("unable to add item '%s' to queue: %s" % (item.title(), e.reason))
+			raise QueueInsertionError("unable to add item '%s' to queue: %s" % (item.title, e.reason))
 
 		# check response for status of request
 		response = handle.readline()
 		if response == "ok\n":
-			if self.config['tv']['quality']['managed']:
+			if self.config['tv']['library']['quality']['managed']:
 				self.meta_ds.add_in_progress(item)
-			logger.info("item '%s' successfully queued for download", item.title())
+			logger.info("item '%s' successfully queued for download", item.title)
 		elif response.startswith("error"):
-			raise QueueInsertionError("unable to queue item '%s' for download: %s" % (item.title(), response))
+			raise QueueInsertionError("unable to queue item '%s' for download: %s" % (item.title, response))
 		else:
-			raise QueueInsertionError("unexpected response received from queue while attempting to schedule item '%s' for download: %s" % (item.title(), response))
+			raise QueueInsertionError("unexpected response received from queue while attempting to schedule item '%s' for download: %s" % (item.title, response))
 
 	def remove_from_queue(self, job):
 		""" remove item representing given download from queue """
@@ -116,7 +116,7 @@ class SabnzbdQueue(Queue):
 		args = {
 			'mode': 'queue',
 			'name': 'delete',
-			'value': job.id(),
+			'value': job.id,
 		}
 
 		if 'username' and 'password' in self._params:
@@ -133,20 +133,20 @@ class SabnzbdQueue(Queue):
 		try:
 			handle = urlopen(url)
 		except (HTTPError), e:
-			raise QueueDeletionError("unable to remove job '%s' from queue: %d" % (job.title(), e.code))
+			raise QueueDeletionError("unable to remove job '%s' from queue: %d" % (job.title, e.code))
 		except (URLError), e:
-			raise QueueDeletionError("unable to remove job '%s' from queue: %s" % (job.title(), e.reason))
+			raise QueueDeletionError("unable to remove job '%s' from queue: %s" % (job.title, e.reason))
 
 		# check response for status of request
 		response = handle.readline()
 		if response == "ok\n":
-			if self.config['tv']['quality']['managed']:
-				self.meta_ds.delete_in_progress(job.title())
-			logger.info("job '%s' successfully removed from queue", job.title())
+			if self.config['tv']['library']['quality']['managed']:
+				self.meta_ds.delete_in_progress(job.title)
+			logger.info("job '%s' successfully removed from queue", job.title)
 		elif response.startswith("error"):
-			raise QueueDeletionError("unable to remove job %s from queue: %s" % (job.title(), response))
+			raise QueueDeletionError("unable to remove job %s from queue: %s" % (job.title, response))
 		else:
-			raise QueueDeletionError("unexpected response received from queue while attempting to remove job %r: %s" % (job.title(), response))
+			raise QueueDeletionError("unexpected response received from queue while attempting to remove job %r: %s" % (job.title, response))
 
 	def in_queue(self, download):
 		""" return boolean indicating whether or not the given source item is in queue """
@@ -161,7 +161,7 @@ class SabnzbdQueue(Queue):
 
 		job = None
 		for j in self.jobs():
-			if j.download() == download:
+			if j.download == download:
 				job = j
 				break
 
@@ -175,7 +175,7 @@ class SabnzbdQueue(Queue):
 		if backup_dir:
 
 			# build name of nzb as it would appear on disk
-			file = item.title()
+			file = item.title
 			logger.debug("looking for '%s' in SABnzbd backup directory...", file)
 
 			for nzb in os.listdir(backup_dir):

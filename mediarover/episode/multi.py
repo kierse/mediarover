@@ -112,7 +112,7 @@ class MultiEpisode(Episode):
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def parts(self):
-		return self.episodes
+		return list(self.episodes)
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

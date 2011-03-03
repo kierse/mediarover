@@ -46,19 +46,19 @@ class EpisodeFactory(Factory):
 
 		# locate series object.  If series is unknown, create new series
 		if type(params['series']) is not Series:
-			sanitized_series = Series.sanitize_series_name(name=params['series'])
+			sanitized_series = Series.sanitize_series_name(params['series'])
 			if sanitized_series in self.watched_series:
 				params['series'] = self.watched_series[sanitized_series]
 			else:
 				params['series'] = Series(params['series'])
 		else:
-			sanitized_series = Series.sanitize_series_name(series=params['series'])
+			sanitized_series = params['series'].sanitized_name
 
 		if 'quality' not in kwargs:
 			if sanitized_series in self.config['tv']['filter']:
-				params['quality'] = self.config['tv']['filter'][sanitized_series]['quality']['desired']
+				params['quality'] = self.config['tv']['filter'][sanitized_series]['desired_quality']
 			else:
-				params['quality'] = self.config['tv']['quality']['desired']
+				params['quality'] = self.config['tv']['library']['quality']['desired']
 
 		if 'start_episode' in params:
 			return MultiEpisode(**params)

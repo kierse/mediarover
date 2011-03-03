@@ -51,7 +51,7 @@ class NzbsrusFactory(EpisodeFactory, ItemFactory, SourceFactory):
 			raise InvalidEpisodeString("unable to identify episode type: %r" % string)
 
 		# locate series object.  If series is unknown, create new series
-		sanitized_series = Series.sanitize_series_name(name=params['series'])
+		sanitized_series = Series.sanitize_series_name(params['series'])
 		if sanitized_series in self.watched_series:
 			params['series'] = self.watched_series[sanitized_series]
 		else:
@@ -59,9 +59,9 @@ class NzbsrusFactory(EpisodeFactory, ItemFactory, SourceFactory):
 
 		if 'quality' not in kwargs:
 			if sanitized_series in self.config['tv']['filter']:
-				params['quality'] = self.config['tv']['filter'][sanitized_series]['quality']['desired']
+				params['quality'] = self.config['tv']['filter'][sanitized_series]['desired_quality']
 			else:
-				params['quality'] = self.config['tv']['quality']['desired']
+				params['quality'] = self.config['tv']['library']['quality']['desired']
 
 		if 'start_episode' in params:
 			return MultiEpisode(**params)
@@ -70,6 +70,6 @@ class NzbsrusFactory(EpisodeFactory, ItemFactory, SourceFactory):
 		else:
 			return SingleEpisode(**params)
 
-	def create_item(self, title, url, type, priority, quality, delay):
-		return NzbsrusItem(None, type, priority, quality, delay, title=title, url=url)
+	def create_item(self, title, url, type, priority, quality, delay, size):
+		return NzbsrusItem(None, type, priority, quality, delay, size=size, title=title, url=url)
 

@@ -16,15 +16,33 @@
 class Job:
 	""" Queue job interface class """
 
-	def id(self):
-		raise NotImplementedError
-
-	def title(self):
-		raise NotImplementedError
-
+	@property
 	def category(self):
+		""" job category from queue """
 		raise NotImplementedError
 
+	@property
 	def download(self):
+		""" download object """
+		raise NotImplementedError
+
+	@property
+	def id(self):
+		""" job id from queue """
+		raise NotImplementedError
+
+	@property
+	def remaining(self):
+		""" amount remaining to be downloaded (in MB) """
+		raise NotImplementedError
+
+	@property
+	def size(self):
+		""" total size of download (in MB) """
+		raise NotImplementedError
+
+	@property
+	def title(self):
+		""" job title from queue """
 		raise NotImplementedError
 

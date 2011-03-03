@@ -13,18 +13,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from mediarover.source.mytvnzb.factory import MytvnzbFactory
 from mediarover.source.newzbin.factory import NewzbinFactory
 from mediarover.source.nzbclub.factory import NzbclubFactory
 from mediarover.source.nzbindex.factory import NzbindexFactory
 from mediarover.source.nzbmatrix.factory import NzbmatrixFactory
 from mediarover.source.nzbs.factory import NzbsFactory
 from mediarover.source.nzbsrus.factory import NzbsrusFactory
-from mediarover.source.tvnzb.factory import TvnzbFactory
 
-from mediarover.constant import (MYTVNZB_FACTORY_OBJECT, NEWZBIN_FACTORY_OBJECT, NZBCLUB_FACTORY_OBJECT,
-											NZBINDEX_FACTORY_OBJECT, NZBMATRIX_FACTORY_OBJECT, NZBS_FACTORY_OBJECT, 
-											NZBSRUS_FACTORY_OBJECT, TVNZB_FACTORY_OBJECT)
+from mediarover.constant import (NEWZBIN_FACTORY_OBJECT, NZBCLUB_FACTORY_OBJECT, 
+											NZBINDEX_FACTORY_OBJECT, NZBMATRIX_FACTORY_OBJECT, 
+											NZBS_FACTORY_OBJECT, NZBSRUS_FACTORY_OBJECT)
 
 def print_epilog(*args, **kwargs):
 	"""
@@ -50,12 +48,10 @@ def print_epilog(*args, **kwargs):
 		exit(0)
 
 def register_source_factories(broker):
-	broker.register(MYTVNZB_FACTORY_OBJECT, MytvnzbFactory())
 	broker.register(NEWZBIN_FACTORY_OBJECT, NewzbinFactory())
 	broker.register(NZBCLUB_FACTORY_OBJECT, NzbclubFactory())
 	broker.register(NZBINDEX_FACTORY_OBJECT, NzbindexFactory())
 	broker.register(NZBMATRIX_FACTORY_OBJECT, NzbmatrixFactory())
 	broker.register(NZBS_FACTORY_OBJECT, NzbsFactory())
 	broker.register(NZBSRUS_FACTORY_OBJECT, NzbsrusFactory())
-	broker.register(TVNZB_FACTORY_OBJECT, TvnzbFactory())
 

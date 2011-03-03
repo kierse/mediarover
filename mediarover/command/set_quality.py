@@ -19,7 +19,7 @@ import os.path
 from optparse import OptionParser
 
 from mediarover.command import print_epilog
-from mediarover.config import build_series_filters, read_config
+from mediarover.config import build_series_filters, get_processed_app_config
 from mediarover.ds.metadata import Metadata
 from mediarover.episode.factory import EpisodeFactory
 from mediarover.error import ConfigurationError
@@ -83,7 +83,7 @@ Examples:
 
 	# create config object using user config values
 	try:
-		config = read_config(broker[RESOURCES_DIR], broker[CONFIG_DIR])
+		config = get_processed_app_config(broker[RESOURCES_DIR], broker[CONFIG_DIR])
 	except (ConfigurationError), e:
 		print e
 		exit(1)
@@ -92,7 +92,7 @@ Examples:
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = build_series_filters(config, filters)
+		config['tv']['filter'][Series.sanitize_series_name(name)] = build_series_filters(config, filters)
 
 	""" logging setup """
 
@@ -139,7 +139,7 @@ Series Options:
 
 	# build list of series to iterate over
 	if series_name:
-		names = [Series.sanitize_series_name(name=series_name)]
+		names = [Series.sanitize_series_name(series_name)]
 		if names[0] not in broker[WATCHED_SERIES_LIST]:
 			print "ERROR: Unable to find series matching %r" % series_name
 			exit(2)
@@ -174,20 +174,20 @@ Series Options:
 			print "Processing '%s'..." % series.name
 
 		# determine default quality for current series
-		if config['tv']['filter'][sanitized]['quality']['desired'] is not None:
-			default = config['tv']['filter'][sanitized]['quality']['desired']
+		if config['tv']['filter'][sanitized]['desired_quality'] is not None:
+			default = config['tv']['filter'][sanitized]['desired_quality']
 		else:
-			default = config['tv']['quality']['desired']
+			default = config['tv']['library']['quality']['desired']
 
 		# if quality guessing is on, populate extension lists (if they weren't 
 		# provided by user)
-		if config['tv']['quality']['managed'] and config['tv']['quality']['guess']:
+		if config['tv']['library']['quality']['managed'] and config['tv']['library']['quality']['guess']:
 			if len(options.low) == 0:
-				options.low = config['tv']['quality']['extension'][LOW]
+				options.low = config['tv']['library']['quality']['extension'][LOW]
 			if len(options.medium) == 0:
-				options.medium = config['tv']['quality']['extension'][MEDIUM]
+				options.medium = config['tv']['library']['quality']['extension'][MEDIUM]
 			if len(options.high) == 0:
-				options.high = config['tv']['quality']['extension'][HIGH]
+				options.high = config['tv']['library']['quality']['extension'][HIGH]
 
 		low = list()
 		medium = list()

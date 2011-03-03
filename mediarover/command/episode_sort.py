@@ -24,7 +24,7 @@ from tempfile import TemporaryFile
 from time import strftime
 
 from mediarover.command import print_epilog, register_source_factories
-from mediarover.config import build_series_filters, read_config
+from mediarover.config import build_series_filters, get_processed_app_config
 from mediarover.ds.metadata import Metadata
 from mediarover.episode.factory import EpisodeFactory
 from mediarover.error import (CleanupError, ConfigurationError, FailedDownload, FilesystemError, 
@@ -79,7 +79,7 @@ Examples:
 
 	# create config object using user config values
 	try:
-		config = read_config(broker[RESOURCES_DIR], broker[CONFIG_DIR])
+		config = get_processed_app_config(broker[RESOURCES_DIR], broker[CONFIG_DIR])
 	except (ConfigurationError), e:
 		print e
 		exit(1)
@@ -88,7 +88,7 @@ Examples:
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = build_series_filters(config, filters)
+		config['tv']['filter'][Series.sanitize_series_name(name)] = build_series_filters(config, filters)
 
 	""" logging setup """
 
@@ -148,7 +148,7 @@ Examples:
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
 		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name=name)] = build_series_filters(config, filters)
+		config['tv']['filter'][Series.sanitize_series_name(name)] = build_series_filters(config, filters)
 
 	""" main """
 
@@ -196,7 +196,7 @@ def __episode_sort(broker, options, **kwargs):
 
 	# ensure user has indicated a desired quality level if quality management is turned on
 	config = broker[CONFIG_OBJECT]
-	if config['tv']['quality']['managed'] and config['tv']['quality']['desired'] is None:
+	if config['tv']['library']['quality']['managed'] and config['tv']['library']['quality']['desired'] is None:
 		raise ConfigurationError("when quality management is on you must indicate a desired quality level at [tv] [[quality]] desired =")
 
 	"""
@@ -289,7 +289,7 @@ def __episode_sort(broker, options, **kwargs):
 
 	# sanitize series name for later use
 	series = episode.series
-	sanitized_name = series.sanitize_series_name(series=series)
+	sanitized_name = series.sanitized_name
 
 	# check if series is being ignored
 	if sanitized_name not in broker[WATCHED_SERIES_LIST] and sanitized_name in broker[IGNORED_SERIES_LIST]:
@@ -303,12 +303,12 @@ def __episode_sort(broker, options, **kwargs):
 		logger.debug("created %r" % file)
 
 		# determine quality of given job if quality management is turned on
-		if config['tv']['quality']['managed']:
+		if config['tv']['library']['quality']['managed']:
 			if 'quality' in kwargs:
 				episode.quality = kwargs['quality']
 			else:
 				if in_progress is None:
-					if config['tv']['quality']['guess']:
+					if config['tv']['library']['quality']['guess']:
 						episode.quality = guess_quality_level(config, file.extension, episode.quality)
 					else:
 						logger.info("unable to find quality information in metadata db, assuming default quality level!")
@@ -378,7 +378,7 @@ def __episode_sort(broker, options, **kwargs):
 			file.path = new_path
 
 			# remove job from in_progress
-			if config['tv']['quality']['managed']:
+			if config['tv']['library']['quality']['managed']:
 				broker[METADATA_OBJECT].delete_in_progress(job)
 
 			if additional is None:
@@ -387,7 +387,7 @@ def __episode_sort(broker, options, **kwargs):
 				series.mark_episode_list_stale()
 
 				# update metadata db with newly sorted episode information
-				if config['tv']['quality']['managed']:
+				if config['tv']['library']['quality']['managed']:
 					for ep in desirables:
 						broker[METADATA_OBJECT].add_episode(ep)
 
@@ -410,14 +410,24 @@ def __episode_sort(broker, options, **kwargs):
 					elif file != found:
 						remove.append(found)
 
+				# if series isn't being archived, delete oldest episode on disk if series episode count
+				# exceeds the indicated value
+				# NOTE: if the number of series episodes exceeds the indicated amount by more than one
+				# display a warning message indicating as much. DO NOT remove more than one file!
+				# We don't want to accidentally wipe out an entire series due to improper configuration!
+				if sanitized_name in config['tv']['filter'] and config['tv']['filter'][sanitized_name]['archive'] is False:
+					limit = config['tv']['filter'][sanitized_name]['episode_limit']
+					if limit > 0:
+						count = len(series.files)
+						if count > limit:
+							if count > limit + 1:
+								logger.warning("the series '%s' has more episodes on disk than the configured limit of %d. Only 1 will be removed" % (series, limit))
+							else:
+								logger.info("removing oldest episode...")
+							series.delete_oldest_episode_file()
+
 				if len(remove) > 0:
-					for old in remove:
-						try:
-							os.remove(old.path)
-						except OSError, (e):
-							raise CleanupError("unable to delete file at '%s': %s", old.path, e.strerror)
-						else:
-							logger.info("removing file '%s'", old.path)
+					series.delete_episode_files(*remove)
 					
 			# clean up download directory by removing all remaining files
 			try:

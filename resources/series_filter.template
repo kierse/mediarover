@@ -1,0 +1,30 @@
+# THIS FILE IS FOR STORING SERIES FILTERS ONLY!
+#
+#     [ series_name_1 ]
+#        option = blah
+#        option = blah
+#
+#     [ series_name_2 ]
+#        option = blah
+#        option = blah
+#
+#     ...
+#     ..
+#
+#     [ series_name_N ]
+#        option = blah
+#        option = blah
+#
+#  Example:
+#
+#           [The Super Terrific Happy Hour]
+#              acceptable_quality = medium, high
+#              archive = False 
+#              desired_quality = high
+#              episode_limit = 5
+#              ignore_season = 1,2,3 # don't download anything from season 1, 2, or 3
+#              ignore_series = False
+#              series_alias = "The Super Terrific Happy Hour (Us)", "STHH"
+#
+# See your mediarover.conf file and http://wiki.github.com/kierse/mediarover/config-filter for more examples
+

@@ -16,8 +16,8 @@
 import logging
 import re
 
-from mediarover.constant import NEWZBIN_FACTORY_OBJECT
-from mediarover.error import *
+from mediarover.constant import NEWZBIN, NEWZBIN_FACTORY_OBJECT
+from mediarover.error import InvalidRemoteData
 from mediarover.source.item import AbstractItem
 from mediarover.factory import EpisodeFactory
 from mediarover.utils.injection import is_instance_of, Dependency
@@ -30,79 +30,61 @@ class NewzbinItem(AbstractItem):
 	# declare module dependencies
 	factory = Dependency(NEWZBIN_FACTORY_OBJECT, is_instance_of(EpisodeFactory))
 
-	# public methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def delay(self):
+	def _delay_property(self, delay=None):
 		""" return delay value for current item """
+		if delay is not None:
+			self.__delay = delay
 		return self.__delay
 
-	def download(self):
-		""" return download object representing current report """
-		return self.__download
-
-	def priority(self):
-		""" download priority of current report """
-		return self.__priority
-
-	def quality(self):
-		""" quality (if known) of current report """
-		return self.__quality
-
+	@property
 	def source(self):
-		return NEWZBIN_FACTORY_OBJECT
+		return NEWZBIN
 
-	def title(self):
-		""" title of current report """
-		return self.__title
+	# property definitions- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def type(self):
-		""" type of current report """
-		return self.__type
-
-	def url(self):
-		""" url of current report """
-		return self.__url
-
+	delay = property(fget=_delay_property, fset=_delay_property, doc="schedule delay")
+	
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def __build_download(self):
-		""" parse item data and build appropriate download object """
-
-		try:
-			download = self.factory.create_episode(self.title(), quality=self.quality())
-		except (InvalidMultiEpisodeData, MissingParameterError):
-			raise InvalidItemTitle("unable to parse item title and create Episode object: %s" % self.title())
-		except InvalidEpisodeString:
-			raise InvalidItemTitle("unsupported item title format: %s" % self.title())
-		else:
-			return download
-
-	def __init__(self, item, type, priority, quality, delay, title=None, url=None):
+	def __init__(self, item, type, priority, quality, delay, size=0, title=None, url=None):
 		""" init method expects a DOM Element object (xml.dom.Element) """
 
-		self.__type = type
-		self.__priority = priority
-		self.__quality = quality
+		self._type = type
+		self._priority = priority
+		self._quality = quality
 		self.__delay = delay
 
 		if item is None:
-			self.__title = title
-			self.__url = url
+			self._size = size
+			self._title = title
+			self._url = url
 		else:
-			self.__item = item
+			self._item = item
 
-			titles = self.__item.getElementsByTagName("title")
+			titles = self._item.getElementsByTagName("title")
 			if titles:
-				self.__title = titles[0].childNodes[0].data
+				self._title = titles[0].childNodes[0].data
+			else:
+				self._title = title
 
-			links = self.__item.getElementsByTagName("report:nzb")
+			links = self._item.getElementsByTagName("report:nzb")
 			if links:
-				self.__url = links[0].childNodes[0].data
+				self._url = links[0].childNodes[0].data
+			else:
+				self._url = url
 
-		if self.__title is None:
+			sizes  = self._item.getElementsByTagName("report:size")
+			if sizes: # in MB
+				self._size = int(sizes[0].childNodes[0].data) / 1024 / 1024
+			else:
+				self._size = size;
+
+		if self._title is None:
 			raise InvalidRemoteData("report does not have a title")
-		if self.__url is None:
+		if self._url is None:
 			raise InvalidRemoteData("report does not have a url")
 
-		self.__download = self.__build_download()
+		self._download = self.build_download()
 

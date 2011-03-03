@@ -13,29 +13,32 @@
 	umask = integer(default=022)
 	category = string(default=tv)
 	priority = option('normal', 'high', 'low', 'force', default='normal')
-	ignored_extensions = list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com","tbn","jpg","png","gif","info","db","srr"))
-	allow_multipart = boolean(default=True)
-	only_schedule_newer = boolean(default=False)
+	ignored_extensions = string_list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com","tbn","jpg","png","gif","info","db","srr"))
 
-	[[quality]]
-		managed = boolean(default=False)
-		acceptable = options_list(options=list('all', 'low', 'medium', 'high'), default=list('all'))
-		desired = option('low', 'medium', 'high', None, default=None)
-		guess = boolean(default=True)
-		[[[extension]]]
-			low = list(default=list('mp4'))
-			medium = list(default=list('avi'))
-			high = list(default=list('mkv'))
+	[[library]]
+		allow_multipart = boolean(default=True)
+		archive = boolean(default=True)
+		episode_limit = integer(default=5)
+
+		[[[quality]]]
+			managed = boolean(default=False)
+			acceptable = options_list(options=list('all', 'low', 'medium', 'high'), default=list('all'))
+			desired = option('low', 'medium', 'high', None, default=None)
+			guess = boolean(default=True)
+			[[[[extension]]]]
+				low = string_list(default=list('mp4'))
+				medium = string_list(default=list('avi'))
+				high = string_list(default=list('mkv'))
 
 	[[filter]]
 		[[[__many__]]]
-			ignore = int_list(default=list())
-			skip = boolean(default=False)
-			alias = string_list(default=list())
-			only_schedule_newer = boolean(default=None)
-			[[[[quality]]]]
-				acceptable = options_list(options=list('all', 'low', 'medium', 'high', None), default=None)
-				desired = option('low', 'medium', 'high', None, default=None)
+			ignore_series = boolean(default=False)
+			ignore_season = int_list(default=list())
+			series_alias = string_list(default=list())
+			archive = boolean(default=None)
+			episode_limit = integer(default=None)
+			desired_quality = option('low', 'medium', 'high', None, default=None)
+			acceptable_quality = options_list(options=list('all', 'low', 'medium', 'high', None), default=None)
 
 	[[template]]
 		series = string(default=$(series)s)
@@ -48,7 +51,7 @@
 [source]
 	[[__many__]]
 		url = url()
-		provider = option('newzbin','tvnzb','mytvnzb','nzbs','nzbmatrix','nzbsrus','nzbclub','nzbindex')
+		provider = option('newzbin','nzbs','nzbmatrix','nzbsrus','nzbclub','nzbindex')
 		type = option('tv', default='tv')
 		quality = option('low', 'medium', 'high', None, default=None)
 		timeout = integer(default=60)
@@ -65,4 +68,4 @@
 
 [__SYSTEM__]
 	__version__ = integer(default=0)
-	__available_queues__ = list(default=list('sabnzbd'))
+	__available_queues__ = string_list(default=list('sabnzbd'))

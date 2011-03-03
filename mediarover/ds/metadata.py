@@ -43,7 +43,7 @@ class Metadata(object):
 
 	def add_in_progress(self, item):
 		""" record given nzb in progress table with type, and quality """
-		self.__dbh.execute("INSERT INTO in_progress (title, source, type, quality) VALUES (?,?,?,?)", (item.title(), item.source(), item.type(), item.quality()))
+		self.__dbh.execute("INSERT INTO in_progress (title, source, type, quality) VALUES (?,?,?,?)", (item.title, item.source, item.type, item.quality))
 		self.__dbh.commit()
 
 	def get_in_progress(self, title):
@@ -71,7 +71,7 @@ class Metadata(object):
 
 		# if series doesn't exist, register it
 		if series is None:
-			sanitized = episode.series.sanitize_series_name(series=episode.series)
+			sanitized = episode.series.sanitized_name
 			args = (episode.series.name, sanitized)
 			series = self.__dbh.execute("INSERT INTO series (name, sanitized_name) VALUES (?,?)", args).lastrowid
 		else:
@@ -109,6 +109,24 @@ class Metadata(object):
 
 		self.__dbh.commit()
 
+#	def delete_episode(self, episode):
+#		""" delete given episode from database """
+#
+#		series = self.__fetch_series_data(episode.series)
+#		if series is not None:
+#			args = [series['id']]
+#			try:
+#				episode.year
+#			except AttributeError:
+#				args.extend([episode.season, episode.episode])
+#				sql = "DELETE FROM single_episode WHERE series=? AND season=? AND episode=?"
+#			else:
+#				args.extend([episode.year, episode.month, episode.day])
+#				sql = "DELETE FROM daily_episode WHERE series=? AND year=? AND month=? AND day=?"
+#
+#			self.__dbh.execute(sql, args)
+#			self.__dbh.commit()
+
 	def get_episode(self, episode, series=None):
 		""" retrieve database record for given episode.  Return None if not found """
 
@@ -134,15 +152,15 @@ class Metadata(object):
 
 	def add_delayed_item(self, item):
 		""" add given item to delayed_item table """
-		self.__dbh.execute("INSERT INTO delayed_item (title, source, url, type, priority, quality, delay) VALUES (?,?,?,?,?,?,?)", (item.title(), item.source(), item.url(), item.type(), item.priority(), item.quality(), item.delay()))
+		self.__dbh.execute("INSERT INTO delayed_item (title, source, url, type, priority, quality, delay, size) VALUES (?,?,?,?,?,?,?,?)", (item.title, item.source, item.url, item.type, item.priority, item.quality, item.delay, item.size))
 		self.__dbh.commit()
 
 		logger = logging.getLogger("mediarover.ds.metadata")
-		logger.info("delayed scheduling '%s' for download", item.title())
+		logger.info("delayed scheduling '%s' for download", item.title)
 
 	def delete_delayed_item(self, item):
 		""" remove given item from delayed_item table """
-		self.__dbh.execute("DELETE FROM delayed_item WHERE title=?", (item.title(),))
+		self.__dbh.execute("DELETE FROM delayed_item WHERE title=?", (item.title,))
 		self.__dbh.commit()
 
 	def delete_stale_delayed_items(self):
@@ -156,11 +174,11 @@ class Metadata(object):
 
 		# iterate over all tuples with delay < 1 and create new item objects
 		items = []
-		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay FROM delayed_item WHERE delay < 1"):
+		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay, size FROM delayed_item WHERE delay < 1"):
 			if r['source'] not in factories:
 				factories[r['source']] = Dependency(r['source'], is_instance_of(ItemFactory))
 			factory = factories[r['source']].__get__()
-			items.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
+			items.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay'], r['size']))
 
 		return items
 	
@@ -169,11 +187,11 @@ class Metadata(object):
 		factories = {}
 
 		list = []
-		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay FROM delayed_item"):
+		for r in self.__dbh.execute("SELECT title, source, url, type, priority, quality, delay, size FROM delayed_item"):
 			if r['source'] not in factories:
 				factories[r['source']] = Dependency(r['source'], is_instance_of(ItemFactory))
 			factory = factories[r['source']].__get__()
-			list.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay']))
+			list.append(factory.create_item(r['title'], r['url'], r['type'], r['priority'], r['quality'], r['delay'], r['size']))
 
 		return list
 
@@ -276,7 +294,7 @@ class Metadata(object):
 		""" query the database and return row data for the given series (if exists) """
 		details = None
 
-		args = (series.sanitize_series_name(series=series),)
+		args = (series.sanitized_name,)
 		row = self.__dbh.execute("SELECT id, name, sanitized_name FROM series WHERE sanitized_name=?", args).fetchone()
 		if row is not None:
 			details = row
