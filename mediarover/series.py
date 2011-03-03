@@ -258,13 +258,11 @@ class Series(object):
 		return list
 
 	def delete_oldest_episode_file(self):
-		""" delete oldest episode from from series folders """
-		logger = logging.getLogger("mediarover.series")
+		""" delete oldest episode from series folders """
 		if self.__oldest_episode_file:
+			logger = logging.getLogger("mediarover.series")
 			logger.info("removing file '%s'", self.__oldest_episode_file.path)
 			os.unlink(self.__oldest_episode_file.path)
-		else:
-			logger.warning("unable to remove '%s', file doesn't exist", self.__oldest_episode_file.path)
 	
 	def delete_episode_files(self, *files):
 		""" delete the list of episode files from series folders """
