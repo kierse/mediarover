@@ -109,6 +109,24 @@ class Metadata(object):
 
 		self.__dbh.commit()
 
+#	def delete_episode(self, episode):
+#		""" delete given episode from database """
+#
+#		series = self.__fetch_series_data(episode.series)
+#		if series is not None:
+#			args = [series['id']]
+#			try:
+#				episode.year
+#			except AttributeError:
+#				args.extend([episode.season, episode.episode])
+#				sql = "DELETE FROM single_episode WHERE series=? AND season=? AND episode=?"
+#			else:
+#				args.extend([episode.year, episode.month, episode.day])
+#				sql = "DELETE FROM daily_episode WHERE series=? AND year=? AND month=? AND day=?"
+#
+#			self.__dbh.execute(sql, args)
+#			self.__dbh.commit()
+
 	def get_episode(self, episode, series=None):
 		""" retrieve database record for given episode.  Return None if not found """
 
