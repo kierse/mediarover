@@ -1,0 +1,13 @@
+---
+layout: announcement
+title: 0.7.1 released!
+desc: "Key fetures of this release: bug fix to code that identifies filesystem episdes"
+---
+
+Announcing Media Rover 0.7.1! 
+
+*Release Details:*
+
+* fixed bug in the code that identifies filesystem episodes. MR no longer supports single and multipart episodes on disk that are missing a season and episodes separator (ie 'x' in 3x01). See "here":https://github.com/kierse/mediarover/commit/5d8e81ef40c45cb68a2aced49e704947bd334067 and "here":https://github.com/kierse/mediarover/commit/65277ceeb697ccfa2122b817c01c9f490751262d for more information
+
+Get the latest code updates "here":http://mediarover.tv/#installation, or you can grab them straight from "GitHub":http://github.com/kierse/mediarover/archives/v0.7.1
