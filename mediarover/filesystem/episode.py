@@ -261,32 +261,33 @@ from mediarover.episode.single import SingleEpisode
 
 class FilesystemSingleEpisode(SingleEpisode):
 	""" filesystem single episode """
+	pass
 
-	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	__supported_patterns = (
-		# episode 1 regex, ie 310
-		#
-		# this pattern is pretty tricky.  First we don't want to match 1080i or 720p so we must ignore all groupings
-		# of numbers that are followed by an 'i' or a 'p'.  Second, we don't want to match against any series metadata
-		# (ie. Show Name (2004)) so we need to ignore any groupings of number found between ( and ).
-		#
-		# (?<![\(])  - this is a negative lookbehind assertion. It matches if the current position in the string
-		#              is NOT preceded by a match for a '('
-		#
-		# (?![ip\)]) - this is a negative lookahead assertion. It matches if the current position in the string
-		#              is NOT followed by a match for an 'i', 'p', or ')'
-		re.compile("(?<![\(])(?P<season>\d{1,2})(?P<episode>\d{2})(?![ip\)])"),
-	)
-
-	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	@classmethod
-	def get_supported_patterns(cls):
-		""" return list of supported naming patterns """
-		patterns = list(super(FilesystemSingleEpisode, cls).get_supported_patterns())
-		patterns.extend(cls.__supported_patterns)
-		return patterns
+#	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#
+#	__supported_patterns = (
+#		# episode 1 regex, ie 310
+#		#
+#		# this pattern is pretty tricky.  First we don't want to match 1080i or 720p so we must ignore all groupings
+#		# of numbers that are followed by an 'i' or a 'p'.  Second, we don't want to match against any series metadata
+#		# (ie. Show Name (2004)) so we need to ignore any groupings of number found between ( and ).
+#		#
+#		# (?<![\(])  - this is a negative lookbehind assertion. It matches if the current position in the string
+#		#              is NOT preceded by a match for a '('
+#		#
+#		# (?![ip\)]) - this is a negative lookahead assertion. It matches if the current position in the string
+#		#              is NOT followed by a match for an 'i', 'p', or ')'
+#		re.compile("(?<![\(])(?P<season>\d{1,2})(?P<episode>\d{2})(?![ip\)])"),
+#	)
+#
+#	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#
+#	@classmethod
+#	def get_supported_patterns(cls):
+#		""" return list of supported naming patterns """
+#		patterns = list(super(FilesystemSingleEpisode, cls).get_supported_patterns())
+#		patterns.extend(cls.__supported_patterns)
+#		return patterns
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -302,20 +303,21 @@ from mediarover.episode.multi import MultiEpisode
 
 class FilesystemMultiEpisode(MultiEpisode):
 	""" filesystem multipart episode """
+	pass
 
-	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	supported_patterns = (
-		# multiepisode 1 regex, 301-302
-		re.compile("(?P<start_season>\d{1,2})(?P<start_episode>\d{2})-(?P<end_season>\d{1,2})(?P<end_episode>\d{2})"),
-	)
-
-	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	@classmethod
-	def get_supported_patterns(cls):
-		""" return list of supported naming patterns """
-		patterns = list(super(FilesystemMultiEpisode, cls).get_supported_patterns())
-		patterns.extend(cls.supported_patterns)
-		return patterns
+#	# class variables- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#
+#	supported_patterns = (
+#		# multiepisode 1 regex, 301-302
+#		re.compile("(?P<start_season>\d{1,2})(?P<start_episode>\d{2})-(?P<end_season>\d{1,2})(?P<end_episode>\d{2})"),
+#	)
+#
+#	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#
+#	@classmethod
+#	def get_supported_patterns(cls):
+#		""" return list of supported naming patterns """
+#		patterns = list(super(FilesystemMultiEpisode, cls).get_supported_patterns())
+#		patterns.extend(cls.supported_patterns)
+#		return patterns
 
