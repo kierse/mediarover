@@ -19,6 +19,8 @@ from mediarover.episode.single import SingleEpisode
 from mediarover.episode.daily import DailyEpisode
 from mediarover.episode.multi import MultiEpisode
 
+NEWZBIN_SEPARATOR_REGEX = '[\s_]-[\s_]'
+
 class NewzbinSingleEpisode(SingleEpisode):
 	""" newzbin single episode """
 
@@ -32,8 +34,14 @@ class NewzbinSingleEpisode(SingleEpisode):
 	def extract_from_string(cls, string, **kwargs):
 		""" parse given string and extract values necessary to create a new SingleEpisode object """
 
-		# split the given report title and extract series name and episode title
-		(kwargs['series'], other, kwargs['title']) = re.split('[\s_]-[\s_]', string)
+		# split the given report and extract series name and episode title
+		parts = re.split(NEWZBIN_SEPARATOR_REGEX, string, 2)
+
+		other = ''
+		if len(parts) > 1:
+			kwargs['series'], other = parts[0:2]
+			if len(parts) == 3:
+				kwargs['title'] = parts[2]
 
 		return SingleEpisode.extract_from_string(other, **kwargs)
 
@@ -50,8 +58,14 @@ class NewzbinMultiEpisode(MultiEpisode):
 	def extract_from_string(cls, string, **kwargs):
 		""" parse given string and extract values necessary to create a new MultiEpisode object """
 
-		# split the given report title and extract series name and episode title
-		(kwargs['series'], other, kwargs['title']) = re.split('[\s_]-[\s_]', string)
+		# split the given report and extract series name and episode title
+		parts = re.split(NEWZBIN_SEPARATOR_REGEX, string, 2)
+
+		other = ''
+		if len(parts) > 1:
+			kwargs['series'], other = parts[0:2]
+			if len(parts) == 3:
+				kwargs['title'] = parts[2]
 
 		return MultiEpisode.extract_from_string(other, **kwargs)
 
@@ -70,8 +84,14 @@ class NewzbinDailyEpisode(DailyEpisode):
 	def extract_from_string(cls, string, **kwargs):
 		""" parse given string and extract values necessary to create a new DailyEpisode object """
 
-		# split the given report title and extract series name and episode title
-		(kwargs['series'], other, kwargs['title']) = re.split('[\s_]-[\s_]', string)
+		# split the given report and extract series name and episode title
+		parts = re.split(NEWZBIN_SEPARATOR_REGEX, string, 2)
+
+		other = ''
+		if len(parts) > 1:
+			kwargs['series'], other = parts[0:2]
+			if len(parts) == 3:
+				kwargs['title'] = parts[2]
 
 		return DailyEpisode.extract_from_string(other, **kwargs)
 
