@@ -1,0 +1,13 @@
+---
+layout: announcement
+title: 0.7.3 released!
+desc: "Key fetures of this release: bug fix to code parses Newzbin report titles"
+---
+
+Announcing Media Rover 0.7.3! 
+
+*Release Details:*
+
+* fix released with MR 0.7.2 resulted in an unexpected problem when parsing Newzbin report titles. This release fixes the problem
+
+Get the latest code updates "here":http://mediarover.tv/#installation, or you can grab them straight from "GitHub":http://github.com/kierse/mediarover/archives/v0.7.3
