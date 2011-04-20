@@ -13,6 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__app_version__ = "0.7.3"
+__app_version__ = "0.7.4"
 __config_version__ = {'version': 7, 'min': 7}
 __schema_version__ = 3
