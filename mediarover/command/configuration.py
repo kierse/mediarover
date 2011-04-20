@@ -49,9 +49,6 @@ Advanced Example:
 
 	(options, args) = parser.parse_args(args)
 
-	if len(args) == 0:
-		print_epilog(parser, code=1)
-
 	if options.config:
 		broker.register(CONFIG_DIR, options.config)
 	
@@ -71,4 +68,6 @@ Advanced Example:
 			exit(1)
 		else:
 			generate_series_filters(broker[RESOURCES_DIR], broker[CONFIG_DIR], config)
+	else: 
+		print_epilog(parser, code=1)
 
