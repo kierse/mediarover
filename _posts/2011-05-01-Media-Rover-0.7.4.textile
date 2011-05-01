@@ -1,0 +1,14 @@
+---
+layout: announcement
+title: 0.7.4 released!
+desc: "Key fetures of this release: bug fix to code reponsible for generating configs"
+---
+
+Announcing Media Rover 0.7.4! 
+
+*Release Details:*
+
+* fixed bug in code responsible for generating application configs
+* fixed bug preventing episode-sort from running in Windows
+
+Get the latest code updates "here":http://mediarover.tv/#installation, or you can grab them straight from "GitHub":http://github.com/kierse/mediarover/archives/v0.7.4
