@@ -1,0 +1,14 @@
+---
+layout: announcement
+title: 0.7.5 released!
+desc: "Key fetures of this release: added support for SABnzbd 0.6.x"
+---
+
+Announcing Media Rover 0.7.5! 
+
+*Release Details:*
+
+* fixed bug preventing episode-sort from running in Windows
+* fixed bug in queue version check method which was specifically looking for 0.5.x. 
+
+Get the latest code updates "here":http://mediarover.tv/#installation, or you can grab them straight from "GitHub":http://github.com/kierse/mediarover/archives/v0.7.5
