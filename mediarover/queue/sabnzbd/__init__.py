@@ -261,8 +261,12 @@ class SabnzbdQueue(Queue):
 		except (URLError), e:
 			raise UrlRetrievalError("unable to retrieve SABnzbd version: %s" % e.reason)
 		else: 
-			if not re.match("0.5.\d+", response.read()):
-				raise UnknownQueue("SABnzbd 0.5.0 or greater required!")
+			version = response.read().rstrip('\n')
+			if version:
+				nums = version.split('.')
+				if nums and int(nums[1]) >= 5:
+					return
+			raise UnknownQueue("SABnzbd 0.5.0 or greater required!")
 
 	def __init__(self, root, supported_categories, params):
 		
