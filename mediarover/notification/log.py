@@ -24,8 +24,8 @@ class LogNotificationHandler(NotificationHandler):
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def process(self, event, message):
-		logger = logging.getLogger("mediarover.notification")
-		logger.info("EVENT: '%s', MESSAGE: '%s'", (event, message))
+		logger = logging.getLogger("mediarover.notification.log")
+		logger.info("EVENT: '%s', MESSAGE: '%s'" % (event, message))
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
