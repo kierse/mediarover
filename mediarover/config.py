@@ -269,6 +269,15 @@ def check_url(url):
 
 	return url
 
+def check_email(email):
+	""" make sure given email address is valid (syntactically) """
+
+	if email != "":
+		if not re.match("^[a-z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-z0-9_-.]+[a-z]{2,6}$", email.lower()):
+			raise VdtValueError("invalid email '%s'" % email)
+
+	return email
+
 def check_int_list(int_list, **kwargs):
 	""" 
 		make sure given data contains only integers.  If data is only one
@@ -443,12 +452,13 @@ def _get_validator():
 	""" return validator object with all custom functions defined """
 
 	vdt = Validator()
+	vdt.functions['email'] = check_email
+	vdt.functions['int_list'] = check_int_list
+	vdt.functions['options_list'] = check_options_list
 	vdt.functions['path'] = check_filesystem_path
 	vdt.functions['path_list'] = check_filesystem_path_list
-	vdt.functions['url'] = check_url
-	vdt.functions['int_list'] = check_int_list
 	vdt.functions['string_list'] = check_string_list
-	vdt.functions['options_list'] = check_options_list
+	vdt.functions['url'] = check_url
 
 	return vdt
 
