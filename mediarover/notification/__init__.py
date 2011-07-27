@@ -21,10 +21,10 @@ class NotificationHandler(object):
 	def configure(self, params):
 		self._params = params
 
-		if params['when'] is None:
+		if params['event'] is None:
 			self._watching_event = frozen_set()
 		else:
-			self._watching_event = frozen_set(params['when'])
+			self._watching_event = frozenset(params['event'])
 
 	def process(self, event, message):
 		raise NotImplementedError
@@ -84,11 +84,13 @@ class Notification(object):
 		# and configure active handlers
 		self._handlers = []
 		for label, params in self.config['notification'].items():
-			try:
-				handler = handlers[label].configure(params)
-			except (NotificationHandlerInitializationError), e:
-				logger.warning("unable to initialize %s notification handler: '%s'", (label, e))
-			else:
-				self._handlers.append(handler)
+			if params['active']:
+				handler = handlers[label]
+				try:
+					handler.configure(params)
+				except (NotificationHandlerInitializationError), e:
+					logger.warning("unable to initialize %s notification handler: '%s'", (label, e))
+				else:
+					self._handlers.append(handler)
 		logger.debug("registered %d active notification handlers", len(self._handlers))
 
