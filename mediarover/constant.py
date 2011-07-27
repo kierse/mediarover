@@ -13,6 +13,12 @@ NZBMATRIX = 'nzbmatrix'
 NZBS = 'nzbs'
 NZBSRUS = 'nzbsrus'
 
+# notification handler labels
+NOTIFICATION_OBJECT = 'notification'
+LOG_NOTIFICATION = 'log'
+EMAIL_NOTIFICATION = 'email'
+XBMC_NOTIFICATION = 'xbmc'
+
 # dependency injection specific constants
 CONFIG_DIR = 'config_dir'
 CONFIG_OBJECT = 'config'
