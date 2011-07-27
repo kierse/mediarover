@@ -256,14 +256,13 @@ def check_filesystem_path_list(paths):
 
 	return paths
 
-def check_url(url):
+def check_url(url, **kwargs):
 	""" make sure given url is valid (syntactically) """
 	
-	# ConfigObj splits up url's that contain commas.  Rebuild url and continue
-	if isinstance(url, list):
-		url = ",".join(url)
-
-	if url != "":
+	if url in ["", None]:
+		if 'default' in kwargs:
+			url = kwargs['default']
+	else:
 		if not re.match("^\w+://", url):
 			raise VdtValueError("invalid url '%s'" % url)
 
