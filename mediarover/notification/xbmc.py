@@ -26,11 +26,11 @@ class XbmcNotificationHandler(NotificationHandler):
 
 	def configure(self, params):
 		self._params = params
-		self._watching_event = frozen_set(['']) # TODO: whatever the post_sorting event is
+		self._watching_event = frozenset(['sort_successful']) # TODO: whatever the post_sorting event is
 
 	def process(self, event, message):
-		if self._params['__html_api__']:
-			self._process_with_http_api(event, message)
+		if self._params['__use_http_api__']:
+			self._process_with_httpo_api(event, message)
 		else:
 			self._process_with_json_api(event, message)
 
@@ -43,7 +43,7 @@ class XbmcNotificationHandler(NotificationHandler):
 	def _process_with_http_api(self, event, message):
 		logger = logging.getLogger("mediarover.notification.xbmc")
 
-		url = "%s/xbmcCmds/xbmcHttp?command=ExecBuiltIn&parameter=XBMC.updatelibrary(video)" % self._params['url']
+		url = "%s/xbmcCmds/xbmcHttp?command=ExecBuiltIn&parameter=XBMC.updatelibrary(video)" % self._params['root']
 		logger.debug("processing notification in XBMC handler (HTTP_API): %s" % url)
 
 		try:
