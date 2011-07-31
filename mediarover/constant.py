@@ -15,6 +15,7 @@ NZBSRUS = 'nzbsrus'
 
 # notification events
 FATAL_ERROR_NOTIFICATION = 'fatal_error'
+DELAYED_ITEM_NOTIFICATION = 'delayed_item'
 QUEUED_ITEM_NOTIFICATION = 'queued_item'
 SORT_SUCCESSFUL_NOTIFICATION = 'sort_successful'
 SORT_FAILED_NOTIFICATION = 'sort_failed'
