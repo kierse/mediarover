@@ -18,6 +18,9 @@ class NotificationHandler(object):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def cleanup(self):
+		pass
+
 	def configure(self, params):
 		self._params = params
 
@@ -59,6 +62,16 @@ class Notification(object):
 	config = Dependency(CONFIG_OBJECT, is_instance_of(ConfigObj))
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	def cleanup(self):
+		""" give handlers the option to close/disconnect any resources """
+		logger = logging.getLogger("mediarover.notification")
+
+		for handler in self._handlers:
+			try:
+				handler.cleanup()
+			except (NotificationHandlerError), e:
+				logger.warning("error encountered while dismantling notification handler %s: '%s'" % (handler.handler, e))
 
 	def process(self, event, message):
 		""" pass given notification to each active handler """
