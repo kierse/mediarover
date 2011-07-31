@@ -526,10 +526,10 @@
 		# tell Media Rover where to send the email notifications
 		#
 		# NOTE: must be a valid email address
-		#to = 
+		#recipient = 
 
 		# name / ip address of SMTP mail server to use when sending email notifications 
-		#smtp =
+		#smtp_server =
 
 		# NOTE: defaults to 25
 		#port = 25
@@ -549,6 +549,12 @@
 		#
 		# NOTE: defaults to http://localhost:8080
 		#root = http://localhost:8080
+
+		# time (in seconds) before giving up when
+		# attempting to contact the xbmc server
+		#
+		# NOTE: defaults to 30 seconds
+		#timeout = 30
 
 # WARNING: DO NOT MAKE CHANGES BELOW THIS LINE!
 [__SYSTEM__]

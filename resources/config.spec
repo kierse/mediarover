@@ -70,10 +70,10 @@
 	[[email]]
 		active = boolean(default=False)
 		event = options_list(options=list('all','fatal_error','queued_item','sort_successful','sort_failed'), default='all')
-		to = email(default=None) 
+		recipient = email(default=None) 
 		username = string(default=None)
 		password = string(default=None)
-		smtp = string(default=None)
+		smtp_server = string(default=None)
 		port = integer(default=25)
 		use_tls = boolean(default=False)
 		#use_ssl = boolean(default=False)
@@ -83,6 +83,7 @@
 	[[xbmc]]
 		active = boolean(default=False)
 		root = url(default='http://localhost:8080')
+		timeout = integer(default=30)
 		__use_http_api__ = boolean(default=True)
 
 [__SYSTEM__]
