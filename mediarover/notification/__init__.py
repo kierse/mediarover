@@ -30,7 +30,7 @@ class NotificationHandler(object):
 		raise NotImplementedError
 
 	def watching_event(self, event):
-		return event in self._watching_event
+		return True if event in self._watching_event else False
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -62,12 +62,14 @@ class Notification(object):
 
 	def process(self, event, message):
 		""" pass given notification to each active handler """
+		logger = logging.getLogger("mediarover.notification")
+
 		for handler in self._handlers:
 			try:
 				if handler.watching_event(event):
 					handler.process(event, message)
 			except (NotificationHandlerError), e:
-				logger.warning("unable to process notification with %s handler: '%s'", (handler.handler, e))
+				logger.warning("unable to process notification with %s handler: '%s'" % (handler.handler, e))
 
 	# private methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -89,8 +91,8 @@ class Notification(object):
 				try:
 					handler.configure(params)
 				except (NotificationHandlerInitializationError), e:
-					logger.warning("unable to initialize %s notification handler: '%s'", (label, e))
+					logger.warning("unable to initialize %s notification handler: '%s'" % (label, e))
 				else:
 					self._handlers.append(handler)
-		logger.debug("registered %d active notification handlers", len(self._handlers))
+		logger.debug("registered %d active notification handlers" % len(self._handlers))
 
