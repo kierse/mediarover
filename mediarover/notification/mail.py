@@ -22,6 +22,7 @@ from smtplib import (SMTPHeloError, SMTPAuthenticationError, SMTPException,
 						   SMTPDataError)
 
 from mediarover.constant import EMAIL_NOTIFICATION
+from mediarover.error import NotificationHandlerError, NotificationHandlerInitializationError
 from mediarover.notification import NotificationHandler
 
 class EmailNotificationHandler(NotificationHandler):
@@ -29,13 +30,21 @@ class EmailNotificationHandler(NotificationHandler):
 
 	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def process(self, event, message):
+	def cleanup(self):
+		if getattr(self, '__connected', False):
+			self.__smtp.quit()
+
+	def configure(self, params):
 		logger = logging.getLogger("mediarover.notification.email")
 
-		msg = MIMEText(message)
-		msg['Subject'] = event
-		msg['From'] = "%s <%s>" % ('Media Rover', self.to)
-		msg['To'] = self.to
+		super(EmailNotificationHandler, self).configure(params)
+
+		# make sure we have the bare minimum to send an email
+		if self.recipient in ("", None):
+			raise NotificationHandlerInitializationError('must provide an email recipient')
+
+		if self.smtp_server in ("", None):
+			raise NotificationHandlerInitializationError('must provide an smtp_server')
 
 		# create a new SMTP object
 		try:
@@ -43,28 +52,47 @@ class EmailNotificationHandler(NotificationHandler):
 #				smtp = smtplib.SMTP_SSL(self.smtp, self.port)
 #			else:
 #				smtp = smtplib.SMTP(self.smtp, self.port)
-			smtp = smtplib.SMTP(self.smtp, self.port)
+			self.__smtp = smtplib.SMTP(self.smtp_server, self.port)
 		except (SMTPConnectError), e:
-			raise NotificationHandlerError("SMTP error %s: '%s'" % (e.smtp_code, e.smtp_error))
+			raise NotificationHandlerInitializationError(
+				"Unable to connect to SMTP server, error %s: '%s'" % (e.smtp_code, e.smtp_error)
+			)
+		else:
+			# we've successfully connected to the SMTP server
+			# make note of this and move on
+			self.__connected = True
 
-		# note: TLS isn't applicable if using SSL
-		#if self.use_tls and not self.use_ssl:
-		if self.use_tls:
-			logger.debug('using TLS')
-			smtp.starttls()
+			# note: TLS isn't applicable if using SSL
+			#if self.use_tls and not self.use_ssl:
+			if self.use_tls:
+				logger.debug('using TLS')
+				self.__smtp.starttls()
 
-		if self.username and self.password:
-			try:
-				smtp.login(self.username, self.password)
-			except (SMTPHeloError, SMTPAuthenticationError, SMTPException), e:
-				raise NotificationHandlerError("SMTP error %s: '%s'" % (e.smtp_code, e.smtp_error))
+			if self.username and self.password:
+				try:
+					self.__smtp.login(self.username, self.password)
+				except (SMTPHeloError, SMTPAuthenticationError, SMTPException), e:
+					raise NotificationHandlerInitializationError(
+						"Unable to authenticate with SMTP server, error %s: '%s'" % (e.smtp_code, e.smtp_error)
+					)
+
+	def process(self, event, message):
+		msg = MIMEText(message)
+		msg['Subject'] = "%s: %s" % (event, message[0:29])
+		msg['From'] = "%s <%s>" % ('Media Rover', self.recipient)
+		msg['To'] = self.recipient
 
 		try:
-			smtp.sendmail(self.to, [self.to], msg.as_string())
+			self.__smtp.sendmail(self.recipient, [self.recipient], msg.as_string())
+		except (SMTPRecipientsRefused),e:
+			print e.recipients
+			raise NotificationHandlerError(
+				'Email recipient refused: %s' % e
+			)
 		except (SMTPRecipientsRefused, SMTPHeloError, SMTPSenderRefused, SMTPDataError), e:
-			raise NotificationHandlerError("SMTP error %s: '%s'" % (e.smtp_code, e.smtp_error))
-
-		smtp.quit()
+			raise NotificationHandlerError(
+				"Unable to send email notification, error %s: '%s'" % (e.smtp_code, e.smtp_error)
+			)
 
 	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -81,12 +109,12 @@ class EmailNotificationHandler(NotificationHandler):
 		return self._params['port']
 
 	@property
-	def smtp(self):
-		return self._params['smtp']
+	def recipient(self):
+		return self._params['recipient']
 
 	@property
-	def to(self):
-		return self._params['to']
+	def smtp_server(self):
+		return self._params['smtp_server']
 
 	@property
 	def use_tls(self):
