@@ -13,11 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from urllib2 import urlopen, URLError
 
 from mediarover.error import NotificationHandlerError
 from mediarover.notification import NotificationHandler
-from mediarover.constant import XBMC_NOTIFICATION
+from mediarover.constant import SORT_SUCCESSFUL_NOTIFICATION, XBMC_NOTIFICATION
 
 class XbmcNotificationHandler(NotificationHandler):
 	""" XBMC notification handler """
@@ -26,11 +28,11 @@ class XbmcNotificationHandler(NotificationHandler):
 
 	def configure(self, params):
 		self._params = params
-		self._watching_event = frozenset(['sort_successful']) # TODO: whatever the post_sorting event is
+		self._watching_event = frozenset([SORT_SUCCESSFUL_NOTIFICATION]) 
 
 	def process(self, event, message):
 		if self._params['__use_http_api__']:
-			self._process_with_httpo_api(event, message)
+			self._process_with_http_api(event, message)
 		else:
 			self._process_with_json_api(event, message)
 
@@ -47,7 +49,7 @@ class XbmcNotificationHandler(NotificationHandler):
 		logger.debug("processing notification in XBMC handler (HTTP_API): %s" % url)
 
 		try:
-			handle = urlopen(url)
+			handle = urlopen(url, None, self._params['timeout'])
 		except (URLError), e:
 			raise NotificationHandlerError(e.reason)
 		
