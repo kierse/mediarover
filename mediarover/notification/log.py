@@ -13,6 +13,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__app_version__ = "0.8.0_beta"
-__config_version__ = {'version': 8, 'min': 7}
-__schema_version__ = 3
+import logging
+
+from mediarover.constant import LOG_NOTIFICATION
+from mediarover.notification import NotificationHandler
+
+class LogNotificationHandler(NotificationHandler):
+	""" Log notification handler """
+
+	# public methods - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	def process(self, event, message):
+		logger = logging.getLogger("mediarover.notification.log")
+		logger.info("EVENT: '%s', MESSAGE: '%s'" % (event, message))
+
+	# property methods- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	@property
+	def handler(self):
+		return LOG_NOTIFICATION
+

@@ -476,6 +476,86 @@
 		#username = 
 		#password = 
 
+# event notification
+#
+# Media Rover can notify you (through various methods) when certain events happen during 
+# its execution.
+#
+# Supported events:
+#
+#   fatal_error     - triggered when an unexpected error is encountered
+#   queued_item     - Media Rover schedules an NZB for download
+#   sort_successful - Media Rover successfully sorts a download
+#   sort_failed     - Media Rover fails to sort a download
+#
+# Examples:
+#
+#    [notification]
+#       [[email]]
+#          active = True
+#          event = <event1>, <event2>, ...
+#          to = example@some.domain
+#          smtp = smtp.gmail.com
+#          port = 587
+#          use_tls = True
+#          username = your.account@gmail.com
+#          password = <your.password>
+#       [[xbmc]]
+#         active = True
+#         root = http://localhost:8080
+#
+# NOTE: you may configure more than one notification handler
+[notification]
+	[[email]]
+		# NOTE: defaults to False
+		#active = False
+
+		# events to email
+		# NOTE: you may specify one or more options (separated by a comma)
+		#
+		# options:
+		#   all
+		#   fatal_error
+		#   queued_item
+		#   sort_successful
+		#   sort_failed
+		#
+		# NOTE: defaults to all
+		#event = all
+
+		# tell Media Rover where to send the email notifications
+		#
+		# NOTE: must be a valid email address
+		#recipient = 
+
+		# name / ip address of SMTP mail server to use when sending email notifications 
+		#smtp_server =
+
+		# NOTE: defaults to 25
+		#port = 25
+
+		# NOTE: defaults to False
+		#use_tls = False
+
+		# login credentials (if required by mail server)
+		#username = 
+		#password = 
+
+	[[xbmc]]
+		# NOTE: defaults to False
+		#active = False
+
+		# root url to XBMC web interface
+		#
+		# NOTE: defaults to http://localhost:8080
+		#root = http://localhost:8080
+
+		# time (in seconds) before giving up when
+		# attempting to contact the xbmc server
+		#
+		# NOTE: defaults to 30 seconds
+		#timeout = 30
+
 # WARNING: DO NOT MAKE CHANGES BELOW THIS LINE!
 [__SYSTEM__]
 	__version__ = %(version)d

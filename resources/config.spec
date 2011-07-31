@@ -66,6 +66,26 @@
 		backup_dir = path(default="")
 		__check_version__ = boolean(default=True)
 
+[notification]
+	[[email]]
+		active = boolean(default=False)
+		event = options_list(options=list('all','fatal_error','queued_item','sort_successful','sort_failed'), default='all')
+		recipient = email(default=None) 
+		username = string(default=None)
+		password = string(default=None)
+		smtp_server = string(default=None)
+		port = integer(default=25)
+		use_tls = boolean(default=False)
+		#use_ssl = boolean(default=False)
+	[[log]]
+		active = boolean(default=False)
+		event = options_list(options=list('all','fatal_error','queued_item','sort_successful','sort_failed'), default='all')
+	[[xbmc]]
+		active = boolean(default=False)
+		root = url(default='http://localhost:8080')
+		timeout = integer(default=30)
+		__use_http_api__ = boolean(default=True)
+
 [__SYSTEM__]
 	__version__ = integer(default=0)
 	__available_queues__ = string_list(default=list('sabnzbd'))
