@@ -271,8 +271,8 @@ def check_url(url, **kwargs):
 def check_email(email):
 	""" make sure given email address is valid (syntactically) """
 
-	if email != "":
-		if not re.match("^[a-z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-z0-9_-.]+[a-z]{2,6}$", email.lower()):
+	if email not in ("", None):
+		if not re.match("^[a-z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-z0-9._-]+[a-z]{2,6}$", email.lower()):
 			raise VdtValueError("invalid email '%s'" % email)
 
 	return email
