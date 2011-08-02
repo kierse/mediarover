@@ -235,18 +235,18 @@ def __episode_sort(broker, options, **kwargs):
 
 	# check to ensure we have the necessary data to proceed
 	if path is None or path == "":
-		raise InvalidArgument("path to completed job is missing or null", job)
+		raise InvalidArgument("path to completed job is missing or null")
 	elif os.path.basename(path).startswith("_FAILED_") or int(status) > 0:
 		if job is None or job == "":
-			raise InvalidArgument("job name is missing or null", job)
+			raise InvalidArgument("job name is missing or null")
 		elif int(status) == 1:
-			raise FailedDownload("download failed verification", job)
+			raise FailedDownload("download failed verification")
 		elif int(status) == 2:
-			raise FailedDownload("download failed unpack", job)
+			raise FailedDownload("download failed unpack")
 		elif int(status) == 3:
-			raise FailedDownload("download failed verification and unpack", job)
+			raise FailedDownload("download failed verification and unpack")
 		else:
-			raise FailedDownload("download failed", job)
+			raise FailedDownload("download failed")
 
 	# build dict of watched series
 	# register series dictionary with dependency broker
@@ -282,7 +282,7 @@ def __episode_sort(broker, options, **kwargs):
 
 	if orig_path is None:
 		broker[NOTIFICATION_OBJECT].process(SORT_FAILED_NOTIFICATION, "unable to find episode file in given download path %r" % path)
-		raise FilesystemError("unable to find episode file in given download path %r" % path, job)
+		raise FilesystemError("unable to find episode file in given download path %r" % path)
 	else:
 		logger.info("found download file at '%s'", orig_path)
 
@@ -300,7 +300,7 @@ def __episode_sort(broker, options, **kwargs):
 	try:
 		episode = factory.create_episode(job)
 	except (InvalidMultiEpisodeData, MissingParameterError), e:
-		raise InvalidJobTitle("unable to parse job title and create Episode object: %s" % e, job)
+		raise InvalidJobTitle("unable to parse job title and create Episode object: %s" % e)
 
 	# sanitize series name for later use
 	series = episode.series
@@ -308,7 +308,7 @@ def __episode_sort(broker, options, **kwargs):
 
 	# check if series is being ignored
 	if sanitized_name not in broker[WATCHED_SERIES_LIST] and sanitized_name in broker[IGNORED_SERIES_LIST]:
-		raise ConfigurationError("unable to sort episode as parent series is being ignored", episode)
+		raise ConfigurationError("unable to sort episode as parent series is being ignored")
 
 	# move downloaded file to new location and rename
 	if not options.dry_run:
@@ -333,7 +333,7 @@ def __episode_sort(broker, options, **kwargs):
 		# find available disk with enough space for newly downloaded episode
 		free_root = find_disk_with_space(series, tv_root, file.size) 
 		if free_root is None:
-			raise FilesystemError("unable to find disk with enough space to sort episode!", episode)
+			raise FilesystemError("unable to find disk with enough space to sort episode!")
 
 		# make sure series folder exists on that disk
 		series_dir = None
@@ -347,7 +347,7 @@ def __episode_sort(broker, options, **kwargs):
 				os.makedirs(series_dir)
 			except OSError, (e):
 				logger.error("unable to create directory %r: %s", series_dir, e.strerror)
-				raise FilesystemError(e.strerror, episode)
+				raise FilesystemError(e.strerror)
 			else:
 				logger.debug("created series directory '%s'", series_dir)
 			series.path.append(series_dir)
@@ -363,7 +363,7 @@ def __episode_sort(broker, options, **kwargs):
 					os.makedirs(dest_dir)
 				except OSError, (e):
 					logger.error("unable to create directory %r: %s", dest_dir, e.strerror)
-					raise FilesystemError(e.strerror, episode)
+					raise FilesystemError(e.strerror)
 				else:
 					logger.debug("created season directory '%s'", dest_dir)
 
@@ -383,7 +383,7 @@ def __episode_sort(broker, options, **kwargs):
 			shutil.move(orig_path, new_path)
 		except OSError, (e):
 			logger.error("unable to move downloaded episode to '%s': %s", new_path, e.strerror)
-			raise FilesystemError(e.strerror, episode)
+			raise FilesystemError(e.strerror)
 	
 		# move successful, cleanup download directory
 		else:
@@ -448,7 +448,7 @@ def __episode_sort(broker, options, **kwargs):
 			try:
 				shutil.rmtree(path)
 			except (shutil.Error), e:
-				raise CleanupError("unable to remove download directory '%s'" % e, episode)
+				raise CleanupError("unable to remove download directory '%s'" % e)
 			else:
 				logger.info("removing download directory '%s'" % path)
 
