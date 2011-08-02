@@ -120,6 +120,13 @@ Examples:
 		params['group'] = args[5]
 		params['status'] = args[6]
 
+	# if job name and nzb weren't provided, set them using the given 
+	# download path
+	if params.get('params', False):
+		params['job'] = os.path.basename(params['path'])
+	if params.get('nzb', False):
+		params['nzb'] = params['job'] + '.nzb'
+
 	# capture all logging output in local file.  If sorting script exits unexpectedly,
 	# or encounters an error and gracefully exits, the log file will be placed in
 	# the download directory for debugging
@@ -165,7 +172,7 @@ Examples:
 			__episode_sort(broker, options, **params)
 		except (CleanupError), e:
 			broker[NOTIFICATION_OBJECT].process(SORT_SUCCESSFUL_NOTIFICATION, 
-				"'%s' successfully sorted! However, Media Rover was unable to delete the download folder" % e.args[1]
+				"'%s' successfully sorted! However, Media Rover was unable to delete the download folder" % params['job']
 			)
 			logger.warning(e)
 			message = "WARNING: sort successful, errors encountered during cleanup!"
@@ -183,7 +190,7 @@ Examples:
 				message = "DONE: dry-run flag set...nothing to do!"
 			else:
 				broker[NOTIFICATION_OBJECT].process(SORT_SUCCESSFUL_NOTIFICATION, 
-					"'%s' successfully sorted!" % e.args[1]
+					"'%s' successfully sorted!" % params['job']
 				)
 				message = "SUCCESS: downloaded episode sorted!"
 		finally:
@@ -224,8 +231,8 @@ def __episode_sort(broker, options, **kwargs):
 	  7. Status
 	"""
 	path = kwargs['path']
-	job = kwargs.get('job', os.path.basename(path))
-	nzb = kwargs.get('nzb', job + ".nzb")
+	job = kwargs['job']
+	nzb = kwargs['nzb']
 	report_id = kwargs.get('report_id', '')
 	category = kwargs.get('category', '')
 	group = kwargs.get('group', '')
