@@ -123,7 +123,7 @@ Examples:
 
 	# if job name and nzb weren't provided, set them using the given 
 	# download path
-	if params.get('params', False):
+	if params.get('job', False):
 		params['job'] = os.path.basename(params['path'])
 	if params.get('nzb', False):
 		params['nzb'] = params['job'] + '.nzb'
