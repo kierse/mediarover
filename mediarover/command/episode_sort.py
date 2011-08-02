@@ -28,7 +28,8 @@ from mediarover.config import build_series_filters, get_processed_app_config
 from mediarover.ds.metadata import Metadata
 from mediarover.episode.factory import EpisodeFactory
 from mediarover.error import (CleanupError, ConfigurationError, FailedDownload, FilesystemError, 
-										InvalidJobTitle, InvalidMultiEpisodeData, MissingParameterError)
+										InvalidArgument, InvalidJobTitle, InvalidMultiEpisodeData, 
+										MissingParameterError)
 from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.filesystem.factory import FilesystemFactory
 from mediarover.notification import Notification
