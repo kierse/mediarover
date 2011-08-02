@@ -123,9 +123,9 @@ Examples:
 
 	# if job name and nzb weren't provided, set them using the given 
 	# download path
-	if params.get('job', False):
+	if params.get('job', True):
 		params['job'] = os.path.basename(params['path'])
-	if params.get('nzb', False):
+	if params.get('nzb', True):
 		params['nzb'] = params['job'] + '.nzb'
 
 	# capture all logging output in local file.  If sorting script exits unexpectedly,
