@@ -47,8 +47,9 @@ import logging
 
 from mediarover.error import NotificationHandlerError, NotificationHandlerInitializationError
 from mediarover.config import ConfigObj
-from mediarover.constant import CONFIG_OBJECT, EMAIL_NOTIFICATION, LOG_NOTIFICATION, XBMC_NOTIFICATION
+from mediarover.constant import CONFIG_OBJECT, EMAIL_NOTIFICATION, LIBNOTIFY_NOTIFICATION, LOG_NOTIFICATION, XBMC_NOTIFICATION
 from mediarover.notification.mail import EmailNotificationHandler
+from mediarover.notification.libnotify import LibnotifyNotificationHandler
 from mediarover.notification.log import LogNotificationHandler
 from mediarover.notification.xbmc import XbmcNotificationHandler
 from mediarover.utils.injection import Dependency, is_instance_of
@@ -92,6 +93,7 @@ class Notification(object):
 		# create notification handlers
 		handlers = dict()
 		handlers[EMAIL_NOTIFICATION] = EmailNotificationHandler()
+		handlers[LIBNOTIFY_NOTIFICATION] = LibnotifyNotificationHandler()
 		handlers[LOG_NOTIFICATION] = LogNotificationHandler()
 		handlers[XBMC_NOTIFICATION] = XbmcNotificationHandler()
 
