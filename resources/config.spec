@@ -77,6 +77,9 @@
 		port = integer(default=25)
 		use_tls = boolean(default=False)
 		#use_ssl = boolean(default=False)
+	[[libnotify]]
+		active = boolean(default=False)
+		event = options_list(options=list('all','fatal_error','queued_item','sort_successful','sort_failed'), default='all')
 	[[log]]
 		active = boolean(default=False)
 		event = options_list(options=list('all','fatal_error','queued_item','sort_successful','sort_failed'), default='all')

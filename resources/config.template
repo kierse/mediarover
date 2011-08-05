@@ -493,16 +493,19 @@
 #    [notification]
 #       [[email]]
 #          active = True
-#          event = <event1>, <event2>, ...
+#          event = sort_successful, sort_failed
 #          to = example@some.domain
 #          smtp = smtp.gmail.com
 #          port = 587
 #          use_tls = True
 #          username = your.account@gmail.com
 #          password = <your.password>
+#       [[libnotify]]
+#          active = True
+#          when = fatal_error
 #       [[xbmc]]
-#         active = True
-#         root = http://localhost:8080
+#          active = True
+#          root = http://localhost:8080
 #
 # NOTE: you may configure more than one notification handler
 [notification]
@@ -540,6 +543,23 @@
 		# login credentials (if required by mail server)
 		#username = 
 		#password = 
+
+	[[libnotify]]
+		# NOTE: defaults to False
+		#active = False
+
+		# events to email
+		# NOTE: you may specify one or more options (separated by a comma)
+		#
+		# options:
+		#   all
+		#   fatal_error
+		#   queued_item
+		#   sort_successful
+		#   sort_failed
+		#
+		# NOTE: defaults to all
+		#event = all
 
 	[[xbmc]]
 		# NOTE: defaults to False
