@@ -21,8 +21,9 @@ SORT_SUCCESSFUL_NOTIFICATION = 'sort_successful'
 SORT_FAILED_NOTIFICATION = 'sort_failed'
 
 # notification handler labels
-LOG_NOTIFICATION = 'log'
 EMAIL_NOTIFICATION = 'email'
+LIBNOTIFY_NOTIFICATION = 'libnotify'
+LOG_NOTIFICATION = 'log'
 XBMC_NOTIFICATION = 'xbmc'
 
 # dependency injection specific constants
