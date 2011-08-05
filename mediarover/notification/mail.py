@@ -35,7 +35,7 @@ class EmailNotificationHandler(NotificationHandler):
 			self.__smtp.quit()
 
 	def configure(self, params):
-		logger = logging.getLogger("mediarover.notification.email")
+		logger = logging.getLogger("mediarover.notification.mail")
 
 		super(EmailNotificationHandler, self).configure(params)
 

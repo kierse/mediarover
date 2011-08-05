@@ -25,7 +25,7 @@ class NotificationHandler(object):
 		self._params = params
 
 		if params['event'] is None:
-			self._watching_event = frozen_set()
+			self._watching_event = frozenset()
 		else:
 			self._watching_event = frozenset(params['event'])
 
