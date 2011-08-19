@@ -69,7 +69,7 @@
 [notification]
 	[[email]]
 		active = boolean(default=False)
-		event = options_list(options=list('all','fatal_error','queued_item','sort_successful','sort_failed'), default='all')
+		event = options_list(options=list('all','delayed_item','fatal_error','queued_item','sort_successful','sort_failed'), default='all')
 		recipient = email(default=None) 
 		username = string(default=None)
 		password = string(default=None)
@@ -79,10 +79,10 @@
 		#use_ssl = boolean(default=False)
 	[[libnotify]]
 		active = boolean(default=False)
-		event = options_list(options=list('all','fatal_error','queued_item','sort_successful','sort_failed'), default='all')
+		event = options_list(options=list('all','delayed_item','fatal_error','queued_item','sort_successful','sort_failed'), default='all')
 	[[log]]
 		active = boolean(default=False)
-		event = options_list(options=list('all','fatal_error','queued_item','sort_successful','sort_failed'), default='all')
+		event = options_list(options=list('all','delayed_item','fatal_error','queued_item','sort_successful','sort_failed'), default='all')
 	[[xbmc]]
 		active = boolean(default=False)
 		root = url(default='http://localhost:8080')

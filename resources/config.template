@@ -483,6 +483,7 @@
 #
 # Supported events:
 #
+#   delayed_item    - Media Rover identifies an NZB for future download
 #   fatal_error     - triggered when an unexpected error is encountered
 #   queued_item     - Media Rover schedules an NZB for download
 #   sort_successful - Media Rover successfully sorts a download
