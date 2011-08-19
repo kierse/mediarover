@@ -37,9 +37,11 @@ from mediarover.notification import Notification
 from mediarover.series import Series, build_series_lists 
 from mediarover.version import __app_version__
 
-from mediarover.constant import (CONFIG_DIR, CONFIG_OBJECT, EPISODE_FACTORY_OBJECT, FATAL_ERROR_NOTIFICATION, FILESYSTEM_FACTORY_OBJECT,
-											HIGH, LOW, MEDIUM, METADATA_OBJECT, NOTIFICATION_OBJECT, QUEUED_ITEM_NOTIFICATION,
-											RESOURCES_DIR, WATCHED_SERIES_LIST)
+from mediarover.constant import (CONFIG_DIR, CONFIG_OBJECT, DELAYED_ITEM_NOTIFICATION,
+											EPISODE_FACTORY_OBJECT, FATAL_ERROR_NOTIFICATION, 
+											FILESYSTEM_FACTORY_OBJECT, HIGH, LOW, MEDIUM, METADATA_OBJECT, 
+											NOTIFICATION_OBJECT, QUEUED_ITEM_NOTIFICATION, RESOURCES_DIR, 
+											WATCHED_SERIES_LIST)
 
 def schedule(broker, args):
 
