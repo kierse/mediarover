@@ -1,0 +1,13 @@
+---
+layout: announcement
+title: 0.8.0 released!
+desc: "Key fetures of this release: notification system"
+---
+
+Announcing Media Rover 0.8.0! 
+
+*Release Details:*
+
+* added notification framework. User can now register handlers that will be triggered as various events are encountered throughout execution.
+
+Get the latest code updates "here":http://mediarover.tv/#installation, or you can grab them straight from "GitHub":http://github.com/kierse/mediarover/archives/v0.8.0
