@@ -26,6 +26,8 @@ class InvalidMultiEpisodeData(Exception): pass
 class InvalidRemoteData(Exception): pass
 class InvalidURL(Exception): pass
 class MissingParameterError(Exception): pass
+class NotificationHandlerError(Exception): pass
+class NotificationHandlerInitializationError(Exception): pass
 class QueueDeletionError(Exception): pass
 class QueueInsertionError(Exception): pass
 class QueueRetrievalError(Exception): pass

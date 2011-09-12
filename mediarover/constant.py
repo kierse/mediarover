@@ -13,6 +13,19 @@ NZBMATRIX = 'nzbmatrix'
 NZBS = 'nzbs'
 NZBSRUS = 'nzbsrus'
 
+# notification events
+FATAL_ERROR_NOTIFICATION = 'fatal_error'
+DELAYED_ITEM_NOTIFICATION = 'delayed_item'
+QUEUED_ITEM_NOTIFICATION = 'queued_item'
+SORT_SUCCESSFUL_NOTIFICATION = 'sort_successful'
+SORT_FAILED_NOTIFICATION = 'sort_failed'
+
+# notification handler labels
+EMAIL_NOTIFICATION = 'email'
+LIBNOTIFY_NOTIFICATION = 'libnotify'
+LOG_NOTIFICATION = 'log'
+XBMC_NOTIFICATION = 'xbmc'
+
 # dependency injection specific constants
 CONFIG_DIR = 'config_dir'
 CONFIG_OBJECT = 'config'
@@ -21,6 +34,7 @@ FILESYSTEM_FACTORY_OBJECT = 'filesystem_factory'
 IGNORED_SERIES_LIST = 'ignored_series'
 METADATA_OBJECT = 'metadata_data_store'
 NEWZBIN_FACTORY_OBJECT = NEWZBIN
+NOTIFICATION_OBJECT = 'notification'
 NZBCLUB_FACTORY_OBJECT = NZBCLUB
 NZBINDEX_FACTORY_OBJECT = NZBINDEX
 NZBMATRIX_FACTORY_OBJECT = NZBMATRIX

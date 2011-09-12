@@ -33,12 +33,15 @@ from mediarover.error import (ConfigurationError, FailedDownload, FilesystemErro
 										UrlRetrievalError)
 from mediarover.filesystem.episode import FilesystemEpisode
 from mediarover.filesystem.factory import FilesystemFactory
+from mediarover.notification import Notification
 from mediarover.series import Series, build_series_lists 
 from mediarover.version import __app_version__
 
-from mediarover.constant import (CONFIG_DIR, CONFIG_OBJECT, METADATA_OBJECT, EPISODE_FACTORY_OBJECT, 
-											FILESYSTEM_FACTORY_OBJECT, RESOURCES_DIR, WATCHED_SERIES_LIST)
-from mediarover.utils.quality import LOW, MEDIUM, HIGH
+from mediarover.constant import (CONFIG_DIR, CONFIG_OBJECT, DELAYED_ITEM_NOTIFICATION,
+											EPISODE_FACTORY_OBJECT, FATAL_ERROR_NOTIFICATION, 
+											FILESYSTEM_FACTORY_OBJECT, HIGH, LOW, MEDIUM, METADATA_OBJECT, 
+											NOTIFICATION_OBJECT, QUEUED_ITEM_NOTIFICATION, RESOURCES_DIR, 
+											WATCHED_SERIES_LIST)
 
 def schedule(broker, args):
 
@@ -91,6 +94,7 @@ Examples:
 	broker.register(METADATA_OBJECT, Metadata())
 	broker.register(EPISODE_FACTORY_OBJECT, EpisodeFactory())
 	broker.register(FILESYSTEM_FACTORY_OBJECT, FilesystemFactory())
+	broker.register(NOTIFICATION_OBJECT, Notification())
 
 	# register source dependencies
 	register_source_factories(broker)
@@ -102,6 +106,7 @@ Examples:
 	try:
 		__schedule(broker, options)
 	except Exception, e:
+		broker[NOTIFICATION_OBJECT].process(FATAL_ERROR_NOTIFICATION, 'Media Rover died unexpectedly: %s' % e.args[0])
 		logger.exception(e)
 		raise
 	else:
@@ -111,6 +116,7 @@ Examples:
 			logger.info("DONE")
 	finally:
 		broker[METADATA_OBJECT].cleanup()
+		broker[NOTIFICATION_OBJECT].cleanup()
 
 def __schedule(broker, options):
 
@@ -129,9 +135,7 @@ def __schedule(broker, options):
 	if options.dry_run:
 		logger.info("--dry-run flag detected!  No new downloads will be queued during execution!")
 
-	config = broker[CONFIG_OBJECT]
 	tv_root = config['tv']['tv_root']
-
 	if not len(tv_root):
 		raise ConfigurationError("You must declare at least one tv_root directory!")
 
@@ -304,11 +308,16 @@ def __schedule(broker, options):
 			for item in scheduled:
 				if item.delay > 0:
 					delayed.append(item)
-					continue
-				try:
-					queue.add_to_queue(item)
-				except (IOError, QueueInsertionError), e:
-					logger.warning("unable to schedule item %s for download: %s" % (item.title, e.args[0]))
+				else:
+					try:
+						queue.add_to_queue(item)
+					except (IOError, QueueInsertionError), e:
+						logger.warning("unable to schedule item %s for download: %s" % (item.title, e.args[0]))
+					else:
+						broker[NOTIFICATION_OBJECT].process(
+							QUEUED_ITEM_NOTIFICATION, 
+							"'%s' was queued for download" % item.title
+						)
 		else:
 			logger.info("no items to schedule for download")
 
@@ -318,6 +327,10 @@ def __schedule(broker, options):
 			for item in delayed:
 				if item not in existing:
 					broker[METADATA_OBJECT].add_delayed_item(item)
+					broker[NOTIFICATION_OBJECT].process(
+						DELAYED_ITEM_NOTIFICATION, 
+						"'%s' was delayed for %d iteration(s)" % (item.title, item.delay)
+					)
 				else:
 					logger.debug("skipping %s, already delayed" % item.title)
 
