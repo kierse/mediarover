@@ -394,6 +394,9 @@ def __episode_sort(broker, options, **kwargs):
 		else:
 			logger.info("downloaded episode moved from '%s' to '%s'", orig_path, new_path)
 
+			# make sure the file has the correct permissions
+			os.chmod(new_path, int(0777) - config['tv']['umask'])
+
 			# update episode and set new filesystem path
 			file.path = new_path
 

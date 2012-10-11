@@ -10,7 +10,7 @@
 
 [tv]
 	tv_root = path_list()
-	umask = integer(default=022)
+	umask = umask(default='022')
 	category = string(default=tv)
 	priority = option('normal', 'high', 'low', 'force', default='normal')
 	ignored_extensions = string_list(default=list("nfo","txt","sfv","srt","nzb","idx","log","par","par2","exe","bat","com","tbn","jpg","png","gif","info","db","srr"))

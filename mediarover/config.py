@@ -357,6 +357,18 @@ def check_options_list(selections, **kargs):
 
 	return selections
 
+def check_umask(umask, **kwargs):
+  """ make sure the given umask is valid """
+
+  if umask in ("", None):
+    if 'default' in kwargs:
+      umask = kwargs['default']
+  else:
+    if len(umask) not in [3,4] or re.match("[^01234567]", umask):
+      raise VdtValueError(umask)
+
+  return int(umask)
+
 def build_series_filters(config, seed=None):
 	""" build dict of series filters based on sane defaults or available global values """
 
@@ -458,6 +470,7 @@ def _get_validator():
 	vdt.functions['path_list'] = check_filesystem_path_list
 	vdt.functions['string_list'] = check_string_list
 	vdt.functions['url'] = check_url
+	vdt.functions['umask'] = check_umask
 
 	return vdt
 
