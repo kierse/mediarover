@@ -154,12 +154,6 @@ Examples:
 
 	logger.debug(sys.argv[0] + " episode-sort " + " ".join(map(lambda x: "'" + x + "'", args)))
 
-	# sanitize tv series filter subsection names for 
-	# consistent lookups
-	for name, filters in config['tv']['filter'].items():
-		del config['tv']['filter'][name]
-		config['tv']['filter'][Series.sanitize_series_name(name)] = build_series_filters(config, filters)
-
 	""" main """
 
 	# check if user has requested a dry-run
