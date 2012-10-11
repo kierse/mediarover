@@ -86,6 +86,9 @@ Examples:
 		print e
 		exit(1)
 
+	# set umask so all files and directories have the proper permissions
+	os.umask(config['tv']['umask'])
+
 	# sanitize tv series filter subsection names for 
 	# consistent lookups
 	for name, filters in config['tv']['filter'].items():
